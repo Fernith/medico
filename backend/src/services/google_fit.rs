@@ -138,17 +138,35 @@ pub async fn sync_sleep_data(pool: &PgPool) -> Result<(), String> {
         return Err(format!("Google Fit API respondió con error: {}", error_text));
     }
 
+    
+
     let fit_res = response.json::<FitSessionResponse>()
         .await
         .map_err(|e| format!("Error decodificando el JSON de Google Fit: {}", e))?;
 
     for session in fit_res.session {
+        println!("Respuesta: {:?}", session);
         if session.activityType == 72 { 
             let start_ms = session.startTimeMillis.parse::<i64>().unwrap_or(0);
             let end_ms = session.endTimeMillis.parse::<i64>().unwrap_or(0);
             
             if start_ms > 0 && end_ms > 0 {
-                let duracion_horas = (end_ms - start_ms) as f64 / 3600000.0;
+                //let duracion_horas = (end_ms - start_ms) as f64 / 3600000.0;
+                let elapsed_ms = end_ms - start_ms;
+                let total_minutes = (elapsed_ms / 1000) / 60;
+    
+                // Separamos horas y minutos
+                let hours = total_minutes / 60;
+                let minutes = total_minutes % 60;
+                
+                // Construimos el decimal literal (ej. 7.0 + 0.44 = 7.44)
+                let valor_db = (hours as f64) + (minutes as f64 / 100.0);
+                
+                // Redondeamos a 2 decimales para evitar problemas de precisión del f64 
+                // antes de enviarlo a PostgreSQL (ej. que envíe 7.4399999999)
+                (valor_db * 100.0).round() / 100.0;
+
+                
                 let fecha_sesion = DateTime::from_timestamp(start_ms / 1000, 0)
                     .unwrap_or_default()
                     .naive_utc()
@@ -158,7 +176,7 @@ pub async fn sync_sleep_data(pool: &PgPool) -> Result<(), String> {
                     "INSERT INTO sueno (fecha, horas_sueno, google_fit_session_id)
                      VALUES ($1, $2::FLOAT8, $3)
                      ON CONFLICT (google_fit_session_id) DO NOTHING",
-                    fecha_sesion, duracion_horas, session.id
+                    fecha_sesion, valor_db, session.id
                 ).execute(pool).await.ok();
             }
         }
