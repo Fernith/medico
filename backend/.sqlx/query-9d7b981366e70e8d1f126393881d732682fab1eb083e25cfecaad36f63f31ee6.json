@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE configuracion SET access_token = $1, token_expiry = $2, updated_at = NOW()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9d7b981366e70e8d1f126393881d732682fab1eb083e25cfecaad36f63f31ee6"
+}

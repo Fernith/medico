@@ -1,0 +1,3 @@
+models::pesos::_::<impl Deserialize<'de> for CreatePesoDto>::deserialize::__Field
+models::pesos::_::<impl Deserialize<'de> for MomentoDia>::deserialize::__Field
+models::pesos::_::<impl Deserialize<'de> for PesoEntity>::deserialize::__Field

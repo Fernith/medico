@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, fecha, horas_sueno::FLOAT8 as \"horas_sueno!\", google_fit_session_id FROM sueno ORDER BY fecha DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "fecha",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 2,
+        "name": "horas_sueno!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "google_fit_session_id",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "1aeece2262f7073bdeb4b8c2c054dadbe6ac95e87f560875993f58ca65b8f237"
+}
