@@ -1,2 +1,0 @@
-models::sueno::_::<impl Deserialize<'de> for SuenoEntity>::deserialize::__Field
-models::sueno::_::<impl Deserialize<'de> for TokenCallbackQuery>::deserialize::__Field
