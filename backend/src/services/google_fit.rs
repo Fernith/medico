@@ -161,12 +161,7 @@ pub async fn sync_sleep_data(pool: &PgPool) -> Result<(), String> {
                 
                 // Construimos el decimal literal (ej. 7.0 + 0.44 = 7.44)
                 let valor_db = (hours as f64) + (minutes as f64 / 100.0);
-                
-                // Redondeamos a 2 decimales para evitar problemas de precisión del f64 
-                // antes de enviarlo a PostgreSQL (ej. que envíe 7.4399999999)
-                (valor_db * 100.0).round() / 100.0;
-
-                
+                                
                 let fecha_sesion = DateTime::from_timestamp(start_ms / 1000, 0)
                     .unwrap_or_default()
                     .naive_utc()
