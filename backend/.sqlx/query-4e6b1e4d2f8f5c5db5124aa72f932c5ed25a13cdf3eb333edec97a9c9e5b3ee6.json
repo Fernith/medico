@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM ciclos_menstruales WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4e6b1e4d2f8f5c5db5124aa72f932c5ed25a13cdf3eb333edec97a9c9e5b3ee6"
+}

@@ -1,17 +1,33 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ label, className, ...props }) => {
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{label}</label>
-      <input 
-        className={`px-3 py-2 border border-slate-200 bg-white rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${className}`} 
-        {...props} 
-      />
-    </div>
-  );
-};
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className = '', label, error, id, ...props }, ref) => {
+    const inputId = id || Math.random().toString(36).substring(7);
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+        )}
+        <input
+          id={inputId}
+          ref={ref}
+          className={`w-full px-3 py-2 bg-white border rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 disabled:bg-gray-100 disabled:text-gray-500 ${
+            error ? 'border-red-500' : 'border-pink-200'
+          } ${className}`}
+          {...props}
+        />
+        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+      </div>
+    );
+  }
+);
+
+Input.displayName = 'Input';

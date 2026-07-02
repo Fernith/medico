@@ -5,7 +5,7 @@ interface AjustesContextType {
   actualizarAjuste: (clave: string, valor: string) => Promise<void>;
 }
 
-const AjustesContext = createContext<AjustesContextType | undefined>(undefined);
+export const AjustesContext = createContext<AjustesContextType | undefined>(undefined);
 
 export const AjustesProvider = ({ children }: { children: React.ReactNode }) => {
   const [ajustes, setAjustes] = useState<Record<string, string>>({});
@@ -13,7 +13,12 @@ export const AjustesProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     fetch('/api/ajustes')
       .then(res => res.json())
-      .then(data => setAjustes(data))
+      .then(data => {
+        // Aseguramos que data es un objeto Record<string, string>
+        // Si tu backend devuelve un array de objetos [{clave: 'x', valor: 'y'}], 
+        // tendrías que mapearlo aquí. Asumo que devuelve el objeto directo.
+        setAjustes(data);
+      })
       .catch(console.error);
   }, []);
 

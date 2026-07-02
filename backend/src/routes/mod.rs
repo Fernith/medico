@@ -1,11 +1,11 @@
 use axum::{
-    routing::{get},
+    routing::{get, post, put, delete},
     Router,
 };
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -20,6 +20,9 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/auth/google/callback", get(google_fit::oauth_callback))
         // AJUSTES
         .route("/api/ajustes", get(ajustes::listar_ajustes).post(ajustes::guardar_ajuste))
+        // REGLA
+        .route("/api/ciclos", get(regla::get_ciclos).post(regla::create_ciclo))
+        .route("/api/ciclos/:id", put(regla::update_ciclo).delete(regla::delete_ciclo))
         
         // Inyectamos la conexión de base de datos a todas las rutas
         .with_state(pool)
