@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT COALESCE(SUM(cantidad), 0) as \"total!\" \n        FROM pasos \n        WHERE date_trunc('month', fecha) = date_trunc('month', CURRENT_DATE)\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "1197c23fb51a6206a36f5a4d9b556001c9bcff00f6813f21a25ee4983b659546"
+}

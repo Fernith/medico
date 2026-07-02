@@ -9,7 +9,7 @@ pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
     // 1. Disparador Inicial (Se ejecuta al arrancar el servidor)
     tokio::spawn(async move {
         println!("[Iniciación] Comprobando actualizaciones en Google Fit...");
-        match services::google_fit::sync_sleep_data(&pool_servidor).await {
+        match services::google_fit::sync_data(&pool_servidor).await {
             Ok(_) => println!("[Iniciación] Datos sincronizados correctamente al arrancar."),
             Err(e) => eprintln!("[Iniciación Alert] Fallo al sincronizar en arranque: {}", e),
         }
@@ -22,7 +22,7 @@ pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
             let pool = pool_cron.clone();
             Box::pin(async move {
                 println!("[Cron 12 AM] Iniciando tarea planificada de sueño...");
-                let _ = services::google_fit::sync_sleep_data(&pool).await;
+                let _ = services::google_fit::sync_data(&pool).await;
             })
         }).unwrap();
 

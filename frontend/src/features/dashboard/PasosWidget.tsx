@@ -5,9 +5,8 @@ interface PasosWidgetProps {
   data: {
     hoy: number;
     meta: number;
-    ultimos7DiasMin: number;
-    ultimos7DiasMax: number;
-    media7Dias: number;
+    totalMes: number;
+    metaMensual: number;
   }
 }
 
@@ -19,7 +18,13 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
     { value: 100 - porcPasos, fill: '#fce7f3' } 
   ];
   
-  const dataRango = [{ name: 'Rango', valor: [data.ultimos7DiasMin, data.ultimos7DiasMax] }];
+  // La barra gráfica se topa en la meta, no la sobrepasa visualmente
+  const barraVisualMes = Math.min(data.totalMes, data.metaMensual);
+  const dataRango = [{ name: 'Mes', valor: barraVisualMes }];
+  
+  const porcMes = (data.totalMes / data.metaMensual) * 100;
+  // Posición del pin indicador de progreso
+  const pinPercent = Math.min(100, porcMes);
 
   const IconoEstado = data.hoy >= data.meta 
     ? <Smile className="w-10 h-10 text-green-500" />
@@ -28,9 +33,8 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
       : <Frown className="w-10 h-10 text-pink-500" />;
 
   return (
-    <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100">
+    <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
       
-      {/* LÍNEA 1: Cabecera y Resumen Total */}
       <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-pink-50 rounded-2xl">
@@ -50,10 +54,8 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
         </div>
       </div>
 
-      {/* LÍNEA 2: Grid 2 Columnas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
         
-        {/* Columna Izquierda: Rosco */}
         <div className="flex items-center justify-center md:justify-start gap-8">
           <div className="h-32 w-32 relative flex justify-center items-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -67,37 +69,46 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
           </div>
           <div>
             <p className="text-lg font-bold text-slate-800">Progreso diario</p>
-            <p className="text-sm text-slate-500 mt-1">Tu objetivo es llegar<br/>a {data.meta} pasos.</p>
+            <p className="text-sm text-slate-500 mt-1">Tu meta es de<br/>{data.meta.toLocaleString()} pasos.</p>
           </div>
         </div>
 
-        {/* Columna Derecha: Barra Rango */}
-        <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
-          <div className="flex justify-between text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">
-            <span>Rango últimos 7 días</span>
-            <span>Media: <span className="text-slate-700">{data.media7Dias.toLocaleString('es-ES')}</span></span>
+        {/* CONTENEDOR RETO MENSUAL */}
+        <div className="bg-slate-50/50 p-5 pt-7 rounded-2xl border border-slate-100">
+          <div className="flex justify-between items-end text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">
+            <span>Reto Mensual</span>
+            <span className="text-[10px]">Progreso: <span className="text-slate-700 text-xs">{porcMes.toFixed(1)}%</span></span>
           </div>
           
-          <div className="h-8">
+          <div className="h-8 relative">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart layout="vertical" data={dataRango} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <XAxis type="number" domain={[0, 'dataMax + 2000']} hide />
+                <XAxis type="number" domain={[0, data.metaMensual]} hide />
                 <YAxis type="category" dataKey="name" hide />
-                <Tooltip cursor={{fill: 'transparent'}} />
+                <Tooltip 
+                  cursor={{fill: 'transparent'}} 
+                  formatter={() => [`${data.totalMes.toLocaleString('es-ES')} pasos`, 'Total Acumulado']} 
+                />
                 <Bar dataKey="valor" fill="#f9a8d4" radius={12} background={{ fill: '#f1f5f9' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           
-          <div className="flex justify-between text-[11px] text-slate-400 mt-3 font-medium">
-            <span>0</span>
-            <span className="text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded-md">{data.ultimos7DiasMin}</span>
-            <span className="text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded-md">{data.ultimos7DiasMax}</span>
+          <div className="relative mt-3 h-6 text-[11px] font-medium w-full">
+            <span className="absolute left-0 top-0 text-slate-400">0</span>
+            
+            <span 
+              className="absolute top-0 -translate-x-1/2 text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded-md transition-all duration-500"
+              style={{ left: `${pinPercent}%` }}
+            >
+              {data.totalMes.toLocaleString('es-ES')}
+            </span>
+            
+            <span className="absolute right-0 top-0 text-slate-400">{data.metaMensual.toLocaleString('es-ES')}</span>
           </div>
         </div>
 
       </div>
-
     </div>
   );
 };

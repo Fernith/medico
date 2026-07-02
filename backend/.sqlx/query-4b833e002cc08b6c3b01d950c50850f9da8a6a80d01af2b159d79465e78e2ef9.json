@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE configuracion SET access_token = $1, token_expiry = $2, updated_at = NOW()",
+  "query": "UPDATE configuracion SET access_token = $1, token_expiry = $2",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "9d7b981366e70e8d1f126393881d732682fab1eb083e25cfecaad36f63f31ee6"
+  "hash": "4b833e002cc08b6c3b01d950c50850f9da8a6a80d01af2b159d79465e78e2ef9"
 }

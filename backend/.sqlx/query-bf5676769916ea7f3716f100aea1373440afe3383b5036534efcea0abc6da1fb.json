@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sueno (fecha, minutos_sueno) VALUES ($1, $2) ON CONFLICT (fecha) DO UPDATE SET minutos_sueno = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bf5676769916ea7f3716f100aea1373440afe3383b5036534efcea0abc6da1fb"
+}

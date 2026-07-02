@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id as \"id!\", \n            fecha as \"fecha!\", \n            minutos_sueno as \"minutos_sueno!\"\n        FROM sueno \n        ORDER BY fecha DESC \n        LIMIT 7\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "fecha!",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 2,
+        "name": "minutos_sueno!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f1ce367488df4d78960acb044d49323e9ea7247e6e4abc702ef4e5a34b06dae2"
+}

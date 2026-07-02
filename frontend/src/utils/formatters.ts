@@ -5,15 +5,16 @@ export const getFechaFormateada = () => {
   return { diaSemana, fechaCompleta };
 };
 
-// 8h = 100%, +/- 1h = -20%
-export const calcularPorcentajeSueno = (horas: number) => {
-  const diferencia = Math.abs(8 - horas);
-  const porcentaje = 100 - (diferencia * 20);
-  return Math.max(0, Math.min(100, porcentaje)); 
+// Convierte minutos totales (ej: 464) a formato humano "7 h 44 min"
+export const formatearMinutos = (minutosTotales: number) => {
+  const horas = Math.floor(minutosTotales / 60);
+  const minutos = Math.round(minutosTotales % 60);
+  return `${horas} h ${minutos} min`;
 };
 
-export const formatearHoras = (horasDecimales: number) => {
-  const horas = Math.floor(horasDecimales);
-  const minutos = Math.round((horasDecimales % 1) * 60);
-  return `${horas} h ${minutos} min`;
+// 8h = 480 min (100%). Cada 60 min de diferencia resta 20%
+export const calcularPorcentajeSuenoMinutos = (minutos: number) => {
+  const diferencia = Math.abs(480 - minutos);
+  const porcentaje = 100 - ((diferencia / 60) * 20);
+  return Math.max(0, Math.min(100, porcentaje)); 
 };
