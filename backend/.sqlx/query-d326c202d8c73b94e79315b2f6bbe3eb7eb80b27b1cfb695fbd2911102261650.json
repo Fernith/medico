@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT cantidad as \"cantidad!\", fecha as \"fecha!\" FROM pasos ORDER BY fecha DESC LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "cantidad!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "fecha!",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "d326c202d8c73b94e79315b2f6bbe3eb7eb80b27b1cfb695fbd2911102261650"
+}

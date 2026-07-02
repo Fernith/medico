@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ajustes_usuario (clave, valor) VALUES ($1, $2) ON CONFLICT (clave) DO UPDATE SET valor = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f65ef956c54739decbda224de210491749790ff382cd0336b723e7b3a9177ed0"
+}

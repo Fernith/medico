@@ -1,17 +1,25 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Moon, Scale, Droplet, Menu, X, User, Settings } from 'lucide-react';
+import { Activity, Moon, Scale, Droplet, Menu, X, User, Settings, Pill, Stethoscope } from 'lucide-react';
+import { useAjustes } from '../../context/AjustesContext';
 
 export const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { ajustes } = useAjustes();
+  const mostrarRegla = ajustes['mostrar_regla'] !== 'false';
   
   const navItems = [
     { path: '/', icon: Activity, label: 'Resumen', activeColor: 'text-purple-600 bg-purple-50' },
     { path: '/peso', icon: Scale, label: 'Peso', activeColor: 'text-orange-600 bg-orange-50' },
     { path: '/sueno', icon: Moon, label: 'Sueño', activeColor: 'text-purple-600 bg-purple-50' },
-    { path: '/regla', icon: Droplet, label: 'Regla', activeColor: 'text-pink-600 bg-pink-50' },
+    { path: '/medicamentos', icon: Pill, label: 'Medicamentos', activeColor: 'text-blue-600 bg-blue-50' },
+    { path: '/sintomas', icon: Stethoscope, label: 'Síntomas', activeColor: 'text-emerald-600 bg-emerald-50' },
   ];
+
+  if (mostrarRegla) {
+    navItems.push({ path: '/regla', icon: Droplet, label: 'Regla', activeColor: 'text-pink-600 bg-pink-50' });
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-slate-200 z-50 shadow-sm">
