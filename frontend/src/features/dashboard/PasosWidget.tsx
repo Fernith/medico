@@ -1,5 +1,6 @@
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Activity, Smile, Meh, Frown } from 'lucide-react';
+import { formatearFechaRelativa } from '../../utils/formatters';
 
 interface PasosWidgetProps {
   data: {
@@ -7,6 +8,7 @@ interface PasosWidgetProps {
     meta: number;
     totalMes: number;
     metaMensual: number;
+    ultimaFecha: string | null;
   }
 }
 
@@ -18,12 +20,10 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
     { value: 100 - porcPasos, fill: '#fce7f3' } 
   ];
   
-  // La barra gráfica se topa en la meta, no la sobrepasa visualmente
   const barraVisualMes = Math.min(data.totalMes, data.metaMensual);
   const dataRango = [{ name: 'Mes', valor: barraVisualMes }];
   
   const porcMes = (data.totalMes / data.metaMensual) * 100;
-  // Posición del pin indicador de progreso
   const pinPercent = Math.min(100, porcMes);
 
   const IconoEstado = data.hoy >= data.meta 
@@ -31,6 +31,8 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
     : data.hoy >= 6000 
       ? <Meh className="w-10 h-10 text-orange-400" />
       : <Frown className="w-10 h-10 text-pink-500" />;
+
+  const { sufijo } = formatearFechaRelativa(data.ultimaFecha);
 
   return (
     <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
@@ -47,7 +49,7 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Caminados hoy</p>
+            <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Caminados {sufijo}</p>
             <p className="text-3xl md:text-4xl font-black text-pink-600">{data.hoy.toLocaleString('es-ES')}</p>
           </div>
           <div className="hidden md:block">{IconoEstado}</div>
@@ -73,7 +75,6 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
           </div>
         </div>
 
-        {/* CONTENEDOR RETO MENSUAL */}
         <div className="bg-slate-50/50 p-5 pt-7 rounded-2xl border border-slate-100">
           <div className="flex justify-between items-end text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">
             <span>Reto Mensual</span>

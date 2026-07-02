@@ -1,4 +1,4 @@
-//use chrono::NaiveDate;
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 /*#[derive(Debug, Serialize, Deserialize)]
@@ -11,4 +11,5 @@ pub struct PasosEntity {
 pub struct PasosDashboardResponse {
     pub hoy: i32,
     pub total_mes: i32,
+    pub ultima_fecha: Option<NaiveDate>,
 }

@@ -1,6 +1,6 @@
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Moon } from 'lucide-react';
-import { calcularPorcentajeSuenoMinutos, formatearMinutos } from '../../utils/formatters';
+import { calcularPorcentajeSuenoMinutos, formatearMinutos, formatearFechaRelativa } from '../../utils/formatters';
 
 interface SuenoWidgetProps {
   data: {
@@ -8,6 +8,7 @@ interface SuenoWidgetProps {
     ultimos7DiasMin: number;
     ultimos7DiasMax: number;
     media7Dias: number;
+    ultimaFecha: string | null;
   }
 }
 
@@ -23,9 +24,9 @@ export const SuenoWidget = ({ data }: SuenoWidgetProps) => {
 
   const minPercent = (data.ultimos7DiasMin / 720) * 100;
   const maxPercent = (data.ultimos7DiasMax / 720) * 100;
-  
-  // Novedad: Porcentaje para la barra vertical de Media
   const mediaPercent = (data.media7Dias / 720) * 100;
+
+  const { esHoy, sufijo } = formatearFechaRelativa(data.ultimaFecha);
 
   return (
     <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
@@ -41,7 +42,9 @@ export const SuenoWidget = ({ data }: SuenoWidgetProps) => {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Has dormido</p>
+          <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">
+            {esHoy ? 'Has dormido' : `Dormiste ${sufijo}`}
+          </p>
           <p className="text-3xl md:text-4xl font-black text-purple-600">{formatearMinutos(data.hoyMinutos)}</p>
         </div>
       </div>
@@ -87,7 +90,6 @@ export const SuenoWidget = ({ data }: SuenoWidgetProps) => {
               </BarChart>
             </ResponsiveContainer>
 
-            {/* MARCADOR VERTICAL DE MEDIA */}
             <div 
               className="absolute top-[-8px] bottom-[-4px] w-[2px] bg-slate-400/60 z-10 rounded-full pointer-events-none"
               style={{ left: `${mediaPercent}%` }}

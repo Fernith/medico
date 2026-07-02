@@ -101,7 +101,7 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
         let texto_crudo = res_pasos.text().await.unwrap_or_default();
         
         // CHIVATO DE PASOS: Para depurar los valores de Zepp vs Google
-        println!("=== DEBUG PASOS GOOGLE FIT ===\n{}\n=============================", texto_crudo);
+        //println!("=== DEBUG PASOS GOOGLE FIT ===\n{}\n=============================", texto_crudo);
         
         let json_data: serde_json::Value = serde_json::from_str(&texto_crudo).unwrap_or_default();
         if let Some(buckets) = json_data["bucket"].as_array() {
