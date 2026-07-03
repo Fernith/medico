@@ -7,7 +7,7 @@ interface ReglaBarrasProps {
 }
 
 export const ReglaBarras: React.FC<ReglaBarrasProps> = ({ ciclos, mediaCiclo }) => {
-  const maxDias = Math.max(mediaCiclo + 5, 40); 
+  const maxDias = Math.max(mediaCiclo + 5, 30); 
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-pink-100">
@@ -17,10 +17,10 @@ export const ReglaBarras: React.FC<ReglaBarrasProps> = ({ ciclos, mediaCiclo }) 
         {/* Línea vertical de la media adaptada al scroll */}
         <div 
           className="absolute top-0 bottom-0 border-l-2 border-gray-200 border-dashed z-0"
-          style={{ left: `${(mediaCiclo / maxDias) * 100}%` }}
+          style={{ left: `${((mediaCiclo - 1) / maxDias) * 100}%` }}
         >
           <span className="absolute -top-1 -ml-4 text-[10px] font-bold text-gray-400 bg-white px-1">
-            Media
+            Media {mediaCiclo}
           </span>
         </div>
 

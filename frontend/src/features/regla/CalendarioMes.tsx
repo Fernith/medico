@@ -9,7 +9,7 @@ interface CalendarioMesProps {
 }
 
 export const CalendarioMes: React.FC<CalendarioMesProps> = ({ year, month, mapaEstados, isLarge = false }) => {
-  const nombreMes = new Date(year, month).toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+  const nombreMes = new Date(year, month).toLocaleString('es-ES', { month: 'long'});
   const diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   
   const diasEnMes = new Date(year, month + 1, 0).getDate();
