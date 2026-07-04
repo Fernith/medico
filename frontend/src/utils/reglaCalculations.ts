@@ -39,8 +39,14 @@ export const generarMapaEstados = (
     ].join('-');
   };
 
+  // NUEVO: Ordenamos los ciclos cronológicamente (del más antiguo al más reciente)
+  // Esto es crucial para poder calcular "14 días antes del siguiente"
+  const ciclosOrdenados = [...ciclos].sort((a, b) => 
+    parseDate(a.fecha_inicio).getTime() - parseDate(b.fecha_inicio).getTime()
+  );
+
   // 1. Registrar los periodos reales (y sus días futuros si está en curso)
-  ciclos.forEach(ciclo => {
+  ciclosOrdenados.forEach(ciclo => {
     const inicio = parseDate(ciclo.fecha_inicio);
     const fin = ciclo.fecha_fin ? parseDate(ciclo.fecha_fin) : addDays(inicio, mediaPeriodo - 1);
     
@@ -59,8 +65,22 @@ export const generarMapaEstados = (
     }
   });
 
-  // 2. Encadenar predicciones desde el ciclo más reciente
-  const cicloMasReciente = ciclos[0];
+  // 2. NUEVO: Calcular las ovulaciones PASADAS reales
+  // Empezamos desde el índice 1 porque restamos 14 días al inicio de cada ciclo
+  for (let i = 1; i < ciclosOrdenados.length; i++) {
+    const inicioSiguiente = parseDate(ciclosOrdenados[i].fecha_inicio);
+    const ovulacionPasada = addDays(inicioSiguiente, -14);
+    const strOvulacion = formatDate(ovulacionPasada);
+    
+    // Evitamos sobreescribir un día de periodo por seguridad
+    if (!mapa[strOvulacion]) {
+      mapa[strOvulacion] = 'ovulacion';
+    }
+  }
+
+  // 3. Encadenar predicciones desde el ciclo más reciente
+  // Al estar ordenados, el último del array es el más reciente
+  const cicloMasReciente = ciclosOrdenados[ciclosOrdenados.length - 1];
   let fechaInicioPrediccion = parseDate(cicloMasReciente.fecha_inicio);
   const fechaLimite = new Date(añoLimite, 11, 31);
   let ovulacionEncontrada = false;
@@ -71,7 +91,10 @@ export const generarMapaEstados = (
     
     // Solo marcamos una única ovulación: la primera que sea hoy o en el futuro
     if (!ovulacionEncontrada && ovulacion >= hoy) {
-      mapa[formatDate(ovulacion)] = 'ovulacion';
+      const strOvulacion = formatDate(ovulacion);
+      if (!mapa[strOvulacion]) {
+        mapa[strOvulacion] = 'ovulacion';
+      }
       ovulacionEncontrada = true;
     }
 

@@ -28,7 +28,7 @@ export const ReglaFormModal: React.FC<ReglaFormModalProps> = ({ isOpen, onClose,
     setError('');
   }, [cicloAEditar, isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!fechaInicio) {
       setError('La fecha de inicio es obligatoria.');
@@ -58,7 +58,9 @@ export const ReglaFormModal: React.FC<ReglaFormModalProps> = ({ isOpen, onClose,
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={cicloAEditar ? 'Modificar Ciclo' : 'Añadir Ciclo'}
+      title={cicloAEditar ? "Editar Ciclo" : "Añadir Ciclo"}
+      size="md"
+      preventClose={isSubmitting}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
@@ -69,6 +71,11 @@ export const ReglaFormModal: React.FC<ReglaFormModalProps> = ({ isOpen, onClose,
           value={fechaInicio}
           onChange={(e) => setFechaInicio(e.target.value)}
           required
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          }
         />
         
         <Input
@@ -76,25 +83,32 @@ export const ReglaFormModal: React.FC<ReglaFormModalProps> = ({ isOpen, onClose,
           label="Fin del periodo (Opcional)"
           value={fechaFin}
           onChange={(e) => setFechaFin(e.target.value)}
+          clearable
+          onClear={() => setFechaFin('')}
+          helperText="Déjalo en blanco si el periodo sigue en curso."
           className={!fechaFin ? 'border-dashed border-pink-300' : ''}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          }
         />
-        {!fechaFin && <p className="text-xs text-gray-500 mt-1">Déjalo en blanco si el periodo sigue en curso.</p>}
 
         <div className="flex justify-end gap-3 mt-6">
           <Button 
             type="button" 
             onClick={onClose} 
-            className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-none"
+            variant="ghost"
             disabled={isSubmitting}
           >
             Cancelar
           </Button>
           <Button 
             type="submit" 
-            className="bg-pink-500 text-white hover:bg-pink-600 border-none"
-            disabled={isSubmitting}
+            variant="primary"
+            isLoading={isSubmitting}
           >
-            {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+            Guardar Cambios
           </Button>
         </div>
       </form>

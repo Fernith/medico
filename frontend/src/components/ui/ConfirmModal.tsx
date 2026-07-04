@@ -1,11 +1,16 @@
+import { useEffect, useRef } from 'react';
+import { Button, type ButtonVariant } from './Button';
+
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
   description: string;
   onConfirm: () => void;
   onCancel: () => void;
-  confirmText?: string; // Opcional: por defecto será "Confirmar"
-  cancelText?: string;  // Opcional: por defecto será "Cancelar"
+  confirmText?: string;
+  cancelText?: string;
+  isConfirming?: boolean; // Para mostrar el spinner
+  variant?: Extract<ButtonVariant, 'primary' | 'secondary' | 'danger'>; // Vincula el modal con los colores de la app
 }
 
 export const ConfirmModal = ({
@@ -15,30 +20,71 @@ export const ConfirmModal = ({
   onConfirm,
   onCancel,
   confirmText = 'Confirmar',
-  cancelText = 'Cancelar'
+  cancelText = 'Cancelar',
+  isConfirming = false,
+  variant = 'primary' // Por defecto, usará tus tonos rosas
 }: ConfirmModalProps) => {
-  // Si no está abierto, no renderizamos absolutamente nada
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Accesibilidad: Cerrar al hacer clic fuera o pulsar Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Evitamos que se cierre si está en medio de un guardado/borrado
+      if (e.key === 'Escape' && !isConfirming) onCancel();
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node) && !isConfirming) {
+        onCancel();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onCancel, isConfirming]);
+
   if (!isOpen) return null;
+
+  // Diccionario para vincular el 'variant' del botón con el color del borde del modal
+  const borderColors = {
+    primary: 'border-pink-400',
+    secondary: 'border-orange-400',
+    danger: 'border-red-500',
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div 
+        ref={modalRef}
+        className={`bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200 border-2 ${borderColors[variant]}`}
+      >
         <h2 className="text-xl font-bold text-slate-800 mb-2">{title}</h2>
         <p className="text-slate-500 mb-8">{description}</p>
         
         <div className="flex gap-3">
-          <button 
+          <Button 
             onClick={onCancel} 
-            className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors"
+            variant="ghost" // Usa el diseño limpio de fondo blanco que hicimos
+            className="flex-1"
+            disabled={isConfirming}
           >
             {cancelText}
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={onConfirm} 
-            className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors"
+            variant={variant} // Pasa el color rojo/rosa/naranja dinámicamente
+            className="flex-1"
+            isLoading={isConfirming} // Mostrará el spinner si está procesando
           >
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

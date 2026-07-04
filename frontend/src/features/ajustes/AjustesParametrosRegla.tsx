@@ -17,8 +17,9 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({
   onSave, 
   isVisible 
 }) => {
-  const [ciclo, setCiclo] = useState(duracionCicloActual || 28);
-  const [periodo, setPeriodo] = useState(duracionPeriodoActual || 6);
+  const [ciclo, setCiclo] = useState<number | ''>(duracionCicloActual || 28);
+  const [periodo, setPeriodo] = useState<number | ''>(duracionPeriodoActual || 6);
+  
 
   // Mantener sincronizado el estado local si cambian las props externas
   useEffect(() => {
@@ -29,7 +30,11 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({
   if (!isVisible) return null;
 
   const handleSave = () => {
-    onSave(ciclo, periodo);
+    // Si el valor es un string vacío, lo convertimos a 0, si no, pasamos el número
+    const cicloFinal = ciclo === '' ? 0 : ciclo;
+    const periodoFinal = periodo === '' ? 0 : periodo;
+    
+    onSave(cicloFinal, periodoFinal);
   };
 
   return (
@@ -39,39 +44,60 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Duración media del ciclo (días)
-          </label>
-          <Input 
-            type="number" 
-            value={ciclo} 
-            onChange={(e) => setCiclo(Number(e.target.value))}
-            min={15}
-            max={60}
-            className="w-full border-pink-200 focus:ring-pink-500"
-          />
-        </div>
+        <Input 
+          type="number" 
+          label="Duración media del ciclo (días)"
+          value={ciclo} 
+          onChange={(e) => setCiclo(e.target.value === '' ? '' : Number(e.target.value))}
+          clearable
+          onClear={() => setCiclo('')}
+          min={15}
+          max={60}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          }
+          colorTheme={{
+            borderNormal: 'border-pink-200 hover:border-pink-300',
+            borderFocus: 'focus:ring-pink-500 focus:border-pink-500',
+            iconColor: 'text-pink-500',
+            labelColor: 'text-gray-700'
+          }}
+        />
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Duración media del periodo (días)
-          </label>
-          <Input 
-            type="number" 
-            value={periodo} 
-            onChange={(e) => setPeriodo(Number(e.target.value))}
-            min={1}
-            max={15}
-            className="w-full border-pink-200 focus:ring-pink-500"
-          />
-        </div>
+        <Input 
+          type="number" 
+          label="Duración media del periodo (días)"
+          value={periodo} 
+          onChange={(e) => setPeriodo(e.target.value === '' ? '' : Number(e.target.value))}
+          clearable
+          onClear={() => setPeriodo('')}
+          min={1}
+          max={15}
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          }
+          colorTheme={{
+            borderNormal: 'border-pink-200 hover:border-pink-300',
+            borderFocus: 'focus:ring-pink-500 focus:border-pink-500',
+            iconColor: 'text-pink-500',
+            labelColor: 'text-gray-700'
+          }}
+        />
       </div>
 
       <div className="mt-6 flex justify-end">
         <Button 
           onClick={handleSave}
-          className="bg-pink-500 hover:bg-pink-600 text-white"
+          variant="primary"
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+          }
         >
           Guardar Parámetros
         </Button>

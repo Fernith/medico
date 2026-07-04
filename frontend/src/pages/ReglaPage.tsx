@@ -6,10 +6,13 @@ import { type Ciclo, generarMapaEstados } from '../utils/reglaCalculations';
 import { useAjustes } from '../context/AjustesContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ReglaFormModal } from '../features/regla/ReglaFormModal';
+import { Select } from '../components/ui/Select';
 
 export const ReglaPage: React.FC = () => {
   const [vista, setVista] = useState<'mensual' | 'anual'>('mensual');
   const [yearAnual, setYearAnual] = useState<number>(new Date().getFullYear());
+
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [ciclos, setCiclos] = useState<Ciclo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -53,16 +56,19 @@ export const ReglaPage: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!cicloIdToDelete) return;
-    
+    setIsDeleting(true); // <--- ACTIVAMOS EL SPINNER
     try {
       const response = await fetch(`/api/ciclos/${cicloIdToDelete}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Error al borrar el registro');
       
       setCiclos(prev => prev.filter(c => c.id !== cicloIdToDelete));
       setDeleteModalOpen(false);
+      setCicloIdToDelete(null);
     } catch (err) {
       console.error(err);
       alert('Hubo un problema al borrar el registro.');
+    } finally {
+      setIsDeleting(false); // <--- DESACTIVAMOS EL SPINNER AL TERMINAR
     }
   };
 
@@ -182,29 +188,33 @@ export const ReglaPage: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center w-full">
               {/* Selector de año (Se queda igual que antes) */}
-              <div className="mb-8 relative inline-flex items-center bg-white rounded-xl shadow-sm border border-pink-200 hover:border-pink-300 transition-colors focus-within:ring-2 focus-within:ring-pink-500 focus-within:border-pink-500">
-                <div className="pl-4 pr-2 text-pink-500 pointer-events-none">
+              <Select 
+                className="w-48 mb-8"
+                value={yearAnual}
+                onChange={(val) => setYearAnual(Number(val))}
+                options={
+                  Array.from({ length: Math.max(1, currentYear - 2024 + 1) }, (_, i) => currentYear - i)
+                        .map(year => ({ value: year, label: year.toString() }))
+                }
+                colorTheme={{
+                  borderNormal: 'border-pink-200',
+                  borderActive: 'border-pink-400 ring-4 ring-pink-50',
+                  borderHover: 'hover:border-pink-300 hover:shadow-md',
+                  textSelected: 'text-purple-900',
+                  iconColor: 'text-pink-500',
+                  optionSelectedBg: 'bg-pink-50',
+                  optionSelectedText: 'text-pink-700',
+                  optionHoverBg: 'hover:bg-pink-50/50',
+                  optionHoverText: 'hover:text-purple-900',
+                  checkIcon: 'text-pink-500'
+                }}
+                icon={
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                </div>
-                <select 
-                  value={yearAnual}
-                  onChange={(e) => setYearAnual(Number(e.target.value))}
-                  className="appearance-none bg-transparent text-purple-900 font-bold text-lg py-3 pl-2 pr-10 focus:outline-none cursor-pointer w-32"
-                >
-                  {Array.from({ length: Math.max(1, currentYear - 2025 + 1) }, (_, i) => 2025 + i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-pink-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </div>
+                }
+              />
 
-              {/* Grid 12 Meses - Corregido */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-2 w-full">
                 {Array.from({ length: 12 }, (_, mes) => (
                   // Quitamos el div con scale-[0.95] y renderizamos CalendarioMes directamente
@@ -233,6 +243,8 @@ export const ReglaPage: React.FC = () => {
           setCicloIdToDelete(null);
         }}
         confirmText="Borrar"
+        variant="danger" // <--- APLICA EL BORDE ROJO Y BOTÓN ROJO
+        isConfirming={isDeleting} // <--- CONTROLA EL SPINNER
       />
 
       <ReglaFormModal
