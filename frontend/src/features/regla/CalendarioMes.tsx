@@ -5,7 +5,7 @@ interface CalendarioMesProps {
   year: number;
   month: number;
   mapaEstados: Record<string, DiaEstado>;
-  isLarge?: boolean; // Nueva prop
+  isLarge?: boolean;
 }
 
 export const CalendarioMes: React.FC<CalendarioMesProps> = ({ year, month, mapaEstados, isLarge = false }) => {
@@ -33,7 +33,6 @@ export const CalendarioMes: React.FC<CalendarioMesProps> = ({ year, month, mapaE
 
     const estado = mapaEstados[fechaString];
     
-    // Tamaños dinámicos dependiendo de la prop isLarge
     const tamanoBase = isLarge 
       ? "w-10 h-10 md:w-14 md:h-14 text-base md:text-lg" 
       : "w-8 h-8 text-sm";
@@ -58,7 +57,8 @@ export const CalendarioMes: React.FC<CalendarioMesProps> = ({ year, month, mapaE
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-pink-100 w-full">
+    // Añadimos h-full, flex y flex-col para que el contenedor ocupe todo el alto disponible en el grid
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-pink-100 w-full h-full flex flex-col">
       <h3 className={`text-center font-semibold text-purple-900 capitalize mb-4 ${isLarge ? 'text-xl' : 'text-base'}`}>
         {nombreMes}
       </h3>
@@ -71,7 +71,8 @@ export const CalendarioMes: React.FC<CalendarioMesProps> = ({ year, month, mapaE
         ))}
       </div>
       
-      <div className="grid grid-cols-7 gap-1">
+      {/* Añadimos flex-1 y content-start para alinear los días arriba aunque la caja crezca */}
+      <div className="grid grid-cols-7 gap-1 flex-1 content-start">
         {vacios.map((_, i) => (
           <div key={`empty-${i}`} className={isLarge ? 'h-10 md:h-14' : 'h-8'}></div>
         ))}
