@@ -30,6 +30,42 @@ export const ReglaPage: React.FC = () => {
   const mediaCiclo = Number(ajustes['duracion_media_ciclo']) || 28;
   const mediaPeriodo = Number(ajustes['duracion_media_periodo']) || 6;
 
+  // --- LÓGICA DE CÁLCULO HISTÓRICO REAL ---
+  let mediaCicloReal = mediaCiclo;
+  let mediaPeriodoReal = mediaPeriodo;
+
+  if (ciclos.length > 1) {
+    const ciclosCompletos = ciclos.filter(c => c.fecha_fin !== null);
+    
+    if (ciclosCompletos.length > 0) {
+      let sumaPeriodos = 0;
+      let sumaCiclos = 0;
+      let ciclosContados = 0;
+
+      for (let i = 0; i < ciclos.length; i++) {
+        const cicloActual = ciclos[i];
+        
+        if (!cicloActual.fecha_fin) continue;
+
+        const inicio = new Date(cicloActual.fecha_inicio);
+        const fin = new Date(cicloActual.fecha_fin);
+        
+        sumaPeriodos += Math.round((fin.getTime() - inicio.getTime()) / (1000 * 3600 * 24)) + 1;
+
+        if (i > 0) {
+          const inicioSiguiente = new Date(ciclos[i - 1].fecha_inicio);
+          sumaCiclos += Math.round((inicioSiguiente.getTime() - inicio.getTime()) / (1000 * 3600 * 24));
+          ciclosContados++;
+        }
+      }
+
+      if (ciclosContados > 0) {
+        mediaCicloReal = Math.round(sumaCiclos / ciclosContados);
+        mediaPeriodoReal = Math.round(sumaPeriodos / ciclosCompletos.length);
+      }
+    }
+  }
+
   useEffect(() => {
     const fetchCiclos = async () => {
       try {
@@ -56,7 +92,7 @@ export const ReglaPage: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!cicloIdToDelete) return;
-    setIsDeleting(true); // <--- ACTIVAMOS EL SPINNER
+    setIsDeleting(true); 
     try {
       const response = await fetch(`/api/ciclos/${cicloIdToDelete}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Error al borrar el registro');
@@ -68,7 +104,7 @@ export const ReglaPage: React.FC = () => {
       console.error(err);
       alert('Hubo un problema al borrar el registro.');
     } finally {
-      setIsDeleting(false); // <--- DESACTIVAMOS EL SPINNER AL TERMINAR
+      setIsDeleting(false); 
     }
   };
 
@@ -80,7 +116,6 @@ export const ReglaPage: React.FC = () => {
 
   const handleSaveCiclo = async (datos: { fecha_inicio: string; fecha_fin: string | null }) => {
     if (cicloToEdit) {
-      // Petición de actualización
       const response = await fetch(`/api/ciclos/${cicloToEdit.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +130,6 @@ export const ReglaPage: React.FC = () => {
         return nuevaLista.sort((a, b) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
       });
     } else {
-      // Petición de creación
       const response = await fetch(`/api/ciclos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -164,6 +198,10 @@ export const ReglaPage: React.FC = () => {
               </button>
             </div>
             <ReglaTabla ciclos={ciclos} onEdit={handleEditClick} onDelete={handleDeleteClick} />
+            <div className="flex gap-4 px-2 text-sm text-pink-400 font-medium justify-end mt-1">
+              <p>Promedio real del ciclo: <span className="text-pink-600 font-bold">{mediaCicloReal} días</span></p>
+              <p>Promedio real del periodo: <span className="text-pink-600 font-bold">{mediaPeriodoReal} días</span></p>
+            </div>
           </div>
         </div>
       )}
@@ -187,7 +225,6 @@ export const ReglaPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center w-full">
-              {/* Selector de año (Se queda igual que antes) */}
               <Select 
                 className="w-48 mb-8"
                 value={yearAnual}
@@ -217,8 +254,6 @@ export const ReglaPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-2 w-full">
                 {Array.from({ length: 12 }, (_, mes) => (
-                  // Quitamos el div con scale-[0.95] y renderizamos CalendarioMes directamente
-                  // Esto permite que actúe como un elemento real del grid y estire su altura
                   <CalendarioMes 
                     key={`${yearAnual}-${mes}`} 
                     year={yearAnual} 
@@ -243,8 +278,8 @@ export const ReglaPage: React.FC = () => {
           setCicloIdToDelete(null);
         }}
         confirmText="Borrar"
-        variant="danger" // <--- APLICA EL BORDE ROJO Y BOTÓN ROJO
-        isConfirming={isDeleting} // <--- CONTROLA EL SPINNER
+        variant="danger"
+        isConfirming={isDeleting}
       />
 
       <ReglaFormModal

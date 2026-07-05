@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PasosWidget } from '../features/dashboard/PasosWidget';
 import { SuenoWidget } from '../features/dashboard/SuenoWidget';
+import { ReglaWidget } from '../features/dashboard/ReglaWidget';
 import { Link } from 'react-router-dom';
-import { Pill, Scale, Stethoscope, Activity, Droplet } from 'lucide-react';
+import { Pill, Scale, Stethoscope } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 
 interface PasosDB { 
@@ -16,16 +17,27 @@ interface SuenoDB {
   minutos_sueno: number; 
 }
 
+interface CicloDB {
+  id: string | number;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+}
+
 export const DashboardPage = () => {
   const { ajustes } = useAjustes();
   const mostrarRegla = ajustes['mostrar_regla'] !== 'false';
+  
+  const mediaCiclo = Number(ajustes['duracion_media_ciclo']) || 28;
+  const mediaPeriodo = Number(ajustes['duracion_media_periodo']) || 6;
+
   const [datosPasos, setDatosPasos] = useState<{ hoy: number, meta: number, totalMes: number, metaMensual: number, ultimaFecha: string | null } | null>(null);
   const [datosSueno, setDatosSueno] = useState<{ hoyMinutos: number, ultimos7DiasMin: number, ultimos7DiasMax: number, media7Dias: number, ultimaFecha: string | null } | null>(null);
+  const [ultimoCiclo, setUltimoCiclo] = useState<CicloDB | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resPasos = await fetch('http://localhost:3000/api/pasos');
+        const resPasos = await fetch('/api/pasos');
         const pasosJson: PasosDB = await resPasos.json();
 
         if (pasosJson && pasosJson.hoy !== undefined) {
@@ -42,7 +54,7 @@ export const DashboardPage = () => {
           });
         }
 
-        const resSueno = await fetch('http://localhost:3000/api/sueno');
+        const resSueno = await fetch('/api/sueno');
         const suenoJson: SuenoDB[] = await resSueno.json();
 
         if (suenoJson && suenoJson.length > 0) {
@@ -55,13 +67,26 @@ export const DashboardPage = () => {
             ultimaFecha: suenoJson[0].fecha,
           });
         }
+
+        if (mostrarRegla) {
+          const resCiclos = await fetch('/api/ciclos');
+          if (resCiclos.ok) {
+            const ciclosJson: CicloDB[] = await resCiclos.json();
+            if (ciclosJson && ciclosJson.length > 0) {
+              const ciclosOrdenados = ciclosJson.sort((a, b) => 
+                new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime()
+              );
+              setUltimoCiclo(ciclosOrdenados[0]);
+            }
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
     
     fetchData();
-  }, []);
+  }, [mostrarRegla]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -72,17 +97,25 @@ export const DashboardPage = () => {
       {datosSueno && <SuenoWidget data={datosSueno} />}
       {datosPasos && <PasosWidget data={datosPasos} />}
       
-      {/* EL GRID DE 1x4 (Móvil) y Dinámico (PC) */}
+      {/* CUADRÍCULA DINÁMICA: 4 columnas si hay regla, 3 si no */}
       <div className={`grid grid-cols-1 gap-4 ${mostrarRegla ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-          
-          <Link to="/medicamentos" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
-            <div className="p-4 bg-blue-50 text-blue-500 rounded-2xl group-hover:scale-110 transition-transform"><Pill className="w-8 h-8" /></div>
-            <span className="font-bold text-slate-700">Medicamentos</span>
-          </Link>
 
           <Link to="/peso" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
             <div className="p-4 bg-emerald-50 text-emerald-500 rounded-2xl group-hover:scale-110 transition-transform"><Scale className="w-8 h-8" /></div>
             <span className="font-bold text-slate-700">Peso</span>
+          </Link>
+
+          {mostrarRegla && (
+            <ReglaWidget 
+              ultimoCiclo={ultimoCiclo} 
+              mediaCiclo={mediaCiclo} 
+              mediaPeriodo={mediaPeriodo} 
+            />
+          )}
+
+          <Link to="/medicamentos" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
+            <div className="p-4 bg-blue-50 text-blue-500 rounded-2xl group-hover:scale-110 transition-transform"><Pill className="w-8 h-8" /></div>
+            <span className="font-bold text-slate-700">Medicamentos</span>
           </Link>
 
           <Link to="/sintomas" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
@@ -90,12 +123,6 @@ export const DashboardPage = () => {
             <span className="font-bold text-slate-700">Síntomas</span>
           </Link>
 
-          {mostrarRegla && (
-            <Link to="/regla" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
-              <div className="p-4 bg-pink-50 text-pink-500 rounded-2xl group-hover:scale-110 transition-transform"><Droplet className="w-8 h-8" /></div>
-              <span className="font-bold text-slate-700">Regla</span>
-            </Link>
-          )}
       </div>
     </div>
   );
