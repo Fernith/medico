@@ -66,22 +66,31 @@ export const ReglaPage: React.FC = () => {
     }
   }
 
+  const fetchCiclos = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/ciclos'); 
+      if (!response.ok) throw new Error('Error al cargar los ciclos');
+      
+      const data = await response.json();
+      setCiclos(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCiclos = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/ciclos'); 
-        if (!response.ok) throw new Error('Error al cargar los ciclos');
-        
-        const data = await response.json();
-        setCiclos(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchCiclos();
+    
+    // Escuchador del evento global para actualizarse solo
+    const handleRegistro = (e: any) => {
+      if (e.detail === 'regla') fetchCiclos();
+    };
+    
+    window.addEventListener('registroAgregado', handleRegistro);
+    return () => window.removeEventListener('registroAgregado', handleRegistro);
   }, []);
 
   // ---- MANEJADORES DE BORRADO ----
@@ -190,12 +199,6 @@ export const ReglaPage: React.FC = () => {
           <div className="flex flex-col space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-pink-700">Historial</h2>
-              <button 
-                onClick={() => { setCicloToEdit(null); setFormModalOpen(true); }}
-                className="text-sm font-medium text-pink-600 hover:text-pink-800 transition-colors bg-pink-50 px-3 py-1 rounded-lg"
-              >
-                + Añadir manual
-              </button>
             </div>
             <ReglaTabla ciclos={ciclos} onEdit={handleEditClick} onDelete={handleDeleteClick} />
             <div className="flex gap-4 px-2 text-sm text-pink-400 font-medium justify-end mt-1">

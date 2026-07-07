@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post, put, delete},
+    routing::{get, put},
     Router,
 };
 use sqlx::PgPool;
@@ -11,6 +11,7 @@ pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
         // PESO
         .route("/api/pesos", get(pesos::listar_pesos).post(pesos::crear_peso))
+        .route("/api/pesos/:id", put(pesos::modificar_peso).delete(pesos::borrar_peso))
         // SUEÑO
         .route("/api/sueno", get(sueno::listar_sueno))
         //PASOS

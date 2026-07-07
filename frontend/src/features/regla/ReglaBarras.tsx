@@ -31,7 +31,7 @@ export const ReglaBarras: React.FC<ReglaBarrasProps> = ({ ciclos, mediaCiclo }) 
             className="absolute top-0 bottom-0 border-l-2 border-gray-200 border-dashed z-0"
             style={{ left: `${(mediaCiclo / maxDiasReal) * 100}%` }}
           >
-            <span className="absolute -top-6 -translate-x-1/2 text-[10px] font-bold text-gray-400 bg-white px-1 whitespace-nowrap">
+            <span className="absolute -top-1 -translate-x-1/2 text-[10px] font-bold text-gray-400 bg-white px-1 whitespace-nowrap">
               Media {mediaCiclo}
             </span>
           </div>

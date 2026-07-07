@@ -48,7 +48,16 @@ export const generarMapaEstados = (
   // 1. Registrar los periodos reales (y sus días futuros si está en curso)
   ciclosOrdenados.forEach(ciclo => {
     const inicio = parseDate(ciclo.fecha_inicio);
-    const fin = ciclo.fecha_fin ? parseDate(ciclo.fecha_fin) : addDays(inicio, mediaPeriodo - 1);
+    
+    let fin: Date;
+    if (ciclo.fecha_fin) {
+      fin = parseDate(ciclo.fecha_fin);
+    } else {
+      const finEstimado = addDays(inicio, mediaPeriodo - 1);
+      // Si el ciclo sigue en curso, extendemos el final hasta HOY (si ya superó la media)
+      // o mantenemos la predicción de la media (si el periodo acaba de empezar).
+      fin = hoy > finEstimado ? hoy : finEstimado;
+    }
     
     let actual = new Date(inicio);
     while (actual <= fin) {

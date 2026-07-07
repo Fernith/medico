@@ -9,6 +9,7 @@ import { AjustesPage } from './pages/AjustesPage';
 import { UsuarioPage } from './pages/UsuarioPage';
 import { MedicamentosPage } from './pages/MedicamentosPage';
 import { SintomasPage } from './pages/SintomasPage';
+import { GlobalAddButton } from './components/layout/GlobalAddButton';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          <GlobalAddButton />
         </div>
       </BrowserRouter>
     </AjustesProvider>

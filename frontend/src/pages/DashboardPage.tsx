@@ -5,6 +5,7 @@ import { ReglaWidget } from '../features/dashboard/ReglaWidget';
 import { Link } from 'react-router-dom';
 import { Pill, Scale, Stethoscope } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
+import { PesoWidget } from '../features/dashboard/PesoWidget';
 
 interface PasosDB { 
   hoy: number; 
@@ -100,10 +101,7 @@ export const DashboardPage = () => {
       {/* CUADRÍCULA DINÁMICA: 4 columnas si hay regla, 3 si no */}
       <div className={`grid grid-cols-1 gap-4 ${mostrarRegla ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
 
-          <Link to="/peso" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
-            <div className="p-4 bg-emerald-50 text-emerald-500 rounded-2xl group-hover:scale-110 transition-transform"><Scale className="w-8 h-8" /></div>
-            <span className="font-bold text-slate-700">Peso</span>
-          </Link>
+          <PesoWidget />
 
           {mostrarRegla && (
             <ReglaWidget 
