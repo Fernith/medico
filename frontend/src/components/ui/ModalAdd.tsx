@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, type ModalColorTheme } from './Modal';
 import { PesoForm } from '../../features/peso/PesoForm';
 import { ReglaForm } from '../../features/regla/ReglaForm';
+import { MedicionForm } from '../../features/peso/MedicionForm';
 
 interface ModalAddProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'peso' | 'regla'>('peso');
+// Ahora tenemos 3 posibles pestañas
+type TabType = 'peso' | 'medicion' | 'regla';
 
-  // Definimos los colores para el dominio Peso (Esmeralda)
+export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
+  const [activeTab, setActiveTab] = useState<TabType>('peso');
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab('peso');
+    }
+  }, [isOpen]);
+
+  // Tema Peso (Esmeralda)
   const pesoTheme: Partial<ModalColorTheme> = {
     titleColor: 'text-emerald-900',
     headerBorder: 'border-emerald-100',
@@ -19,7 +29,15 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
     modalBorder: 'border-emerald-400',
   };
 
-  // Definimos los colores para el dominio Regla (Rosa/Morado)
+  // Tema Medidas (Rose / Frambuesa)
+  const medicionTheme: Partial<ModalColorTheme> = {
+    titleColor: 'text-rose-900',
+    headerBorder: 'border-rose-100',
+    closeIconHover: 'hover:text-rose-500',
+    modalBorder: 'border-rose-400',
+  };
+
+  // Tema Regla (Rosa/Morado)
   const reglaTheme: Partial<ModalColorTheme> = {
     titleColor: 'text-purple-900',
     headerBorder: 'border-pink-100',
@@ -27,8 +45,11 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
     modalBorder: 'border-pink-400',
   };
 
-  // Seleccionamos el tema activo
-  const currentTheme = activeTab === 'peso' ? pesoTheme : reglaTheme;
+  // Seleccionamos el tema activo según la pestaña
+  const currentTheme = 
+    activeTab === 'peso' ? pesoTheme : 
+    activeTab === 'medicion' ? medicionTheme : 
+    reglaTheme;
 
   return (
     <Modal 
@@ -52,6 +73,16 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
           Peso
         </button>
         <button 
+          onClick={() => setActiveTab('medicion')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+            activeTab === 'medicion' 
+              ? 'bg-white text-rose-600 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Medidas
+        </button>
+        <button 
           onClick={() => setActiveTab('regla')}
           className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
             activeTab === 'regla' 
@@ -67,6 +98,10 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
       <div className="transition-opacity duration-300">
         {activeTab === 'peso' && (
           <PesoForm onSuccess={onClose} onCancel={onClose} />
+        )}
+
+        {activeTab === 'medicion' && (
+          <MedicionForm onSuccess={onClose} onCancel={onClose} />
         )}
         
         {activeTab === 'regla' && (

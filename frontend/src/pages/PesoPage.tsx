@@ -1,38 +1,29 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
+import React, { useState, useEffect } from 'react';
 import { PesosTabla } from '../features/peso/PesosTabla';
+import { PesoGrafica } from '../features/peso/PesoGrafica';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { type PesoDB, calcularIMC, calcularPesoParaIMC, obtenerColorIMC } from '../utils/pesoCalculations';
+import { type PesoDB, calcularIMC, obtenerColorIMC, calcularPesoParaIMC } from '../utils/pesoCalculations';
 import { PesoForm } from '../features/peso/PesoForm';
-
-// Componente para los puntos de colores en la gráfica
-const ColoredDot = (props: any) => {
-  const { cx, cy, payload } = props;
-  const color = payload.trend === 'down' ? '#10b981' : payload.trend === 'up' ? '#ef4444' : '#94a3b8';
-  return <circle cx={cx} cy={cy} r={5} fill={color} stroke="white" strokeWidth={2} />;
-};
 
 export const PesoPage: React.FC = () => {
   const [pesos, setPesos] = useState<PesoDB[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Modal Edit
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [pesoToEdit, setPesoToEdit] = useState<PesoDB | null>(null);
   
-  // Modal Delete
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [pesoToDelete, setPesoToDelete] = useState<string | number | null>(null);
 
-  // Variables base
-  const ALTURA_DEFAULT = 180; // En el futuro saldrá de ajustes
+  const ALTURA_DEFAULT = 180; 
 
   const fetchPesos = async () => {
     try {
       const res = await fetch('/api/pesos');
       if (res.ok) {
         const data = await res.json();
+        // La API ya devuelve el 'promedio', solo los ordenamos
         const sorted = data.sort((a: PesoDB, b: PesoDB) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
         setPesos(sorted);
       }
@@ -46,7 +37,6 @@ export const PesoPage: React.FC = () => {
   useEffect(() => {
     fetchPesos();
     
-    // Escuchador del evento global para actualizarse solo (captura Añadir y Modificar)
     const handleRegistro = (e: any) => {
       if (e.detail === 'peso') fetchPesos();
     };
@@ -55,37 +45,13 @@ export const PesoPage: React.FC = () => {
     return () => window.removeEventListener('registroAgregado', handleRegistro);
   }, []);
 
-  const chartData = useMemo(() => {
-    if (pesos.length === 0) return [];
-    
-    const cronologico = [...pesos].reverse();
-    
-    return cronologico.map((p, i) => {
-      let trend = 'same';
-      if (i > 0) {
-        const anterior = cronologico[i - 1].peso;
-        if (p.peso < anterior) trend = 'down';
-        if (p.peso > anterior) trend = 'up';
-      }
-      return {
-        ...p,
-        timestamp: new Date(p.fecha).getTime(),
-        trend
-      };
-    });
-  }, [pesos]);
-
-  // Cálculos actuales y límites de IMC
   const ultimoPeso = pesos.length > 0 ? pesos[0].peso : null;
   const imcActual = ultimoPeso ? calcularIMC(ultimoPeso, ALTURA_DEFAULT) : null;
   const infoIMC = imcActual ? obtenerColorIMC(imcActual) : null;
-  
+
   const Sobrepeso = calcularPesoParaIMC(24.9, ALTURA_DEFAULT);
   const BajoPeso = calcularPesoParaIMC(18.5, ALTURA_DEFAULT);
-  const ObesidadModerada = calcularPesoParaIMC(29.9, ALTURA_DEFAULT);
-  const ObesidadGrave = calcularPesoParaIMC(34.9, ALTURA_DEFAULT);
 
-  // HANDLER ÚNICO: Borrar (Editar se autogestiona en PesoForm)
   const confirmDelete = async () => {
     try {
       await fetch(`/api/pesos/${pesoToDelete}`, { method: 'DELETE' });
@@ -96,7 +62,6 @@ export const PesoPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-8 pb-24">
-      {/* HEADER */}
       <div className="flex items-center gap-3 border-b-2 border-emerald-200 pb-4">
         <span className="text-4xl">⚖️</span>
         <h1 className="text-3xl font-bold text-slate-800">Seguimiento de Peso</h1>
@@ -106,39 +71,11 @@ export const PesoPage: React.FC = () => {
         <div className="grid grid-cols-1 gap-8">
           
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 h-[400px]">
-              <h2 className="text-lg font-bold text-slate-700 mb-4">Evolución (kg)</h2>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="timestamp" 
-                    type="number" 
-                    scale="time"
-                    domain={['dataMin', 'dataMax']} 
-                    tickFormatter={(unix) => new Date(unix).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    stroke="#94a3b8"
-                    fontSize={12}
-                  />
-                  <YAxis domain={['auto', 'auto']} stroke="#94a3b8" fontSize={12} />
-                  
-                  <ReferenceLine y={ObesidadGrave} stroke="#bf7a02" strokeDasharray="3 3" label={{ position: 'top', value: 'Obesidad Grave', fill: '#bf7a02', fontSize: 10 }} />
-                  <ReferenceLine y={ObesidadModerada} stroke="#bfb602" strokeDasharray="3 3" label={{ position: 'top', value: 'Obesidad Moderada', fill: '#bfb602', fontSize: 10 }} />
-                  <ReferenceLine y={Sobrepeso} stroke="#67d203" strokeDasharray="3 3" label={{ position: 'top', value: 'Sobrepeso', fill: '#67d203', fontSize: 10 }} />
-                  <ReferenceLine y={BajoPeso} stroke="#3b82f6" strokeDasharray="3 3" label={{ position: 'bottom', value: 'Bajo peso', fill: '#3b82f6', fontSize: 10 }} />
-                  
-                  <Line 
-                    type="monotone" 
-                    dataKey="peso" 
-                    stroke="#cbd5e1" 
-                    strokeWidth={2}
-                    dot={<ColoredDot />}
-                    activeDot={{ r: 7 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            
+            {/* NUEVO COMPONENTE DE GRÁFICA */}
+            <PesoGrafica data={pesos} altura={ALTURA_DEFAULT} />
 
+            {/* WIDGET IMC */}
             {imcActual && infoIMC && (
               <div className={`p-6 rounded-2xl border flex items-center justify-between ${infoIMC.clases} transition-colors duration-500`}>
                 <div>
@@ -164,7 +101,6 @@ export const PesoPage: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL EDITAR LOCAL REFACTORIZADO */}
       <Modal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Peso">
         {pesoToEdit && (
           <PesoForm 

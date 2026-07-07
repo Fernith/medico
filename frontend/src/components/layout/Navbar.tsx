@@ -11,7 +11,7 @@ export const Navbar = () => {
   
   const navItems = [
     { path: '/', icon: Activity, label: 'Resumen', activeColor: 'text-purple-600 bg-purple-50' },
-    { path: '/peso', icon: Scale, label: 'Peso', activeColor: 'text-orange-600 bg-orange-50' },
+    { path: '/peso', icon: Scale, label: 'Peso', activeColor: 'text-emerald-600 bg-emerald-50' },
     { path: '/sueno', icon: Moon, label: 'Sueño', activeColor: 'text-purple-600 bg-purple-50' },
     { path: '/medicamentos', icon: Pill, label: 'Medicamentos', activeColor: 'text-blue-600 bg-blue-50' },
     { path: '/sintomas', icon: Stethoscope, label: 'Síntomas', activeColor: 'text-emerald-600 bg-emerald-50' },

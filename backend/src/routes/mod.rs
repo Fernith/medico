@@ -5,7 +5,7 @@ use axum::{
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -24,7 +24,12 @@ pub fn construir_router(pool: PgPool) -> Router {
         // REGLA
         .route("/api/ciclos", get(regla::get_ciclos).post(regla::create_ciclo))
         .route("/api/ciclos/:id", put(regla::update_ciclo).delete(regla::delete_ciclo))
-        
+        // MEDICION
+        .route("/api/mediciones", get(medicion::listar_mediciones).post(medicion::crear_medicion))
+        .route("/api/mediciones/:id", put(medicion::modificar_medicion).delete(medicion::borrar_medicion))
+        //USUARIO
+        .route("/api/usuario", get(usuario::obtener_usuario).put(usuario::modificar_usuario))
+
         // Inyectamos la conexión de base de datos a todas las rutas
         .with_state(pool)
 }

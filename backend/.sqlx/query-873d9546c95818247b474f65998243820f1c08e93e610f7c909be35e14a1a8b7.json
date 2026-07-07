@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO medicion (fecha, cm_cintura, cm_cadera) VALUES ($1, $2::FLOAT8, $3::FLOAT8)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Float8",
+        "Float8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "873d9546c95818247b474f65998243820f1c08e93e610f7c909be35e14a1a8b7"
+}

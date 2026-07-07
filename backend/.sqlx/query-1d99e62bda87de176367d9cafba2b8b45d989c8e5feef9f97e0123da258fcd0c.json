@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE medicion \n        SET fecha = $1, cm_cintura = $2::FLOAT8, cm_cadera = $3::FLOAT8 \n        WHERE id = $4 \n        RETURNING id, fecha, cm_cintura::FLOAT8, cm_cadera::FLOAT8\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "fecha",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 2,
+        "name": "cm_cintura",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "cm_cadera",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Float8",
+        "Float8",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "1d99e62bda87de176367d9cafba2b8b45d989c8e5feef9f97e0123da258fcd0c"
+}

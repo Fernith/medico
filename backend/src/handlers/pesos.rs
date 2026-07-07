@@ -8,8 +8,19 @@ pub async fn listar_pesos(
 ) -> Result<Json<Vec<PesoEntity>>, (StatusCode, String)> {
     let pesos = sqlx::query_as!(
         PesoEntity,
-        // Usamos ::FLOAT8 para que SQLx lo mapee directamente a f64
-        r#"SELECT id, fecha, peso::FLOAT8 as "peso!", en_ayunas FROM pesos ORDER BY fecha DESC"#
+        r#"
+        SELECT 
+            id, 
+            fecha, 
+            peso::FLOAT8 as "peso!", 
+            en_ayunas,
+            AVG(peso) OVER (
+                ORDER BY fecha ASC 
+                ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+            )::FLOAT8 as promedio
+        FROM pesos 
+        ORDER BY fecha DESC
+        "#
     )
     .fetch_all(&pool)
     .await
@@ -44,7 +55,12 @@ pub async fn modificar_peso(
         UPDATE pesos 
         SET fecha = $1, peso = $2::FLOAT8, en_ayunas = $3 
         WHERE id = $4 
-        RETURNING id, fecha, peso::FLOAT8 as "peso!", en_ayunas
+        RETURNING 
+            id, 
+            fecha, 
+            peso::FLOAT8 as "peso!", 
+            en_ayunas,
+            NULL::FLOAT8 as promedio -- Le pasamos NULL para satisfacer al struct de Rust
         "#,
         payload.fecha, payload.peso, payload.en_ayunas, id
     )

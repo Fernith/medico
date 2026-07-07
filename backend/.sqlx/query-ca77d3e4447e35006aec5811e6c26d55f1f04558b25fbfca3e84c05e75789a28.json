@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pesos (fecha, peso, en_ayunas) VALUES ($1, $2::FLOAT8, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Float8",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ca77d3e4447e35006aec5811e6c26d55f1f04558b25fbfca3e84c05e75789a28"
+}

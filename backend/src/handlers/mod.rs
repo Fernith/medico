@@ -4,3 +4,5 @@ pub mod pasos;
 pub mod google_fit;
 pub mod ajustes;
 pub mod regla;
+pub mod medicion;
+pub mod usuario;

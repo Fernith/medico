@@ -1,8 +1,9 @@
 export interface PesoDB {
   id: string | number;
   peso: number;
-  fecha: string; // YYYY-MM-DD
+  fecha: string;
   en_ayunas: boolean;
+  promedio?: number;
 }
 
 // IMC = Peso(kg) / Altura(m)^2

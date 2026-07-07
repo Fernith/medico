@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, altura, sexo as \"sexo: Sexo\" FROM usuario WHERE id = 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "altura",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "sexo: Sexo",
+        "type_info": {
+          "Custom": {
+            "name": "sexo_enum",
+            "kind": {
+              "Enum": [
+                "masculino",
+                "femenino"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "26cd53b1854eebe8b63aad43b0179afaaf4979b928940efce0a8d7c45eb72896"
+}
