@@ -1,56 +1,72 @@
 import React, { useState, useEffect } from 'react';
-// Importamos tus componentes UI existentes
 import { Input } from '../../components/ui/Input'; 
-import { Button } from '../../components/ui/Button';
+import { useAjustes } from '../../context/AjustesContext';
 
-// Asumimos que tienes un hook o función en AjustesContext para actualizar valores
 interface AjustesParametrosReglaProps {
-  duracionCicloActual: number;
-  duracionPeriodoActual: number;
-  onSave: (ciclo: number, periodo: number) => void;
   isVisible: boolean;
 }
 
-export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({ 
-  duracionCicloActual, 
-  duracionPeriodoActual, 
-  onSave, 
-  isVisible 
-}) => {
-  const [ciclo, setCiclo] = useState<number | ''>(duracionCicloActual || 28);
-  const [periodo, setPeriodo] = useState<number | ''>(duracionPeriodoActual || 6);
+export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({ isVisible }) => {
+  const { ajustes, actualizarAjuste } = useAjustes();
   
+  const [ciclo, setCiclo] = useState<number | ''>('');
+  const [periodo, setPeriodo] = useState<number | ''>('');
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error', texto: string } | null>(null);
 
-  // Mantener sincronizado el estado local si cambian las props externas
   useEffect(() => {
-    setCiclo(duracionCicloActual || 28);
-    setPeriodo(duracionPeriodoActual || 6);
-  }, [duracionCicloActual, duracionPeriodoActual]);
+    setCiclo(Number(ajustes['duracion_media_ciclo']) || 28);
+    setPeriodo(Number(ajustes['duracion_media_periodo']) || 6);
+  }, [ajustes]);
+
+  useEffect(() => {
+    if (mensaje) {
+      const timer = setTimeout(() => setMensaje(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mensaje]);
 
   if (!isVisible) return null;
 
-  const handleSave = () => {
-    // Si el valor es un string vacío, lo convertimos a 0, si no, pasamos el número
-    const cicloFinal = ciclo === '' ? 0 : ciclo;
-    const periodoFinal = periodo === '' ? 0 : periodo;
+  const handleSave = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMensaje(null);
     
-    onSave(cicloFinal, periodoFinal);
+    const cicloFinal = ciclo === '' ? 28 : ciclo;
+    const periodoFinal = periodo === '' ? 6 : periodo;
+    
+    try {
+      await actualizarAjuste('duracion_media_ciclo', cicloFinal.toString());
+      await actualizarAjuste('duracion_media_periodo', periodoFinal.toString());
+      setMensaje({ tipo: 'exito', texto: 'Parámetros actualizados correctamente.' });
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: 'Ocurrió un error al guardar los parámetros.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-pink-100 mt-4">
-      <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
-        <span className="text-pink-500">🩸</span> Parámetros del Ciclo Menstrual
-      </h3>
+    <form onSubmit={handleSave} className="bg-white p-8 rounded-2xl shadow-sm border border-pink-100 flex flex-col space-y-8 w-full">
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-pink-700 flex items-center gap-2">
+          <span className="text-pink-500">🩸</span> Parámetros del Ciclo Menstrual
+        </h2>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input 
           type="number" 
           label="Duración media del ciclo (días)"
           value={ciclo} 
-          onChange={(e) => setCiclo(e.target.value === '' ? '' : Number(e.target.value))}
+          onChange={(e) => {
+            setCiclo(e.target.value === '' ? '' : Number(e.target.value));
+            setMensaje(null);
+          }}
           clearable
-          onClear={() => setCiclo('')}
+          onClear={() => { setCiclo(''); setMensaje(null); }}
           min={15}
           max={60}
           icon={
@@ -70,9 +86,12 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({
           type="number" 
           label="Duración media del periodo (días)"
           value={periodo} 
-          onChange={(e) => setPeriodo(e.target.value === '' ? '' : Number(e.target.value))}
+          onChange={(e) => {
+            setPeriodo(e.target.value === '' ? '' : Number(e.target.value));
+            setMensaje(null);
+          }}
           clearable
-          onClear={() => setPeriodo('')}
+          onClear={() => { setPeriodo(''); setMensaje(null); }}
           min={1}
           max={15}
           icon={
@@ -89,19 +108,21 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({
         />
       </div>
 
-      <div className="mt-6 flex justify-end">
-        <Button 
-          onClick={handleSave}
-          variant="primary"
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-            </svg>
-          }
+      {mensaje && (
+        <div className={`p-4 rounded-xl text-sm font-bold ${mensaje.tipo === 'exito' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+          {mensaje.texto}
+        </div>
+      )}
+
+      <div className="flex justify-end pt-4 border-t border-pink-50">
+        <button 
+          type="submit" 
+          disabled={isSubmitting || ciclo === '' || periodo === ''}
+          className="px-8 py-3 bg-pink-500 text-white rounded-xl font-bold hover:bg-pink-600 transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm hover:shadow-pink-500/30"
         >
-          Guardar Parámetros
-        </Button>
+          {isSubmitting ? 'Guardando...' : 'Guardar Parámetros'}
+        </button>
       </div>
-    </div>
+    </form>
   );
 };

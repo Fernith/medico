@@ -52,7 +52,7 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
             type="number" 
             scale="time"
             domain={['dataMin', 'dataMax']} 
-            tickFormatter={(unix) => new Date(unix).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            tickFormatter={(unix) => new Date(unix).toLocaleDateString(undefined, { year: '2-digit', month: 'short', day: 'numeric' })}
             stroke="#94a3b8"
             fontSize={12}
             minTickGap={20}
