@@ -2,6 +2,7 @@ import React from 'react';
 import { useAjustes } from '../context/AjustesContext';
 import { AjustesParametrosRegla } from '../features/ajustes/AjustesParametrosRegla';
 import { AjusteVisibilidadRegla } from '../features/ajustes/AjusteVisibilidadRegla';
+import { AjusteObjetivoSueno } from '../features/ajustes/AjusteObjetivoSueno';
 
 export const AjustesPage: React.FC = () => {
   const { ajustes } = useAjustes();
@@ -20,6 +21,7 @@ export const AjustesPage: React.FC = () => {
       <div className="space-y-6 w-full">
         <AjusteVisibilidadRegla />
         <AjustesParametrosRegla isVisible={mostrarRegla} />
+        <AjusteObjetivoSueno/>
       </div>
       
     </div>
