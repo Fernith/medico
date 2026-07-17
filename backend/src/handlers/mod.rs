@@ -6,3 +6,4 @@ pub mod ajustes;
 pub mod regla;
 pub mod medicion;
 pub mod usuario;
+pub mod ejercicio;

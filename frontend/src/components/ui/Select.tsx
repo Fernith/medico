@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface Option {
   value: string | number;
@@ -21,7 +22,6 @@ export interface SelectColorTheme {
   checkIcon: string;
 }
 
-// Tema por defecto (Gama Rosa/Morado de la aplicación)
 const defaultTheme: SelectColorTheme = {
   borderNormal: 'border-pink-200',
   borderActive: 'border-pink-400 ring-4 ring-pink-50',
@@ -51,7 +51,7 @@ interface SelectProps {
   clearable?: boolean;
   isLoading?: boolean;
   searchable?: boolean;
-  colorTheme?: Partial<SelectColorTheme>; // Permite sobreescribir colores
+  colorTheme?: Partial<SelectColorTheme>;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -71,15 +71,42 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownCoords, setDropdownCoords] = useState({ top: 0, left: 0, width: 0 });
+  
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fusionamos el tema por defecto con los colores personalizados que nos pasen
   const theme = { ...defaultTheme, ...colorTheme };
+  const isInteractive = !disabled && !isLoading;
+
+  const updatePosition = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownCoords({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  };
+
+  // Función mejorada para abrir/cerrar calculando la posición ANTES de renderizar
+  const toggleOpen = () => {
+    if (!isInteractive) return;
+    
+    if (!isOpen) {
+      updatePosition(); // Calculamos posición exacta al instante
+    }
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const isOutsideContainer = containerRef.current && !containerRef.current.contains(event.target as Node);
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
+      
+      if (isOutsideContainer && isOutsideDropdown) {
         setIsOpen(false);
       }
     };
@@ -87,19 +114,31 @@ export const Select: React.FC<SelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Autofocus en el buscador al abrir el menú
   useEffect(() => {
-    if (isOpen && searchable && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-    if (!isOpen) {
-      setSearchTerm(''); // Limpiamos la búsqueda al cerrar
+    if (isOpen) {
+      if (searchable && searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+      
+      const handleScroll = (e: Event) => {
+        if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) return;
+        setIsOpen(false);
+      };
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', updatePosition);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    } else {
+      setSearchTerm('');
     }
   }, [isOpen, searchable]);
 
   const selectedOption = options.find(opt => opt.value === value);
 
-  // Filtrado de opciones si el buscador está activo
   const filteredOptions = useMemo(() => {
     if (!searchable || !searchTerm) return options;
     return options.filter(opt => 
@@ -113,8 +152,6 @@ export const Select: React.FC<SelectProps> = ({
     setIsOpen(false);
   };
 
-  const isInteractive = !disabled && !isLoading;
-
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {label && (
@@ -123,9 +160,9 @@ export const Select: React.FC<SelectProps> = ({
         </label>
       )}
 
-      {/* Botón Principal */}
+      {/* Botón Principal - Ahora llama a toggleOpen */}
       <div
-        onClick={() => isInteractive && setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         className={`
           flex items-center justify-between w-full px-4 py-3 bg-white rounded-xl shadow-sm transition-all duration-200
           ${!isInteractive ? 'bg-gray-50 cursor-not-allowed opacity-60' : 'cursor-pointer'}
@@ -136,7 +173,7 @@ export const Select: React.FC<SelectProps> = ({
       >
         <div className="flex items-center gap-3 overflow-hidden flex-1">
           {icon && <span className={`${disabled ? 'text-gray-400' : theme.iconColor} flex-shrink-0`}>{icon}</span>}
-          <span className={`truncate text-lg ${!selectedOption ? theme.textPlaceholder : `${theme.textSelected} font-bold`}`}>
+          <span className={`truncate text-lg ${!selectedOption ? theme.textPlaceholder : `${theme.textSelected} `}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
@@ -171,11 +208,18 @@ export const Select: React.FC<SelectProps> = ({
 
       {error && <p className="mt-1 text-sm text-red-500 pl-1">{error}</p>}
 
-      {/* Lista Desplegable */}
-      {isOpen && isInteractive && (
-        <div className={`absolute z-50 w-full mt-2 ${theme.dropdownBg} border ${theme.dropdownBorder} rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-200 max-h-72 overflow-hidden flex flex-col`}>
-          
-          {/* Buscador Integrado */}
+      {/* PORTAL: Renderiza directamente en el body */}
+      {isOpen && isInteractive && typeof document !== 'undefined' && createPortal(
+        <div 
+          ref={dropdownRef}
+          style={{
+            position: 'fixed',
+            top: `${dropdownCoords.top}px`,
+            left: `${dropdownCoords.left}px`,
+            width: `${dropdownCoords.width}px`,
+          }}
+          className={`z-[9999] ${theme.dropdownBg} border ${theme.dropdownBorder} rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-200 max-h-72 overflow-hidden flex flex-col`}
+        >
           {searchable && (
             <div className="p-2 border-b border-gray-100">
               <input
@@ -184,8 +228,8 @@ export const Select: React.FC<SelectProps> = ({
                 placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onClick={(e) => e.stopPropagation()} // Evitar que cierre el menú al hacer clic en el input
-                className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:bg-white transition-colors"
+                onClick={(e) => e.stopPropagation()} 
+                className="w-full px-3 py-2 text-sm font-medium bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:bg-white transition-colors"
               />
             </div>
           )}
@@ -219,7 +263,8 @@ export const Select: React.FC<SelectProps> = ({
               })
             )}
           </ul>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

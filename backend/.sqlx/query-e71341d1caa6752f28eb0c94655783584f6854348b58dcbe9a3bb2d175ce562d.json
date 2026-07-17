@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    INSERT INTO sueno (\n                        fecha, minutos_sueno, \n                        hora_inicio, hora_fin, \n                        minutos_ligero, minutos_profundo, minutos_rem, minutos_despierto,\n                        minutos_siesta, siesta_hora_inicio, siesta_hora_fin\n                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)\n                    ON CONFLICT (fecha) DO UPDATE SET \n                        minutos_sueno = $2, \n                        hora_inicio = $3, hora_fin = $4,\n                        minutos_ligero = $5, minutos_profundo = $6, minutos_rem = $7, minutos_despierto = $8,\n                        minutos_siesta = $9, siesta_hora_inicio = $10, siesta_hora_fin = $11\n                    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Int4",
+        "Timestamptz",
+        "Timestamptz",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e71341d1caa6752f28eb0c94655783584f6854348b58dcbe9a3bb2d175ce562d"
+}

@@ -1,0 +1,92 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id as \"id!\", \n            fecha as \"fecha!\", \n            minutos_sueno as \"minutos_sueno!\",\n            creado_en as \"creado_en!\",\n            hora_inicio,\n            hora_fin,\n            COALESCE(minutos_ligero, 0) as \"minutos_ligero!\",\n            COALESCE(minutos_profundo, 0) as \"minutos_profundo!\",\n            COALESCE(minutos_rem, 0) as \"minutos_rem!\",\n            COALESCE(minutos_despierto, 0) as \"minutos_despierto!\",\n            COALESCE(minutos_siesta, 0) as \"minutos_siesta!\",\n            siesta_hora_inicio,\n            siesta_hora_fin\n        FROM sueno \n        ORDER BY fecha DESC \n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "fecha!",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 2,
+        "name": "minutos_sueno!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "creado_en!",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "hora_inicio",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "hora_fin",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "minutos_ligero!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "minutos_profundo!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "minutos_rem!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "minutos_despierto!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "minutos_siesta!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "siesta_hora_inicio",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "siesta_hora_fin",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      null,
+      null,
+      null,
+      null,
+      null,
+      true,
+      true
+    ]
+  },
+  "hash": "fe09df3c0b55f84c7b41c44d4ed88663e952c918f9f8c278810a1e1fe11d2ba4"
+}

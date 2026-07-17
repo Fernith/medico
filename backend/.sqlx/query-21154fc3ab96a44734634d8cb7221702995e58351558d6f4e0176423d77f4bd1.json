@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ejercicio_equipamiento (ejercicio_id, equipamiento_id) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "21154fc3ab96a44734634d8cb7221702995e58351558d6f4e0176423d77f4bd1"
+}

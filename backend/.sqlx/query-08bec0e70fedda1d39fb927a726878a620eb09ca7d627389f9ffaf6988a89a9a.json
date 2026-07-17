@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            e.id, e.nombre, e.descripcion, e.imagen, e.carga_actual, e.unidad_carga,\n            ARRAY(SELECT grupo_id FROM ejercicio_grupos WHERE ejercicio_id = e.id) as \"grupos_ids\",\n            ARRAY(SELECT g.nombre FROM ejercicio_grupos eg JOIN grupos_musculares g ON eg.grupo_id = g.id WHERE eg.ejercicio_id = e.id) as \"grupos_nombres\",\n            ARRAY(SELECT equipamiento_id FROM ejercicio_equipamiento WHERE ejercicio_id = e.id) as \"equipamientos_ids\",\n            ARRAY(SELECT eq.nombre FROM ejercicio_equipamiento ee JOIN equipamiento eq ON ee.equipamiento_id = eq.id WHERE ee.ejercicio_id = e.id) as \"equipamientos_nombres\"\n        FROM ejercicios e\n        ORDER BY e.nombre\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "nombre",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "descripcion",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "imagen",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "carga_actual",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "unidad_carga",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "grupos_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "grupos_nombres",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "equipamientos_ids",
+        "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 9,
+        "name": "equipamientos_nombres",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "08bec0e70fedda1d39fb927a726878a620eb09ca7d627389f9ffaf6988a89a9a"
+}

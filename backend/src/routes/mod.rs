@@ -1,11 +1,12 @@
 use axum::{
-    routing::{get, put},
+    extract::DefaultBodyLimit,
+    routing::{get, put, delete},
     Router,
 };
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -29,6 +30,17 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/mediciones/:id", put(medicion::modificar_medicion).delete(medicion::borrar_medicion))
         //USUARIO
         .route("/api/usuario", get(usuario::obtener_usuario).put(usuario::modificar_usuario))
+        // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
+        .route("/api/ejercicios", get(ejercicio::get_ejercicios).post(ejercicio::create_ejercicio))
+        .route("/api/ejercicios/:id", put(ejercicio::update_ejercicio).delete(ejercicio::delete_ejercicio))
+        
+        .route("/api/grupos-musculares", get(ejercicio::get_grupos_musculares).post(ejercicio::create_grupo_muscular))
+        .route("/api/grupos-musculares/:id", put(ejercicio::update_grupo_muscular).delete(ejercicio::delete_grupo_muscular))
+        
+        .route("/api/equipamiento", get(ejercicio::get_equipamientos).post(ejercicio::create_equipamiento))
+        .route("/api/equipamiento/:id", delete(ejercicio::delete_equipamiento))
+
+        .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 
         // Inyectamos la conexión de base de datos a todas las rutas
         .with_state(pool)

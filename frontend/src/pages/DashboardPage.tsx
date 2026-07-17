@@ -3,7 +3,7 @@ import { PasosWidget } from '../features/dashboard/PasosWidget';
 import { SuenoWidget } from '../features/dashboard/SuenoWidget';
 import { ReglaWidget } from '../features/dashboard/ReglaWidget';
 import { Link } from 'react-router-dom';
-import { Pill, Scale, Stethoscope } from 'lucide-react';
+import { Dumbbell, Pill, Stethoscope } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 import { PesoWidget } from '../features/dashboard/PesoWidget';
 
@@ -91,8 +91,16 @@ export const DashboardPage = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="mb-8">
+      <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">Resumen</h1>
+        
+        <button 
+          onClick={() => console.log('Iniciar entrenamiento')}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 group w-full sm:w-auto"
+        >
+          <Dumbbell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span>Iniciar entrenamiento</span>
+        </button>
       </header>
 
       {datosSueno && <SuenoWidget data={datosSueno} />}

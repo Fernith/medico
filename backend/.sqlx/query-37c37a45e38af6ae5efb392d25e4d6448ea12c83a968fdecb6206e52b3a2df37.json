@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM ejercicio_grupos WHERE ejercicio_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "37c37a45e38af6ae5efb392d25e4d6448ea12c83a968fdecb6206e52b3a2df37"
+}
