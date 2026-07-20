@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            r.id, \n            r.ejercicio_id, e.nombre as \"ejercicio_nombre\", e.imagen as \"ejercicio_imagen\",\n            r.equipamiento_id, eq.nombre as \"equipamiento_nombre\",\n            r.carga_actual, r.unidad_carga, r.series, r.reps_min, r.reps_max, r.descanso\n        FROM realizacion_ejercicio r\n        JOIN ejercicios e ON r.ejercicio_id = e.id\n        LEFT JOIN equipamiento eq ON r.equipamiento_id = eq.id\n        ORDER BY e.nombre\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "ejercicio_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "ejercicio_nombre",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "ejercicio_imagen",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "equipamiento_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "equipamiento_nombre",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "carga_actual",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 7,
+        "name": "unidad_carga",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "series",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "reps_min",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "reps_max",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "descanso",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "3433e401040235a1bd96b1a6b2b540ec45ed578f8290c60f6ae85535e139a171"
+}

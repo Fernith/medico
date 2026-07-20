@@ -39,6 +39,9 @@ pub fn construir_router(pool: PgPool) -> Router {
         
         .route("/api/equipamiento", get(ejercicio::get_equipamientos).post(ejercicio::create_equipamiento))
         .route("/api/equipamiento/:id", delete(ejercicio::delete_equipamiento))
+        // REALIZACIONES
+        .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
+        .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 

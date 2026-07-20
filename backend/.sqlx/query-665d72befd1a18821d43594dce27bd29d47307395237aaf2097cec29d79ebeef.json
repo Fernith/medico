@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO ejercicios (nombre, descripcion, imagen, carga_actual, unidad_carga) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+  "query": "INSERT INTO ejercicios (nombre, descripcion, imagen) VALUES ($1, $2, $3) RETURNING id",
   "describe": {
     "columns": [
       {
@@ -13,8 +13,6 @@
       "Left": [
         "Text",
         "Text",
-        "Text",
-        "Float8",
         "Text"
       ]
     },
@@ -22,5 +20,5 @@
       false
     ]
   },
-  "hash": "33da6f457a958520f37e8173948e9d00b7050b0e950f9393f74fb6ab2a9486e0"
+  "hash": "665d72befd1a18821d43594dce27bd29d47307395237aaf2097cec29d79ebeef"
 }

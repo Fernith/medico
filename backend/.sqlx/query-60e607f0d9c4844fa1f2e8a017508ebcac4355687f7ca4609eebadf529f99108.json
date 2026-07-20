@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE ejercicios SET nombre=$1, descripcion=$2, imagen=$3 WHERE id=$4",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "60e607f0d9c4844fa1f2e8a017508ebcac4355687f7ca4609eebadf529f99108"
+}

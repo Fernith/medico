@@ -19,6 +19,8 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
     try {
       await fetch(`/api/ejercicios/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'ejercicio' }));
+      // Disparamos evento también por si este ejercicio estaba en alguna realización
+      window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
     } catch (e) {
       console.error(e);
     } finally {
@@ -26,7 +28,6 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
     }
   };
 
-  // Definimos el tema Índigo para los modales
   const modalTheme = {
     titleColor: 'text-indigo-900',
     headerBorder: 'border-indigo-100',
@@ -39,7 +40,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden h-full flex flex-col">
         <div className="p-4 bg-indigo-50/50 border-b border-indigo-100 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-indigo-800">Catálogo de Ejercicios</h2>
+          <h2 className="text-lg font-bold text-indigo-800">Diccionario de Ejercicios</h2>
           <button
             onClick={() => setIsAddOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-indigo-500/30"
@@ -53,11 +54,10 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
               <tr>
-                <th className="px-4 py-3 font-semibold">Imagen</th>
+                <th className="w-24"></th>
                 <th className="px-4 py-3 font-semibold">Nombre</th>
                 <th className="px-4 py-3 font-semibold">Grupos Musculares</th>
-                <th className="px-4 py-3 font-semibold">Equipamiento</th>
-                <th className="px-4 py-3 font-semibold">Carga Base</th>
+                <th className="px-4 py-3 font-semibold">Descripción</th>
                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
               </tr>
             </thead>
@@ -86,28 +86,26 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-bold text-slate-800">{e.nombre}</td>
+                  <td className="px-4 py-3 font-bold text-slate-800 whitespace-nowrap">{e.nombre}</td>
                   <td className="px-4 py-3 text-indigo-600 font-medium">
                     {e.grupos_nombres?.join(', ') || 'Ninguno'}
                   </td>
-                  <td className="px-4 py-3 text-slate-600 font-medium">
-                    {e.equipamientos_nombres && e.equipamientos_nombres.length > 0 
-                      ? e.equipamientos_nombres.join(', ') 
-                      : '-'}
-                  </td>
                   
-                  <td className="px-4 py-3 text-slate-700">
-                    {e.carga_actual !== null && e.carga_actual !== undefined ? (
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-extrabold text-indigo-700">{e.carga_actual}</span>
-                        <span className="text-xs text-slate-500 uppercase font-semibold">{e.unidad_carga}</span>
+                  {/* Nueva celda de Descripción con limitador de líneas */}
+                  <td className="px-4 py-3 text-slate-600">
+                    {e.descripcion ? (
+                      <div 
+                        className="max-w-xs line-clamp-2 cursor-help" 
+                        title={e.descripcion}
+                      >
+                        {e.descripcion}
                       </div>
                     ) : (
                       <span className="text-slate-400">-</span>
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-right space-x-3">
+                  <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
                     <button 
                       onClick={() => setEditItem(e)} 
                       className="text-slate-400 hover:text-indigo-500 transition-colors"
@@ -127,12 +125,13 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
               ))}
               {ejercicios.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
+                  {/* Actualizado el colSpan a 5 por la nueva columna */}
+                  <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center gap-2">
                       <div className="p-3 bg-slate-50 rounded-full">
                         <ImageIcon className="w-8 h-8 text-slate-400" />
                       </div>
-                      <p>No hay ejercicios registrados todavía.</p>
+                      <p>No hay ejercicios registrados en el diccionario.</p>
                     </div>
                   </td>
                 </tr>
@@ -153,12 +152,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center text-white">
-              <div className="flex flex-col">
-                <h3 className="text-xl md:text-2xl font-bold drop-shadow-md">{viewImage.nombre}</h3>
-                {viewImage.carga_actual !== null && viewImage.carga_actual !== undefined && (
-                  <span className="text-indigo-300 font-medium">Carga: {viewImage.carga_actual} {viewImage.unidad_carga}</span>
-                )}
-              </div>
+              <h3 className="text-xl md:text-2xl font-bold drop-shadow-md">{viewImage.nombre}</h3>
               <button 
                 onClick={() => setViewImage(null)}
                 className="p-2 bg-white/10 hover:bg-rose-500 rounded-full transition-colors backdrop-blur-md text-white"
@@ -186,40 +180,19 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
       )}
 
       {/* MODALES EDICIÓN */}
-      <Modal 
-        isOpen={isAddOpen} 
-        onClose={() => setIsAddOpen(false)} 
-        title="Añadir Ejercicio"
-        size="lg"
-        colorTheme={modalTheme}
-      >
+      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Añadir al Diccionario" size="lg" colorTheme={modalTheme}>
         <EjercicioForm onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 
-      <Modal 
-        isOpen={!!editItem} 
-        onClose={() => setEditItem(null)} 
-        title="Editar Ejercicio"
-        size="lg"
-        colorTheme={modalTheme}
-      >
-        {editItem && (
-          <EjercicioForm 
-            initialData={editItem} 
-            onSuccess={() => setEditItem(null)} 
-            onCancel={() => setEditItem(null)} 
-          />
-        )}
+      <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Ejercicio" size="lg" colorTheme={modalTheme}>
+        {editItem && <EjercicioForm initialData={editItem} onSuccess={() => setEditItem(null)} onCancel={() => setEditItem(null)} />}
       </Modal>
 
       <ConfirmModal 
-        isOpen={!!deleteId} 
-        onCancel={() => setDeleteId(null)} 
-        onConfirm={handleDelete}
-        title="Borrar Ejercicio" 
-        description="¿Seguro que quieres borrar este ejercicio? Esta acción eliminará permanentemente la imagen y los datos asociados."
-        variant="danger" 
-        confirmText="Borrar"
+        isOpen={!!deleteId} onCancel={() => setDeleteId(null)} onConfirm={handleDelete}
+        title="Borrar del Diccionario" 
+        description="¿Seguro que quieres borrar este ejercicio? ADVERTENCIA: Se eliminará de todas las realizaciones y rutinas en las que esté planificado."
+        variant="danger" confirmText="Borrar definitivamente"
       />
     </>
   );

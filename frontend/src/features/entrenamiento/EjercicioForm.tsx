@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
-import { Select } from '../../components/ui/Select';
-import { Type, AlignLeft, Image as ImageIcon, Scale, Hash } from 'lucide-react';
+import { Type, AlignLeft, Image as ImageIcon } from 'lucide-react';
 
 export interface FormColorTheme {
   submitBg: string;
@@ -20,25 +19,16 @@ export interface GrupoMuscular {
   categoria: string;
 }
 
-export interface Equipamiento {
-  id: string;
-  nombre: string;
-}
-
+// Interfaz limpia: Solo los datos inmutables del ejercicio
 export interface Ejercicio {
   id: string;
   nombre: string;
   descripcion: string;
   imagen: string; 
-  carga_actual?: number | null;
-  unidad_carga?: string;
   grupos_ids: string[];
   grupos_nombres?: string[];
-  equipamientos_ids: string[];
-  equipamientos_nombres?: string[];
 }
 
-// Tema azulado (Indigo) a juego con el módulo de Entrenamiento
 const defaultTheme: FormColorTheme = {
   submitBg: 'bg-indigo-600',
   submitHover: 'hover:bg-indigo-700',
@@ -66,44 +56,36 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gruposDisponibles, setGruposDisponibles] = useState<GrupoMuscular[]>([]);
-  const [equiposDisponibles, setEquiposDisponibles] = useState<Equipamiento[]>([]);
   
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || '',
     descripcion: initialData?.descripcion || '',
     imagen: initialData?.imagen || '',
-    carga_actual: initialData?.carga_actual !== null && initialData?.carga_actual !== undefined ? initialData.carga_actual.toString() : '',
-    unidad_carga: initialData?.unidad_carga || 'kg',
     grupos_ids: initialData?.grupos_ids || [] as string[],
-    equipamientos_ids: initialData?.equipamientos_ids || [] as string[]
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchGrupos = async () => {
       try {
-        const [resGrupos, resEquipos] = await Promise.all([
-          fetch('/api/grupos-musculares'),
-          fetch('/api/equipamiento')
-        ]);
-        if (resGrupos.ok) setGruposDisponibles(await resGrupos.json());
-        if (resEquipos.ok) setEquiposDisponibles(await resEquipos.json());
+        const res = await fetch('/api/grupos-musculares');
+        if (res.ok) setGruposDisponibles(await res.json());
       } catch (err) {
-        console.error("Error cargando datos maestros:", err);
+        console.error("Error cargando grupos musculares:", err);
       }
     };
-    fetchData();
+    fetchGrupos();
   }, []);
 
   const handleChange = (campo: string, valor: string | string[]) => {
     setFormData(prev => ({ ...prev, [campo]: valor }));
   };
 
-  const toggleArray = (campo: 'grupos_ids' | 'equipamientos_ids', id: string) => {
+  const toggleGrupo = (id: string) => {
     setFormData(prev => {
-      const seleccionados = prev[campo].includes(id)
-        ? prev[campo].filter(item => item !== id)
-        : [...prev[campo], id];
-      return { ...prev, [campo]: seleccionados };
+      const seleccionados = prev.grupos_ids.includes(id)
+        ? prev.grupos_ids.filter(item => item !== id)
+        : [...prev.grupos_ids, id];
+      return { ...prev, grupos_ids: seleccionados };
     });
   };
 
@@ -143,15 +125,10 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
     
     setIsSubmitting(true);
     try {
-      const payload = {
-        ...formData,
-        carga_actual: formData.carga_actual ? parseFloat(formData.carga_actual) : null,
-      };
-
       const res = await fetch(initialData ? `/api/ejercicios/${initialData.id}` : '/api/ejercicios', {
         method: initialData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(formData)
       });
 
       if (res.ok) {
@@ -185,86 +162,26 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
             required colorTheme={theme.inputTheme} icon={<Type className="w-5 h-5" />}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number" step="0.1" label="Carga Base" placeholder="Ej: 60.5"
-              value={formData.carga_actual} onChange={(e) => handleChange('carga_actual', e.target.value)}
-              colorTheme={theme.inputTheme} icon={<Hash className="w-5 h-5" />}
-            />
-            <div className="space-y-1">
-              {/* Título unificado con el resto de Inputs */}
-              <label className="block text-sm font-bold font-medium text-gray-700 mb-1 pl-1">Unidad de medida</label>
-              <Select 
-                value={formData.unidad_carga}
-                onChange={(val) => handleChange('unidad_carga', val)}
-                className="w-full"
-                options={[
-                  { value: 'kg', label: 'kg' },
-                  { value: 'banda', label: 'banda (nivel)' },
-                  { value: 'segundos', label: 'segundos' },
-                  { value: 'peso corporal', label: 'peso corporal' }
-                ]}
-                icon={<Scale className="w-5 h-5" />}
-                // Tema específico para igualarlo al de los inputs
-                colorTheme={{
-                  borderNormal: 'border-slate-200',
-                  borderActive: 'border-indigo-400 ring-4 ring-indigo-50',
-                  borderHover: 'hover:border-indigo-300 hover:shadow-sm',
-                  textSelected: 'text-slate-700',
-                  iconColor: 'text-indigo-500',
-                  optionSelectedBg: 'bg-indigo-50',
-                  optionSelectedText: 'text-indigo-800',
-                  optionHoverBg: 'hover:bg-slate-50',
-                  optionHoverText: 'hover:text-slate-800',
-                  checkIcon: 'text-indigo-500'
-                }}
-              />
-            </div>
-          </div>
-
           <Input
             type="text" label="Descripción o notas técnicas" placeholder="Ej: Mantener retracción escapular..."
             value={formData.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)}
             colorTheme={theme.inputTheme} icon={<AlignLeft className="w-5 h-5" />}
           />
 
-          {/* EQUIPAMIENTO (Estilo limpio) */}
-          <div className="space-y-2 mt-2">
-            <label className="block text-sm font-bold text-slate-700 ml-1">
-              Equipamiento
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {equiposDisponibles.map((eq) => {
-                const activo = formData.equipamientos_ids.includes(eq.id);
-                return (
-                  <button
-                    key={eq.id} type="button" onClick={() => toggleArray('equipamientos_ids', eq.id)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border ${
-                      activo ? 'bg-indigo-100 border-indigo-500 text-indigo-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                    }`}
-                  >
-                    {eq.nombre}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* GRUPOS MUSCULARES (Con Jerarquía) */}
+          {/* GRUPOS MUSCULARES */}
           <div className="space-y-3 mt-2">
-            <label className="block text-sm font-bold text-slate-700 ml-1">Grupos Musculares</label>
+            <label className="block text-sm font-bold text-slate-700 ml-1">Grupos Musculares Implicados</label>
             
             <div className="space-y-4 pl-1">
               {Object.entries(gruposPorCategoria).map(([categoria, grupos]) => (
                 <div key={categoria} className="space-y-2">
-                  {/* Subtítulos más pequeños y sutiles */}
                   <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">{categoria}</span>
                   <div className="flex flex-wrap gap-2">
                     {grupos.map((grupo) => {
                       const activo = formData.grupos_ids.includes(grupo.id);
                       return (
                         <button
-                          key={grupo.id} type="button" onClick={() => toggleArray('grupos_ids', grupo.id)}
+                          key={grupo.id} type="button" onClick={() => toggleGrupo(grupo.id)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border ${
                             activo ? 'bg-indigo-100 border-indigo-500 text-indigo-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                           }`}
@@ -280,7 +197,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
           </div>
 
           <div className="space-y-2 mt-4">
-            <label className="block text-sm font-bold text-slate-700 ml-1">Imagen del Ejercicio</label>
+            <label className="block text-sm font-bold text-slate-700 ml-1">Imagen de Referencia</label>
             <div className="flex items-center gap-4">
               <label className="flex items-center justify-center w-full max-w-[150px] h-32 px-4 transition bg-white border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-indigo-400 focus:outline-none">
                 <span className="flex items-center space-x-2">
