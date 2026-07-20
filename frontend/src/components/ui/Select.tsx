@@ -76,6 +76,12 @@ export const Select: React.FC<SelectProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Referencia inmutable para que el listener sepa siempre el estado real
+  const isOpenRef = useRef(isOpen);
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const theme = { ...defaultTheme, ...colorTheme };
   const isInteractive = !disabled && !isLoading;
@@ -91,18 +97,25 @@ export const Select: React.FC<SelectProps> = ({
     }
   };
 
-  // Función mejorada para abrir/cerrar calculando la posición ANTES de renderizar
-  const toggleOpen = () => {
+  const toggleOpen = (e: React.MouseEvent) => {
+    // Estas dos líneas evitan que el clic se propague por el DOM y cause cierres accidentales
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!isInteractive) return;
     
     if (!isOpen) {
-      updatePosition(); // Calculamos posición exacta al instante
+      updatePosition();
     }
-    setIsOpen(!isOpen);
+    setIsOpen(prev => !prev);
   };
 
+  // Detector de clics fuera (mejorado para ratón y táctil)
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      // Si el select no está abierto, no perdemos el tiempo
+      if (!isOpenRef.current) return;
+
       const isOutsideContainer = containerRef.current && !containerRef.current.contains(event.target as Node);
       const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
       
@@ -110,28 +123,28 @@ export const Select: React.FC<SelectProps> = ({
         setIsOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
+  // Lógica de apertura y redimensionado
   useEffect(() => {
     if (isOpen) {
       if (searchable && searchInputRef.current) {
-        searchInputRef.current.focus();
+        // Le damos 50ms para que se dibuje en pantalla antes de forzar el foco y evitar micro-saltos
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 50);
       }
       
-      const handleScroll = (e: Event) => {
-        if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) return;
-        setIsOpen(false);
-      };
-      
-      window.addEventListener('scroll', handleScroll, true);
       window.addEventListener('resize', updatePosition);
-      
-      return () => {
-        window.removeEventListener('scroll', handleScroll, true);
-        window.removeEventListener('resize', updatePosition);
-      };
+      return () => window.removeEventListener('resize', updatePosition);
     } else {
       setSearchTerm('');
     }
@@ -160,7 +173,7 @@ export const Select: React.FC<SelectProps> = ({
         </label>
       )}
 
-      {/* Botón Principal - Ahora llama a toggleOpen */}
+      {/* Botón Principal */}
       <div
         onClick={toggleOpen}
         className={`
@@ -181,6 +194,7 @@ export const Select: React.FC<SelectProps> = ({
         <div className="flex items-center gap-2 flex-shrink-0">
           {clearable && selectedOption && isInteractive && (
             <button 
+              type="button"
               onClick={handleClear}
               className="text-gray-300 hover:text-red-500 transition-colors p-1"
             >
@@ -243,7 +257,8 @@ export const Select: React.FC<SelectProps> = ({
                 return (
                   <li
                     key={option.value}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onChange(option.value);
                       setIsOpen(false);
                     }}

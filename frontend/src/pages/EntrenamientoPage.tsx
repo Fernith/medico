@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Dumbbell, Settings2, BookOpen } from 'lucide-react';
+import { Dumbbell, Settings2, BookOpen, Layers } from 'lucide-react';
 import { EjerciciosTabla } from '../features/entrenamiento/EjerciciosTabla';
 import { GruposTabla } from '../features/entrenamiento/GruposTabla';
 import { EquipamientoTabla } from '../features/entrenamiento/EquipamientoTabla';
 import { RealizacionTabla } from '../features/entrenamiento/RealizacionTabla';
+import { RutinasTabla } from '../features/entrenamiento/RutinasTabla'; // <-- IMPORTACIÓN NUEVA
 import { type Ejercicio } from '../features/entrenamiento/EjercicioForm';
 
 export const EntrenamientoPage: React.FC = () => {
@@ -39,15 +40,31 @@ export const EntrenamientoPage: React.FC = () => {
 
       {!isLoading ? (
         <div className="flex flex-col gap-12">
+          
+          {/* NUEVA SECCIÓN PRINCIPAL: RUTINAS */}
+          <div className="w-full">
+             <RutinasTabla />
+          </div>
+          
+          {/* SECCIÓN SECUNDARIA: REALIZACIONES */}
+          <div className="w-full space-y-4">
+            <div className="flex items-center gap-2 text-slate-600 mb-2 border-b border-slate-200 pb-2">
+              <Layers className="w-5 h-5 text-indigo-500" />
+              <h3 className="font-bold text-lg">Configuración de Ejercicios Base</h3>
+            </div>
+            <RealizacionTabla />
+          </div>
+
+          {/* DICCIONARIO */}
           <div className="w-full space-y-4">
             <div className="flex items-center gap-2 text-slate-600 mb-2 border-b border-slate-200 pb-2">
               <BookOpen className="w-5 h-5 text-indigo-500" />
               <h3 className="font-bold text-lg">Catálogo Maestro de Ejercicios</h3>
             </div>
-            <RealizacionTabla />
             <EjerciciosTabla ejercicios={ejercicios} />
           </div>
 
+          {/* ADMINISTRACIÓN */}
           <div className="pt-6 border-t border-slate-200 space-y-4">
             <div className="flex items-center gap-2 text-slate-600 mb-4">
               <Settings2 className="w-5 h-5 text-indigo-500" />

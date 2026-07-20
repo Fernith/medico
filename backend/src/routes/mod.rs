@@ -1,6 +1,6 @@
 use axum::{
     extract::DefaultBodyLimit,
-    routing::{get, put, delete},
+    routing::{get, put, post, delete},
     Router,
 };
 use sqlx::PgPool;
@@ -33,15 +33,22 @@ pub fn construir_router(pool: PgPool) -> Router {
         // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
         .route("/api/ejercicios", get(ejercicio::get_ejercicios).post(ejercicio::create_ejercicio))
         .route("/api/ejercicios/:id", put(ejercicio::update_ejercicio).delete(ejercicio::delete_ejercicio))
-        
+        // GRUPO MUSCULAR
         .route("/api/grupos-musculares", get(ejercicio::get_grupos_musculares).post(ejercicio::create_grupo_muscular))
         .route("/api/grupos-musculares/:id", put(ejercicio::update_grupo_muscular).delete(ejercicio::delete_grupo_muscular))
-        
+        //EQUIPAMIENTO
         .route("/api/equipamiento", get(ejercicio::get_equipamientos).post(ejercicio::create_equipamiento))
         .route("/api/equipamiento/:id", delete(ejercicio::delete_equipamiento))
         // REALIZACIONES
         .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
         .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion))
+        // RUTINAS
+        .route("/api/rutinas", get(ejercicio::get_rutinas).post(ejercicio::create_rutina))
+        .route("/api/rutinas/:id", put(ejercicio::update_rutina).delete(ejercicio::delete_rutina))
+        // RELACIÓN RUTINAS <-> REALIZACIONES
+        .route("/api/rutinas/:id/realizaciones", get(ejercicio::get_rutina_realizaciones))
+        .route("/api/rutina-realizacion", post(ejercicio::add_realizacion_rutina))
+        .route("/api/rutina-realizacion/:id", put(ejercicio::update_realizacion_rutina).delete(ejercicio::delete_realizacion_rutina))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 
