@@ -56,6 +56,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
               <tr>
                 <th className="w-24"></th>
                 <th className="px-4 py-3 font-semibold">Nombre</th>
+                <th className="px-4 py-3 font-semibold">Tipo</th>
                 <th className="px-4 py-3 font-semibold">Grupos Musculares</th>
                 <th className="px-4 py-3 font-semibold">Descripción</th>
                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
@@ -87,6 +88,15 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
                     )}
                   </td>
                   <td className="px-4 py-3 font-bold text-slate-800 whitespace-nowrap">{e.nombre}</td>
+                  <td className="px-4 py-3 text-slate-600 font-medium whitespace-nowrap">
+                    {e.tipo_entrenamiento_nombre ? (
+                      <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wider border border-slate-200">
+                        {e.tipo_entrenamiento_nombre}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-indigo-600 font-medium">
                     {e.grupos_nombres?.join(', ') || 'Ninguno'}
                   </td>

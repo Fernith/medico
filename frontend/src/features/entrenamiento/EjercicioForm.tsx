@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Type, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
+import { Select } from '../../components/ui/Select';
 
 export interface FormColorTheme {
   submitBg: string;
@@ -23,7 +24,9 @@ export interface Ejercicio {
   id: string;
   nombre: string;
   descripcion: string;
-  imagen: string; 
+  imagen: string;
+  tipo_entrenamiento_id?: string;
+  tipo_entrenamiento_nombre?: string;
   grupos_ids: string[];
   grupos_nombres?: string[];
 }
@@ -54,12 +57,14 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
   const theme = { ...defaultTheme, ...colorTheme };
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tiposEntrenamiento, setTiposEntrenamiento] = useState<{id: string, nombre: string}[]>([]);
   const [gruposDisponibles, setGruposDisponibles] = useState<GrupoMuscular[]>([]);
   
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || '',
     descripcion: initialData?.descripcion || '',
     imagen: initialData?.imagen || '',
+    tipo_entrenamiento_id: initialData?.tipo_entrenamiento_id || '',
     grupos_ids: initialData?.grupos_ids || [] as string[],
   });
 
@@ -73,6 +78,13 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
       }
     };
     fetchGrupos();
+    const fetchTipos = async () => {
+      try {
+        const res = await fetch('/api/tipos-entrenamiento');
+        if (res.ok) setTiposEntrenamiento(await res.json());
+      } catch (err) { console.error("Error cargando tipos:", err); }
+    };
+    fetchTipos();
   }, []);
 
   const handleChange = (campo: string, valor: string | string[]) => {
@@ -173,6 +185,14 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
             type="text" label="Descripción o notas técnicas" placeholder="Ej: Mantener retracción escapular..."
             value={formData.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)}
             colorTheme={theme.inputTheme} icon={<AlignLeft className="w-5 h-5" />}
+          />
+          
+          <Select 
+            label="Tipo de Entrenamiento"
+            placeholder="Seleccionar tipo..."
+            options={tiposEntrenamiento.map(t => ({ value: t.id, label: t.nombre }))}
+            value={formData.tipo_entrenamiento_id}
+            onChange={(val) => handleChange('tipo_entrenamiento_id', val)}
           />
 
           {/* GRUPOS MUSCULARES */}

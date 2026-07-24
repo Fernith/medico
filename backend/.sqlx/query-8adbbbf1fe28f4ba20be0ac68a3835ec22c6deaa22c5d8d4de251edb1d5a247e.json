@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE ejercicios SET nombre=$1, descripcion=$2, imagen=$3 WHERE id=$4",
+  "query": "UPDATE ejercicios SET nombre=$1, descripcion=$2, imagen=$3, tipo_entrenamiento_id=$4 WHERE id=$5",
   "describe": {
     "columns": [],
     "parameters": {
@@ -8,10 +8,11 @@
         "Text",
         "Text",
         "Text",
+        "Uuid",
         "Uuid"
       ]
     },
     "nullable": []
   },
-  "hash": "60e607f0d9c4844fa1f2e8a017508ebcac4355687f7ca4609eebadf529f99108"
+  "hash": "8adbbbf1fe28f4ba20be0ac68a3835ec22c6deaa22c5d8d4de251edb1d5a247e"
 }

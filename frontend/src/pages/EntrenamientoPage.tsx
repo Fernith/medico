@@ -6,6 +6,7 @@ import { EquipamientoTabla } from '../features/entrenamiento/EquipamientoTabla';
 import { RealizacionTabla } from '../features/entrenamiento/RealizacionTabla';
 import { RutinasTabla } from '../features/entrenamiento/RutinasTabla';
 import { type Ejercicio } from '../features/entrenamiento/EjercicioForm';
+import { TipoEntrenamientoTabla } from '../features/entrenamiento/TipoEntrenamientoTabla';
 
 
 export const EntrenamientoPage: React.FC = () => {
@@ -71,9 +72,11 @@ export const EntrenamientoPage: React.FC = () => {
               <Settings2 className="w-5 h-5 text-indigo-500" />
               <h3 className="font-bold text-lg">Administración de Datos</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* GRID ACTUALIZADO A 3 COLUMNAS EN ESCRITORIO, 1 EN MÓVIL */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="w-full"><GruposTabla /></div>
               <div className="w-full"><EquipamientoTabla /></div>
+              <div className="w-full"><TipoEntrenamientoTabla /></div>
             </div>
           </div>
 

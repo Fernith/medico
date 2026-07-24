@@ -49,9 +49,11 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/rutinas/:id/realizaciones", get(rutina::get_rutina_realizaciones))
         .route("/api/rutina-realizacion", post(rutina::add_realizacion_rutina))
         .route("/api/rutina-realizacion/:id", put(rutina::update_realizacion_rutina).delete(rutina::delete_realizacion_rutina))
-        
         // --- HISTORIAL DE ENTRENAMIENTO ---
         .route("/api/historial-rutinas", post(rutina::finalizar_entrenamiento))
+        // TIPO ENTRENAMIENTO
+        .route("/api/tipos-entrenamiento", get(ejercicio::get_tipos_entrenamiento).post(ejercicio::create_tipo_entrenamiento))
+        .route("/api/tipos-entrenamiento/:id", delete(ejercicio::delete_tipo_entrenamiento))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 

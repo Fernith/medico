@@ -6,6 +6,17 @@ use uuid::Uuid;
 // DATOS MAESTROS
 // ==========================================
 #[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct TipoEntrenamiento {
+    pub id: Uuid,
+    pub nombre: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TipoEntrenamientoPayload {
+    pub nombre: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct GrupoMuscular {
     pub id: Uuid,
     pub nombre: String,
@@ -38,6 +49,8 @@ pub struct Ejercicio {
     pub nombre: String,
     pub descripcion: Option<String>,
     pub imagen: Option<String>,
+    pub tipo_entrenamiento_id: Option<Uuid>,
+    pub tipo_entrenamiento_nombre: Option<String>,
     pub grupos_ids: Option<Vec<Uuid>>, 
     pub grupos_nombres: Option<Vec<String>>,
 }
@@ -47,11 +60,13 @@ pub struct EjercicioPayload {
     pub nombre: String,
     pub descripcion: Option<String>,
     pub imagen: Option<String>,
+    pub tipo_entrenamiento_id: Option<Uuid>,
     pub grupos_ids: Vec<Uuid>,
 }
 
 // ==========================================
 // REALIZACIÓN DE EJERCICIOS
+// (Mantén el resto exactamente igual...)
 // ==========================================
 #[derive(Debug, Serialize, FromRow)]
 pub struct RealizacionEjercicio {
@@ -66,7 +81,7 @@ pub struct RealizacionEjercicio {
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
-    pub descanso: Option<i32>,
+    pub descanso: Option<i32>, 
 }
 
 #[derive(Debug, Deserialize)]
