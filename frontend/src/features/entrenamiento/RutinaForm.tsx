@@ -15,6 +15,7 @@ export interface RutinaRealizacionDetalle {
   id: string;
   rutina_id: string;
   realizacion_id: string;
+  ejercicio_id: string;
   fase: string;
   orden: number;
   descanso_posterior: number | null;

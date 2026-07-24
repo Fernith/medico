@@ -4,8 +4,9 @@ import { EjerciciosTabla } from '../features/entrenamiento/EjerciciosTabla';
 import { GruposTabla } from '../features/entrenamiento/GruposTabla';
 import { EquipamientoTabla } from '../features/entrenamiento/EquipamientoTabla';
 import { RealizacionTabla } from '../features/entrenamiento/RealizacionTabla';
-import { RutinasTabla } from '../features/entrenamiento/RutinasTabla'; // <-- IMPORTACIÓN NUEVA
+import { RutinasTabla } from '../features/entrenamiento/RutinasTabla';
 import { type Ejercicio } from '../features/entrenamiento/EjercicioForm';
+
 
 export const EntrenamientoPage: React.FC = () => {
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);

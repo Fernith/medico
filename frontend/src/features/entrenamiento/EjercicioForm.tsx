@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
-import { Type, AlignLeft, Image as ImageIcon } from 'lucide-react';
+import { Type, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
 
 export interface FormColorTheme {
   submitBg: string;
@@ -19,7 +19,6 @@ export interface GrupoMuscular {
   categoria: string;
 }
 
-// Interfaz limpia: Solo los datos inmutables del ejercicio
 export interface Ejercicio {
   id: string;
   nombre: string;
@@ -94,6 +93,13 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        // MANTENER ANIMACIÓN: Si es un GIF, omitimos el redimensionado del canvas
+        if (file.type === 'image/gif') {
+          handleChange('imagen', reader.result as string);
+          return;
+        }
+
+        // REDIMENSIONADO: Para JPEG, PNG, etc., optimizamos el tamaño
         const img = new Image();
         img.onload = () => {
           const MAX_WIDTH = 1080; const MAX_HEIGHT = 1080;
@@ -108,7 +114,8 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            handleChange('imagen', canvas.toDataURL('image/jpeg', 0.8));
+            // Guardamos como webp o png (para mantener transparencias si las hay)
+            handleChange('imagen', canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/webp', 0.8));
           } else {
             handleChange('imagen', reader.result as string);
           }
@@ -121,7 +128,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (!formData.nombre || !formData.imagen) { alert("El nombre y la imagen son obligatorios"); return; }
+    if (!formData.nombre) { alert("El nombre es obligatorio"); return; }
     
     setIsSubmitting(true);
     try {
@@ -196,20 +203,34 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
             </div>
           </div>
 
+          {/* SUBIDA DE IMAGEN (OPCIONAL) */}
           <div className="space-y-2 mt-4">
-            <label className="block text-sm font-bold text-slate-700 ml-1">Imagen de Referencia</label>
+            <div className="flex items-center justify-between ml-1">
+              <label className="block text-sm font-bold text-slate-700">Imagen o GIF de Referencia</label>
+              <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Opcional</span>
+            </div>
+            
             <div className="flex items-center gap-4">
               <label className="flex items-center justify-center w-full max-w-[150px] h-32 px-4 transition bg-white border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-indigo-400 focus:outline-none">
                 <span className="flex items-center space-x-2">
                   <ImageIcon className="w-6 h-6 text-slate-400" />
-                  <span className="font-medium text-slate-600 text-sm">Subir foto</span>
+                  <span className="font-medium text-slate-600 text-sm">Subir archivo</span>
                 </span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </label>
 
               {formData.imagen && (
-                <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={formData.imagen} alt="Vista" className="object-cover w-full h-full" />
+                <div className="relative w-32 h-32 rounded-xl border border-slate-200 shadow-sm group">
+                  <img src={formData.imagen} alt="Vista" className="object-cover w-full h-full rounded-xl bg-black/5" />
+                  {/* Botón para eliminar la imagen */}
+                  <button 
+                    type="button" 
+                    onClick={() => handleChange('imagen', '')}
+                    className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-rose-500 border border-slate-200 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Eliminar imagen"
+                  >
+                    <X className="w-4 h-4" strokeWidth={3} />
+                  </button>
                 </div>
               )}
             </div>
@@ -222,7 +243,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
         <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
           Cancelar
         </button>
-        <button type="submit" disabled={isSubmitting || !formData.nombre || !formData.imagen} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center ${theme.submitBg} ${theme.submitHover}`}>
+        <button type="submit" disabled={isSubmitting || !formData.nombre} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center ${theme.submitBg} ${theme.submitHover}`}>
           {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
         </button>
       </div>

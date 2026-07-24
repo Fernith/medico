@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -42,13 +42,16 @@ pub fn construir_router(pool: PgPool) -> Router {
         // REALIZACIONES
         .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
         .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion))
-        // RUTINAS
-        .route("/api/rutinas", get(ejercicio::get_rutinas).post(ejercicio::create_rutina))
-        .route("/api/rutinas/:id", put(ejercicio::update_rutina).delete(ejercicio::delete_rutina))
-        // RELACIÓN RUTINAS <-> REALIZACIONES
-        .route("/api/rutinas/:id/realizaciones", get(ejercicio::get_rutina_realizaciones))
-        .route("/api/rutina-realizacion", post(ejercicio::add_realizacion_rutina))
-        .route("/api/rutina-realizacion/:id", put(ejercicio::update_realizacion_rutina).delete(ejercicio::delete_realizacion_rutina))
+        // --- RUTINAS Y PLANIFICACIÓN ---
+        .route("/api/rutinas", get(rutina::get_rutinas).post(rutina::create_rutina))
+        .route("/api/rutinas/:id", put(rutina::update_rutina).delete(rutina::delete_rutina))
+        // PLanificacion
+        .route("/api/rutinas/:id/realizaciones", get(rutina::get_rutina_realizaciones))
+        .route("/api/rutina-realizacion", post(rutina::add_realizacion_rutina))
+        .route("/api/rutina-realizacion/:id", put(rutina::update_realizacion_rutina).delete(rutina::delete_realizacion_rutina))
+        
+        // --- HISTORIAL DE ENTRENAMIENTO ---
+        .route("/api/historial-rutinas", post(rutina::finalizar_entrenamiento))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 

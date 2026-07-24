@@ -7,8 +7,7 @@ use uuid::Uuid;
 
 use crate::models::ejercicio::{
     Ejercicio, EjercicioPayload, Equipamiento, EquipamientoPayload, 
-    GrupoMuscular, GrupoMuscularPayload, RealizacionEjercicio, RealizacionPayload,
-    Rutina, RutinaPayload, RutinaRealizacionDetalle, RutinaRealizacionPayload
+    GrupoMuscular, GrupoMuscularPayload, RealizacionEjercicio, RealizacionPayload
 };
 
 // ==========================================
@@ -61,6 +60,7 @@ pub async fn delete_equipamiento(Path(id): Path<Uuid>, State(pool): State<PgPool
 // CATÁLOGO DE EJERCICIOS
 // ==========================================
 pub async fn get_ejercicios(State(pool): State<PgPool>) -> Result<Json<Vec<Ejercicio>>, String> {
+    // sqlx maneja automáticamente la nulidad de la columna 'imagen'
     let ejercicios = sqlx::query_as!(
         Ejercicio,
         r#"
@@ -78,6 +78,7 @@ pub async fn get_ejercicios(State(pool): State<PgPool>) -> Result<Json<Vec<Ejerc
 pub async fn create_ejercicio(State(pool): State<PgPool>, Json(payload): Json<EjercicioPayload>) -> Result<Json<Ejercicio>, String> {
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
+    // payload.imagen ahora es Option<String>, sqlx inserta NULL si es None
     let registro = sqlx::query!(
         "INSERT INTO ejercicios (nombre, descripcion, imagen) VALUES ($1, $2, $3) RETURNING id",
         payload.nombre, payload.descripcion, payload.imagen
@@ -121,6 +122,7 @@ pub async fn delete_ejercicio(Path(id): Path<Uuid>, State(pool): State<PgPool>) 
 // REALIZACIÓN DE EJERCICIOS
 // ==========================================
 pub async fn get_realizaciones(State(pool): State<PgPool>) -> Result<Json<Vec<RealizacionEjercicio>>, String> {
+    // Al hacer JOIN, e.imagen puede ser nulo, sqlx lo mapea a Option<String>
     let realizaciones = sqlx::query_as!(
         RealizacionEjercicio,
         r#"
@@ -151,7 +153,8 @@ pub async fn create_realizacion(State(pool): State<PgPool>, Json(payload): Json<
 
     Ok(Json(RealizacionEjercicio {
         id: registro.id, ejercicio_id: payload.ejercicio_id, ejercicio_nombre: "".to_string(),
-        ejercicio_imagen: "".to_string(), // Lo dejamos vacío, el front recargará los datos
+        // ANTES: ejercicio_imagen: "".to_string(),
+        ejercicio_imagen: None, // AHORA: None para Option<String>
         equipamiento_id: payload.equipamiento_id, equipamiento_nombre: None, carga_actual: payload.carga_actual,
         unidad_carga: payload.unidad_carga, series: payload.series, reps_min: payload.reps_min, 
         reps_max: payload.reps_max, descanso: payload.descanso,
@@ -174,92 +177,5 @@ pub async fn update_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>
 
 pub async fn delete_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
     sqlx::query!("DELETE FROM realizacion_ejercicio WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
-    Ok(Json(()))
-}
-
-// ==========================================
-// RUTINAS (Cabecera)
-// ==========================================
-pub async fn get_rutinas(State(pool): State<PgPool>) -> Result<Json<Vec<Rutina>>, String> {
-    let rutinas = sqlx::query_as!(Rutina, "SELECT id, nombre, descripcion, color FROM rutinas ORDER BY nombre")
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
-    Ok(Json(rutinas))
-}
-
-pub async fn create_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaPayload>) -> Result<Json<Rutina>, String> {
-    let registro = sqlx::query_as!(
-        Rutina,
-        "INSERT INTO rutinas (nombre, descripcion, color) VALUES ($1, $2, $3) RETURNING id, nombre, descripcion, color",
-        payload.nombre, payload.descripcion, payload.color
-    ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
-    Ok(Json(registro))
-}
-
-pub async fn update_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<RutinaPayload>) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE rutinas SET nombre=$1, descripcion=$2, color=$3 WHERE id=$4", payload.nombre, payload.descripcion, payload.color, id)
-        .execute(&pool).await.map_err(|e| e.to_string())?;
-    Ok(Json(()))
-}
-
-pub async fn delete_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM rutinas WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
-    Ok(Json(()))
-}
-
-// ==========================================
-// RUTINAS (Detalle de Ejercicios)
-// ==========================================
-pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<Vec<RutinaRealizacionDetalle>>, String> {
-    let detalles = sqlx::query_as!(
-        RutinaRealizacionDetalle,
-        r#"
-        SELECT 
-            rr.id, rr.rutina_id, rr.realizacion_id, 
-            rr.fase::text as "fase!", 
-            rr.orden, rr.descanso_posterior,
-            e.nombre as "ejercicio_nombre!", 
-            e.imagen as "ejercicio_imagen!",
-            eq.nombre as "equipamiento_nombre",
-            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso
-        FROM rutina_realizacion rr
-        JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id
-        JOIN ejercicios e ON re.ejercicio_id = e.id
-        LEFT JOIN equipamiento eq ON re.equipamiento_id = eq.id
-        WHERE rr.rutina_id = $1
-        ORDER BY 
-            CASE rr.fase 
-                WHEN 'Calentamiento'::fase_rutina THEN 1 
-                WHEN 'Principal'::fase_rutina THEN 2 
-                WHEN 'Postentreno'::fase_rutina THEN 3 
-            END,
-            rr.orden
-        "#,
-        rutina_id
-    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
-    
-    Ok(Json(detalles))
-}
-
-pub async fn add_realizacion_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaRealizacionPayload>) -> Result<Json<()>, String> {
-    // Usamos el ::text::fase_rutina para el ENUM igual que hicimos en grupos musculares
-    sqlx::query!(
-        "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior) VALUES ($1, $2, $3::text::fase_rutina, $4, $5)",
-        payload.rutina_id, payload.realizacion_id, payload.fase, payload.orden, payload.descanso_posterior
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
-    
-    Ok(Json(()))
-}
-
-pub async fn update_realizacion_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<RutinaRealizacionPayload>) -> Result<Json<()>, String> {
-    sqlx::query!(
-        "UPDATE rutina_realizacion SET fase=$1::text::fase_rutina, orden=$2, descanso_posterior=$3 WHERE id=$4",
-        payload.fase, payload.orden, payload.descanso_posterior, id
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
-    
-    Ok(Json(()))
-}
-
-pub async fn delete_realizacion_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM rutina_realizacion WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }
