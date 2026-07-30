@@ -29,6 +29,7 @@ export interface Ejercicio {
   tipo_entrenamiento_nombre?: string;
   grupos_ids: string[];
   grupos_nombres?: string[];
+  activo: boolean;
 }
 
 const defaultTheme: FormColorTheme = {

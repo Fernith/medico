@@ -48,16 +48,13 @@ pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): 
         r#"
         SELECT 
             rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id,
-            rr.fase::text as "fase!", 
-            rr.orden, rr.descanso_posterior,
-            e.nombre as "ejercicio_nombre!", 
-            e.imagen as "ejercicio_imagen!",
-            eq.nombre as "equipamiento_nombre",
-            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso
+            rr.fase::text as "fase!", rr.orden, rr.descanso_posterior,
+            e.nombre as "ejercicio_nombre!", e.imagen as "ejercicio_imagen?",
+            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,
+            re.activo as "realizacion_activa!" /* <-- NUEVO */
         FROM rutina_realizacion rr
         JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id
         JOIN ejercicios e ON re.ejercicio_id = e.id
-        LEFT JOIN equipamiento eq ON re.equipamiento_id = eq.id
         WHERE rr.rutina_id = $1
         ORDER BY 
             CASE rr.fase 
@@ -101,29 +98,25 @@ pub async fn delete_realizacion_rutina(Path(id): Path<Uuid>, State(pool): State<
 // NUEVO: GUARDAR ENTRENAMIENTO COMPLETADO
 // ==========================================
 pub async fn finalizar_entrenamiento(State(pool): State<PgPool>, Json(payload): Json<HistorialRutinaPayload>) -> Result<Json<()>, String> {
-    // Iniciamos transacción para que no se guarde a medias si hay error
     let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
 
-    // 1. Crear el registro maestro de la sesión
     let registro_historial = sqlx::query!(
         "INSERT INTO historial_rutinas (rutina_id, nombre, fecha_inicio, fecha_fin, duracion_segundos) VALUES ($1, $2, $3, $4, $5) RETURNING id",
         payload.rutina_id, payload.nombre, payload.fecha_inicio, payload.fecha_fin, payload.duracion_segundos
     ).fetch_one(&mut *tx).await.map_err(|e| e.to_string())?;
 
-    // 2. Iterar por todas las series y guardarlas vinculadas a esa sesión
     for serie in payload.series {
         sqlx::query!(
             r#"
             INSERT INTO historial_series 
-            (historial_rutina_id, ejercicio_id, ejercicio_nombre, equipamiento_nombre, fase, orden_ejercicio, serie_numero, reps_completadas, carga_completada, unidad_carga) 
-            VALUES ($1, $2, $3, $4, $5::text::fase_rutina, $6, $7, $8, $9, $10)
-            "#,
-            registro_historial.id, serie.ejercicio_id, serie.ejercicio_nombre, serie.equipamiento_nombre, 
+            (historial_rutina_id, ejercicio_id, ejercicio_nombre, fase, orden_ejercicio, serie_numero, reps_completadas, carga_completada, unidad_carga) 
+            VALUES ($1, $2, $3, $4::text::fase_rutina, $5, $6, $7, $8, $9)
+            "#, // <-- ELIMINADO EL CAMPO EQUIPAMIENTO
+            registro_historial.id, serie.ejercicio_id, serie.ejercicio_nombre, 
             serie.fase, serie.orden_ejercicio, serie.serie_numero, serie.reps_completadas, serie.carga_completada, serie.unidad_carga
         ).execute(&mut *tx).await.map_err(|e| e.to_string())?;
     }
 
-    // Si todo ha ido bien, confirmamos (Commit) los cambios en la BBDD
     tx.commit().await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Activity, AlertTriangle } from 'lucide-react';
-import { useEntrenamiento } from './activo/useEntrenamiento';
-import { PasoSeleccion, PasoResumenInicial, PasoEntrenando, PasoDescanso, PasoFinalizado } from './activo/Pasos';
+import { useEntrenamiento } from './useEntrenamiento';
+import { PasoSeleccion, PasoResumenInicial, PasoEntrenando, PasoDescanso, PasoFinalizado } from './Pasos';
 
 interface EntrenamientoActivoProps {
   onClose: () => void;

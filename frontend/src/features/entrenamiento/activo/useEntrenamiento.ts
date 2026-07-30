@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { type Rutina, type RutinaRealizacionDetalle } from '../RutinaForm';
 
 export interface SetHistorial {
-  rutina_realizacion_id: string; // <-- NUEVO: Para diferenciar el mismo ejercicio repetido
+  rutina_realizacion_id: string;
   realizacion_id: string;
   ejercicio_id: string;
   ejercicio_nombre: string;
-  equipamiento_nombre: string | null;
   fase: string;
   orden_ejercicio: number;
   serie_numero: number;
@@ -37,12 +36,10 @@ export const useEntrenamiento = (onClose: () => void) => {
     selectRutina: async (rutina: Rutina) => {
       try {
         const res = await fetch(`/api/rutinas/${rutina.id}/realizaciones`);
-        const detalles = await res.json();
-        if (detalles.length === 0) {
-          alert("Esta rutina no tiene ejercicios.");
-          return;
-        }
-        setEjerciciosPlanificados(detalles);
+        const detalles: RutinaRealizacionDetalle[] = await res.json();
+        
+        const ejerciciosActivos = detalles.filter(d => d.realizacion_activa !== false);
+        setEjerciciosPlanificados(ejerciciosActivos);
         setSelectedRutina(rutina);
         setStep('PREVIEW');
       } catch (e) {
@@ -60,7 +57,6 @@ export const useEntrenamiento = (onClose: () => void) => {
 
     completeSet: (reps: string, carga: string) => {
       const current = ejerciciosPlanificados[currentExerciseIndex];
-      // Buscamos por el ID único de esta posición en la rutina (current.id)
       const setsHechos = historial.filter(h => h.rutina_realizacion_id === current.id).length;
       const currentSerie = setsHechos + 1;
 
@@ -69,7 +65,6 @@ export const useEntrenamiento = (onClose: () => void) => {
         realizacion_id: current.realizacion_id,
         ejercicio_id: current.ejercicio_id,
         ejercicio_nombre: current.ejercicio_nombre,
-        equipamiento_nombre: current.equipamiento_nombre,
         fase: current.fase,
         orden_ejercicio: current.orden,
         serie_numero: currentSerie,
@@ -126,6 +121,15 @@ export const useEntrenamiento = (onClose: () => void) => {
     jumpToExercise: (index: number) => {
       setCurrentExerciseIndex(index);
       setStep('WORKOUT');
+    },
+
+    // NUEVA ACCIÓN: Finaliza el entrenamiento prematuramente
+    finishWorkoutEarly: () => {
+      if (historial.length === 0) {
+        alert("No has completado ninguna serie. Si quieres salir, usa la X de arriba a la derecha.");
+        return;
+      }
+      setStep('FINISHED');
     },
 
     saveWorkout: async () => {

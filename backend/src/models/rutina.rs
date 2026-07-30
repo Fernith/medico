@@ -31,14 +31,14 @@ pub struct RutinaRealizacionDetalle {
     pub orden: i32,
     pub descanso_posterior: Option<i32>,
     pub ejercicio_nombre: String,
-    pub ejercicio_imagen: String,
-    pub equipamiento_nombre: Option<String>,
+    pub ejercicio_imagen: Option<String>,
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
     pub carga_actual: Option<f64>,
     pub unidad_carga: Option<String>,
     pub descanso: Option<i32>,
+    pub realizacion_activa: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,7 +57,6 @@ pub struct RutinaRealizacionPayload {
 pub struct HistorialSeriePayload {
     pub ejercicio_id: Uuid,
     pub ejercicio_nombre: String,
-    pub equipamiento_nombre: Option<String>,
     pub fase: String,
     pub orden_ejercicio: i32,
     pub serie_numero: i32,

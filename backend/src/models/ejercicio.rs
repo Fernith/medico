@@ -53,6 +53,7 @@ pub struct Ejercicio {
     pub tipo_entrenamiento_nombre: Option<String>,
     pub grupos_ids: Option<Vec<Uuid>>, 
     pub grupos_nombres: Option<Vec<String>>,
+    pub activo: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -62,6 +63,11 @@ pub struct EjercicioPayload {
     pub imagen: Option<String>,
     pub tipo_entrenamiento_id: Option<Uuid>,
     pub grupos_ids: Vec<Uuid>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReactivateEjercicioPayload {
+    pub reactivar_realizaciones: bool,
 }
 
 // ==========================================
@@ -81,7 +87,9 @@ pub struct RealizacionEjercicio {
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
-    pub descanso: Option<i32>, 
+    pub descanso: Option<i32>,
+    pub activo: bool,
+    pub ejercicio_activo: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

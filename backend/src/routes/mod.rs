@@ -1,6 +1,6 @@
 use axum::{
     extract::DefaultBodyLimit,
-    routing::{get, put, post, delete},
+    routing::{get, put, post, delete, patch},
     Router,
 };
 use sqlx::PgPool;
@@ -33,6 +33,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
         .route("/api/ejercicios", get(ejercicio::get_ejercicios).post(ejercicio::create_ejercicio))
         .route("/api/ejercicios/:id", put(ejercicio::update_ejercicio).delete(ejercicio::delete_ejercicio))
+        .route("/api/ejercicios/:id/reactivar", patch(ejercicio::reactivate_ejercicio))
         // GRUPO MUSCULAR
         .route("/api/grupos-musculares", get(ejercicio::get_grupos_musculares).post(ejercicio::create_grupo_muscular))
         .route("/api/grupos-musculares/:id", put(ejercicio::update_grupo_muscular).delete(ejercicio::delete_grupo_muscular))
@@ -42,6 +43,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // REALIZACIONES
         .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
         .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion))
+        .route("/api/realizaciones/:id/reactivar", patch(ejercicio::reactivate_realizacion))
         // --- RUTINAS Y PLANIFICACIÓN ---
         .route("/api/rutinas", get(rutina::get_rutinas).post(rutina::create_rutina))
         .route("/api/rutinas/:id", put(rutina::update_rutina).delete(rutina::delete_rutina))

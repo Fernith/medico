@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            e.id, e.nombre, e.descripcion, e.imagen,\n            e.tipo_entrenamiento_id, \n            t.nombre as \"tipo_entrenamiento_nombre?\",\n            ARRAY(SELECT grupo_id FROM ejercicio_grupos WHERE ejercicio_id = e.id) as \"grupos_ids\",\n            ARRAY(SELECT g.nombre FROM ejercicio_grupos eg JOIN grupos_musculares g ON eg.grupo_id = g.id WHERE eg.ejercicio_id = e.id) as \"grupos_nombres\"\n        FROM ejercicios e\n        LEFT JOIN tipos_entrenamiento t ON e.tipo_entrenamiento_id = t.id\n        ORDER BY e.nombre\n        ",
+  "query": "\n        SELECT \n            e.id, e.nombre, e.descripcion, e.imagen, e.activo,\n            e.tipo_entrenamiento_id, t.nombre as \"tipo_entrenamiento_nombre?\",\n            ARRAY(SELECT grupo_id FROM ejercicio_grupos WHERE ejercicio_id = e.id) as \"grupos_ids\",\n            ARRAY(SELECT g.nombre FROM ejercicio_grupos eg JOIN grupos_musculares g ON eg.grupo_id = g.id WHERE eg.ejercicio_id = e.id) as \"grupos_nombres\"\n        FROM ejercicios e\n        LEFT JOIN tipos_entrenamiento t ON e.tipo_entrenamiento_id = t.id\n        ORDER BY e.nombre\n        ",
   "describe": {
     "columns": [
       {
@@ -25,21 +25,26 @@
       },
       {
         "ordinal": 4,
+        "name": "activo",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
         "name": "tipo_entrenamiento_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "tipo_entrenamiento_nombre?",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "grupos_ids",
         "type_info": "UuidArray"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "grupos_nombres",
         "type_info": "TextArray"
       }
@@ -52,11 +57,12 @@
       false,
       true,
       true,
+      false,
       true,
       false,
       null,
       null
     ]
   },
-  "hash": "c2a214dd3ff9393c353ac99999fdf0b2542bc29e26b158c31e5004622ce4ab1e"
+  "hash": "6041be483cf9e665c62af7142bd480064786016ba96123a129aba8f782f55beb"
 }

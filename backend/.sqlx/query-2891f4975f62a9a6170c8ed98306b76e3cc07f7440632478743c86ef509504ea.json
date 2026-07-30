@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            r.id, \n            r.ejercicio_id, e.nombre as \"ejercicio_nombre\", e.imagen as \"ejercicio_imagen\",\n            r.equipamiento_id, eq.nombre as \"equipamiento_nombre\",\n            r.carga_actual, r.unidad_carga, r.series, r.reps_min, r.reps_max, r.descanso\n        FROM realizacion_ejercicio r\n        JOIN ejercicios e ON r.ejercicio_id = e.id\n        LEFT JOIN equipamiento eq ON r.equipamiento_id = eq.id\n        ORDER BY e.nombre\n        ",
+  "query": "\n        SELECT \n            r.id, \n            r.ejercicio_id, \n            e.nombre as \"ejercicio_nombre\", \n            e.imagen as \"ejercicio_imagen?\", \n            r.equipamiento_id, \n            (SELECT nombre FROM equipamiento WHERE id = r.equipamiento_id) as \"equipamiento_nombre\",\n            r.carga_actual, \n            r.unidad_carga, \n            r.series, \n            r.reps_min, \n            r.reps_max, \n            r.descanso,\n            r.activo,\n            e.activo as \"ejercicio_activo\" /* <-- NUEVO */\n        FROM realizacion_ejercicio r\n        JOIN ejercicios e ON r.ejercicio_id = e.id\n        ORDER BY e.nombre\n        ",
   "describe": {
     "columns": [
       {
@@ -20,7 +20,7 @@
       },
       {
         "ordinal": 3,
-        "name": "ejercicio_imagen",
+        "name": "ejercicio_imagen?",
         "type_info": "Text"
       },
       {
@@ -62,6 +62,16 @@
         "ordinal": 11,
         "name": "descanso",
         "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "activo",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "ejercicio_activo",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -73,14 +83,16 @@
       false,
       true,
       true,
+      null,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
       false,
-      true,
-      true,
-      true,
-      true,
-      true,
-      true
+      false
     ]
   },
-  "hash": "3433e401040235a1bd96b1a6b2b540ec45ed578f8290c60f6ae85535e139a171"
+  "hash": "2891f4975f62a9a6170c8ed98306b76e3cc07f7440632478743c86ef509504ea"
 }

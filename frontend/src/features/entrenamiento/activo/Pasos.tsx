@@ -1,6 +1,48 @@
 import { useState, useEffect } from 'react';
-import { Play, Timer, CheckCircle2, Trophy, Dumbbell, FastForward, List } from 'lucide-react';
-import { ModalListadoRutina, playBeep } from './UIComponents';
+import { Play, Timer, CheckCircle2, Trophy, Dumbbell, FastForward, List, Flag } from 'lucide-react';
+import { ModalListadoRutina, playBeep, BarraProgreso } from './UIComponents';
+
+// --- NUEVO: SISTEMA DE TEMAS POR FASE ---
+const getPhaseTheme = (fase: string) => {
+  switch (fase) {
+    case 'Calentamiento': return {
+      text: 'text-orange-400',
+      textLight: 'text-orange-300',
+      bg: 'bg-orange-600',
+      bgHover: 'hover:bg-orange-500',
+      bgTransparent: 'bg-orange-900/30',
+      border: 'border-orange-400/50',
+      borderDim: 'border-orange-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(249,115,22,0.3)]',
+      shadowLg: 'shadow-[0_0_80px_rgba(249,115,22,0.15)]',
+      badgeBg: 'bg-orange-600/90'
+    };
+    case 'Postentreno': return {
+      text: 'text-cyan-400',
+      textLight: 'text-cyan-300',
+      bg: 'bg-cyan-600',
+      bgHover: 'hover:bg-cyan-500',
+      bgTransparent: 'bg-cyan-900/30',
+      border: 'border-cyan-400/50',
+      borderDim: 'border-cyan-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(6,182,212,0.3)]',
+      shadowLg: 'shadow-[0_0_80px_rgba(6,182,212,0.15)]',
+      badgeBg: 'bg-cyan-600/90'
+    };
+    default: return { // Principal
+      text: 'text-indigo-400',
+      textLight: 'text-indigo-300',
+      bg: 'bg-indigo-600',
+      bgHover: 'hover:bg-indigo-500',
+      bgTransparent: 'bg-indigo-900/30',
+      border: 'border-indigo-400/50',
+      borderDim: 'border-indigo-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(79,70,229,0.3)]',
+      shadowLg: 'shadow-[0_0_80px_rgba(79,70,229,0.15)]',
+      badgeBg: 'bg-indigo-600/90'
+    };
+  }
+};
 
 export const PasoSeleccion = ({ state, actions }: any) => (
   <div className="w-full max-w-lg p-6 space-y-6 flex-1 flex flex-col mt-8">
@@ -46,8 +88,9 @@ export const PasoResumenInicial = ({ state, actions }: any) => (
     </div>
     <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex gap-4 justify-center pointer-events-none z-10">
       <button onClick={actions.goBackToSelect} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-slate-300 transition-colors pointer-events-auto shadow-lg border border-slate-700">Atrás</button>
-      <button onClick={actions.startWorkout} className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto">
-        <Play fill="currentColor" className="w-6 h-6"/> Empezar Rutina
+      <button onClick={actions.startWorkout} disabled={state.ejerciciosPlanificados.length === 0}
+       className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed">
+        <Play fill="currentColor" className="w-6 h-6"/> {state.ejerciciosPlanificados.length === 0 ? 'No hay ejercicios activos' : 'Empezar Rutina'}
       </button>
     </div>
   </div>
@@ -64,6 +107,9 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   const [carga, setCarga] = useState('');
   const [reps, setReps] = useState('');
 
+  // TEMA DINÁMICO
+  const theme = getPhaseTheme(ej.fase);
+
   useEffect(() => {
     setCarga(ej.carga_actual?.toString() || '');
     setReps(ej.reps_max?.toString() || ej.reps_min?.toString() || '');
@@ -75,32 +121,32 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   return (
     <div className="w-full flex flex-col flex-1 pb-44 animate-in slide-in-from-right-4 duration-300">
       
-      {/* TÍTULO Y FASE */}
-      <div className="w-full max-w-2xl mx-auto px-6 mt-4 flex flex-col items-center text-center">
-        <span className="text-indigo-400 font-bold text-sm tracking-widest uppercase mb-1">{ej.fase}</span>
-        <h2 className="text-3xl md:text-5xl font-black leading-tight text-white drop-shadow-sm">{ej.ejercicio_nombre}</h2>
-        {ej.equipamiento_nombre && <span className="inline-block px-4 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-sm border border-slate-700 mt-3 font-medium">{ej.equipamiento_nombre}</span>}
+      <div className="w-full max-w-3xl mx-auto px-4 py-3 sticky top-[73px] z-20 bg-slate-900/95 backdrop-blur-md mb-4">
+        <BarraProgreso 
+          ejercicios={state.ejerciciosPlanificados} 
+          historial={state.historial} 
+          currentIndex={state.currentExerciseIndex} 
+        />
       </div>
 
-      {/* IMAGEN DE LADO A LADO CON ETIQUETA DE SERIE PEQUEÑA */}
+      {/* TÍTULO Y FASE CON COLOR DINÁMICO */}
+      <div className="w-full max-w-2xl mx-auto px-6 mt-4 flex flex-col items-center text-center">
+        <span className={`${theme.text} font-bold text-sm tracking-widest uppercase mb-1`}>{ej.fase}</span>
+        <h2 className="text-3xl md:text-5xl font-black leading-tight text-white drop-shadow-sm">{ej.ejercicio_nombre}</h2>
+      </div>
+
+      {/* IMAGEN DE LADO A LADO CON ETIQUETA DINÁMICA */}
       <div className="relative w-full max-w-6xl mx-auto flex justify-center px-4 mb-4 mt-6">
         {ej.ejercicio_imagen ? (
           <img src={ej.ejercicio_imagen} className="w-full h-auto max-h-[40vh] md:max-h-[50vh] object-contain rounded-2xl drop-shadow-2xl opacity-95" />
         ) : (
-          <div className="w-full h-[25vh] flex justify-center items-center bg-slate-800/30 rounded-2xl">
-            <Dumbbell className="w-20 h-20 text-slate-600" />
-          </div>
+          <div className="w-full h-[25vh] flex justify-center items-center bg-slate-800/30 rounded-2xl"><Dumbbell className="w-20 h-20 text-slate-600" /></div>
         )}
-        
-        {/* Etiqueta Serie (Reducida y arriba a la derecha) */}
-        <div className="absolute top-4 right-6 md:top-6 md:right-8 bg-indigo-600/90 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-indigo-400/50 shadow-lg z-10">
-          <span className="font-bold text-sm drop-shadow-sm">
-            Serie {currentSerie} / {totalSeries}
-          </span>
+        <div className={`absolute top-4 right-6 md:top-6 md:right-8 ${theme.badgeBg} backdrop-blur text-white px-3 py-1.5 rounded-xl border ${theme.border} shadow-lg z-10`}>
+          <span className="font-bold text-sm drop-shadow-sm">Serie {currentSerie} / {totalSeries}</span>
         </div>
       </div>
 
-      {/* INPUTS DE CARGA Y REPS + PRÓXIMO EJERCICIO */}
       <div className="w-full max-w-md mx-auto px-6">
         <div className="grid grid-cols-2 gap-5 mt-2">
           <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center">
@@ -112,22 +158,27 @@ export const PasoEntrenando = ({ state, actions }: any) => {
             <input type="number" value={reps} onChange={e => setReps(e.target.value)} className="w-full bg-transparent text-5xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
           </div>
         </div>
-        
-        {/* Próximo Ejercicio (Justo debajo de los inputs) */}
         <div className="mt-6 bg-slate-800/40 px-5 py-3 rounded-2xl border border-slate-700/50 w-full text-center shadow-inner">
           <span className="text-sm font-bold text-slate-400">{nextText}</span>
         </div>
       </div>
 
-      {/* BOTONERA FIJA INFERIOR */}
       <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex flex-col items-center pt-10 pb-6 px-6 z-20 pointer-events-none">
-        <button onClick={() => actions.completeSet(reps, carga)} className="w-full max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] pointer-events-auto transition-transform active:scale-95">
+        
+        {/* BOTÓN DINÁMICO */}
+        <button onClick={() => actions.completeSet(reps, carga)} className={`w-full max-w-md py-4 ${theme.bg} ${theme.bgHover} rounded-2xl text-xl font-black flex items-center justify-center gap-3 ${theme.shadow} pointer-events-auto transition-transform active:scale-95`}>
           <CheckCircle2 className="w-7 h-7" /> Completar Serie
         </button>
 
-        <button onClick={() => setShowList(true)} className="mt-4 flex items-center justify-center gap-2 text-slate-400 hover:text-indigo-300 font-bold px-4 py-2 rounded-lg transition-colors pointer-events-auto">
-          <List className="w-5 h-5" /> Ver toda la rutina
-        </button>
+        <div className="w-full max-w-md flex justify-between mt-4 pointer-events-auto">
+          <button onClick={() => setShowList(true)} className="flex items-center justify-center gap-2 text-slate-400 hover:text-indigo-300 font-bold px-4 py-2 rounded-lg transition-colors">
+            <List className="w-5 h-5" /> Ver Rutina
+          </button>
+          
+          <button onClick={actions.finishWorkoutEarly} className="flex items-center justify-center gap-2 text-slate-400 hover:text-rose-400 font-bold px-4 py-2 rounded-lg transition-colors">
+            <Flag className="w-5 h-5" /> Finalizar
+          </button>
+        </div>
       </div>
 
       <ModalListadoRutina isOpen={showList} onClose={() => setShowList(false)} state={state} actions={actions} />
@@ -149,26 +200,44 @@ export const PasoDescanso = ({ state, actions }: any) => {
 
   const nextExercise = state.ejerciciosPlanificados[state.currentExerciseIndex];
   const nextText = nextExercise ? `Próximo: ${nextExercise.ejercicio_nombre}` : 'Último ejercicio de la rutina';
+  
+  // TEMA DINÁMICO (Basado en la fase del ejercicio que va a empezar)
+  const theme = getPhaseTheme(nextExercise?.fase || 'Principal');
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center justify-center p-6 space-y-12 animate-in fade-in duration-300">
-      <div className="text-center space-y-2">
-        <Timer className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-        <h2 className="text-3xl font-black text-white drop-shadow-sm">Descanso</h2>
-        <p className="text-indigo-300 font-bold bg-indigo-900/30 border border-indigo-500/30 px-5 py-2 rounded-full shadow-sm">{nextText}</p>
-      </div>
+    <div className="w-full flex-1 flex flex-col pb-24 animate-in fade-in duration-300">
       
-      <div className="relative flex items-center justify-center">
-        <div className="w-72 h-72 rounded-full border-[12px] border-slate-800 flex items-center justify-center shadow-[0_0_80px_rgba(79,70,229,0.15)]">
-          <span className="text-8xl font-black tracking-tighter text-indigo-400 drop-shadow-md">
-            {Math.floor(state.timeLeft / 60)}:{(state.timeLeft % 60).toString().padStart(2, '0')}
-          </span>
-        </div>
+      <div className="w-full max-w-3xl mx-auto px-4 mt-2 mb-8">
+        <BarraProgreso ejercicios={state.ejerciciosPlanificados} historial={state.historial} currentIndex={state.currentExerciseIndex} />
       </div>
 
-      <button onClick={() => { playBeep(); actions.skipRest(); }} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-lg flex items-center gap-2 transition-colors border border-slate-700 text-slate-300 shadow-lg">
-        Omitir Descanso <FastForward className="w-5 h-5" />
-      </button>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-12">
+        <div className="text-center space-y-2">
+          {/* ICONO Y ETIQUETA DINÁMICOS */}
+          <Timer className={`w-12 h-12 ${theme.text} mx-auto mb-4`} />
+          <h2 className="text-3xl font-black text-white drop-shadow-sm">Descanso</h2>
+          <p className={`${theme.textLight} font-bold ${theme.bgTransparent} border ${theme.borderDim} px-5 py-2 rounded-full shadow-sm`}>{nextText}</p>
+        </div>
+        
+        <div className="relative flex items-center justify-center">
+          {/* CÍRCULO CON SOMBRA Y TEXTO DINÁMICO */}
+          <div className={`w-72 h-72 rounded-full border-[12px] border-slate-800 flex items-center justify-center ${theme.shadowLg}`}>
+            <span className={`text-8xl font-black tracking-tighter ${theme.text} drop-shadow-md`}>
+              {Math.floor(state.timeLeft / 60)}:{(state.timeLeft % 60).toString().padStart(2, '0')}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <button onClick={() => { playBeep(); actions.skipRest(); }} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-colors border border-slate-700 text-slate-300 shadow-lg">
+            Omitir Descanso <FastForward className="w-5 h-5" />
+          </button>
+
+          <button onClick={actions.finishWorkoutEarly} className="text-slate-400 hover:text-rose-400 font-bold px-4 py-3 rounded-2xl transition-colors flex items-center justify-center gap-2">
+            <Flag className="w-5 h-5" /> Finalizar Entrenamiento
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

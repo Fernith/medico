@@ -9,30 +9,23 @@ interface ConfirmModalProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
-  isConfirming?: boolean; // Para mostrar el spinner
-  variant?: Extract<ButtonVariant, 'primary' | 'secondary' | 'danger'>; // Vincula el modal con los colores de la app
+  isConfirming?: boolean;
+  variant?: Extract<ButtonVariant, 'primary' | 'secondary' | 'danger' | 'success'>;
+  children?: React.ReactNode;
+  hideCancel?: boolean; // <--- NUEVA PROPIEDAD
 }
 
 export const ConfirmModal = ({
-  isOpen,
-  title,
-  description,
-  onConfirm,
-  onCancel,
-  confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
-  isConfirming = false,
-  variant = 'primary' // Por defecto, usará tus tonos rosas
+  isOpen, title, description, onConfirm, onCancel,
+  confirmText = 'Confirmar', cancelText = 'Cancelar', isConfirming = false, variant = 'primary',
+  children, hideCancel = false // <--- VALOR POR DEFECTO
 }: ConfirmModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Accesibilidad: Cerrar al hacer clic fuera o pulsar Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Evitamos que se cierre si está en medio de un guardado/borrado
       if (e.key === 'Escape' && !isConfirming) onCancel();
     };
-
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node) && !isConfirming) {
         onCancel();
@@ -52,11 +45,9 @@ export const ConfirmModal = ({
 
   if (!isOpen) return null;
 
-  // Diccionario para vincular el 'variant' del botón con el color del borde del modal
   const borderColors = {
-    primary: 'border-pink-400',
-    secondary: 'border-orange-400',
-    danger: 'border-red-500',
+    primary: 'border-pink-400', secondary: 'border-orange-400',
+    danger: 'border-red-500', success: 'border-emerald-500'
   };
 
   return (
@@ -66,23 +57,18 @@ export const ConfirmModal = ({
         className={`bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200 border-2 ${borderColors[variant]}`}
       >
         <h2 className="text-xl font-bold text-slate-800 mb-2">{title}</h2>
-        <p className="text-slate-500 mb-8">{description}</p>
+        <p className={`text-slate-500 ${children ? 'mb-4' : 'mb-8'}`}>{description}</p>
+        
+        {children && <div className="mb-8">{children}</div>}
         
         <div className="flex gap-3">
-          <Button 
-            onClick={onCancel} 
-            variant="ghost" // Usa el diseño limpio de fondo blanco que hicimos
-            className="flex-1"
-            disabled={isConfirming}
-          >
-            {cancelText}
-          </Button>
-          <Button 
-            onClick={onConfirm} 
-            variant={variant} // Pasa el color rojo/rosa/naranja dinámicamente
-            className="flex-1"
-            isLoading={isConfirming} // Mostrará el spinner si está procesando
-          >
+          {/* RENDERIZADO CONDICIONAL DEL BOTÓN CANCELAR */}
+          {!hideCancel && (
+            <Button onClick={onCancel} variant="ghost" className="flex-1" disabled={isConfirming}>
+              {cancelText}
+            </Button>
+          )}
+          <Button onClick={onConfirm} variant={variant} className="flex-1" isLoading={isConfirming}>
             {confirmText}
           </Button>
         </div>

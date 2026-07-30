@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { Dumbbell, Pill, Stethoscope } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 import { PesoWidget } from '../features/dashboard/PesoWidget';
-import { EntrenamientoActivo } from '../features/entrenamiento/EntrenamientoActivo'; // <-- AÑADIDO
+import { EntrenamientoActivo } from '../features/entrenamiento/activo/EntrenamientoActivo';
 
 interface PasosDB { 
   hoy: number; 

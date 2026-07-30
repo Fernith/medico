@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { Hash, Scale, Clock, Dumbbell, Activity } from 'lucide-react';
+import { Hash, Scale, Clock, Activity } from 'lucide-react';
 import { type Ejercicio } from './EjercicioForm';
-
-interface Equipamiento { id: string; nombre: string; }
 
 export interface RealizacionEjercicio {
   id: string;
   ejercicio_id: string;
   ejercicio_nombre: string;
   ejercicio_imagen: string;
-  equipamiento_id?: string;
-  equipamiento_nombre?: string;
   carga_actual?: number | null;
   unidad_carga?: string;
   series?: number | null;
   reps_min?: number | null;
   reps_max?: number | null;
   descanso?: number | null;
+  activo: boolean;
+  ejercicio_activo?: boolean | null;
 }
 
 interface RealizacionFormProps {
@@ -30,11 +28,9 @@ interface RealizacionFormProps {
 export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
-  const [equipos, setEquipos] = useState<Equipamiento[]>([]);
 
   const [formData, setFormData] = useState({
     ejercicio_id: initialData?.ejercicio_id || '',
-    equipamiento_id: initialData?.equipamiento_id || null,
     carga_actual: initialData?.carga_actual?.toString() || '',
     unidad_carga: initialData?.unidad_carga || 'kg',
     series: initialData?.series?.toString() || '',
@@ -45,9 +41,8 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
 
   useEffect(() => {
     const fetchData = async () => {
-      const [resEj, resEq] = await Promise.all([ fetch('/api/ejercicios'), fetch('/api/equipamiento') ]);
+      const resEj = await fetch('/api/ejercicios');
       if (resEj.ok) setEjercicios(await resEj.json());
-      if (resEq.ok) setEquipos(await resEq.json());
     };
     fetchData();
   }, []);
@@ -64,7 +59,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
     try {
       const payload = {
         ejercicio_id: formData.ejercicio_id,
-        equipamiento_id: formData.equipamiento_id || null,
+        equipamiento_id: null, // Lo enviamos como nulo ya que lo hemos quitado
         carga_actual: formData.carga_actual ? parseFloat(formData.carga_actual) : null,
         unidad_carga: formData.unidad_carga || null,
         series: formData.series ? parseInt(formData.series) : null,
@@ -94,36 +89,22 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-      
       <div className="space-y-4">
-        {/* Ejercicio Maestro */}
+        
         <div className="space-y-1">
           <label className="block text-sm font-bold text-slate-700 ml-1">Ejercicio a realizar</label>
           <Select 
             searchable
             value={formData.ejercicio_id}
             onChange={(val) => handleChange('ejercicio_id', val)}
-            options={ejercicios.map(e => ({ value: e.id, label: e.nombre }))}
+            // Filtramos para que solo aparezcan los ejercicios ACTIVOS
+            options={ejercicios.filter(e => e.activo !== false).map(e => ({ value: e.id, label: e.nombre }))}
             icon={<Activity className="w-5 h-5" />}
             colorTheme={selectTheme}
           />
         </div>
 
-        {/* Equipamiento Opcional */}
-        <div className="space-y-1">
-          <label className="block text-sm font-bold text-slate-700 ml-1">Equipamiento (Opcional)</label>
-          <Select 
-            clearable
-            placeholder="Ninguno / Peso Corporal"
-            value={formData.equipamiento_id}
-            onChange={(val) => handleChange('equipamiento_id', val)}
-            options={equipos.map(e => ({ value: e.id, label: e.nombre }))}
-            icon={<Dumbbell className="w-5 h-5" />}
-            colorTheme={selectTheme}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mt-2">
           <Input type="number" label="Series" placeholder="Ej: 4" value={formData.series} onChange={(e) => handleChange('series', e.target.value)} colorTheme={inputTheme} icon={<Hash className="w-5 h-5" />} />
           <Input type="number" label="Descanso (segundos)" placeholder="Ej: 90" value={formData.descanso} onChange={(e) => handleChange('descanso', e.target.value)} colorTheme={inputTheme} icon={<Clock className="w-5 h-5" />} />
         </div>

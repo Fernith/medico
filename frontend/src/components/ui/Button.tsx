@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonColorTheme {
@@ -44,6 +44,13 @@ const defaultThemes: Record<ButtonVariant, ButtonColorTheme> = {
     bgHover: 'hover:bg-gray-50',
     textColor: 'text-gray-700',
     border: 'border border-gray-300'
+  },
+  success: {
+    // Arreglo del problema visual: fondo blanco, borde gris, texto oscuro
+    bgNormal: 'bg-emerald-500',
+    bgHover: 'hover:bg-emerald-600',
+    textColor: 'text-white',
+    border: 'border border-transparent'
   }
 };
 
