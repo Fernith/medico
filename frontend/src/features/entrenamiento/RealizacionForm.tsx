@@ -90,12 +90,6 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
   const inputTheme = { borderNormal: 'border-slate-200', borderFocus: 'focus:ring-indigo-500 focus:border-indigo-500', iconColor: 'text-indigo-500' };
   const selectTheme = { borderNormal: 'border-slate-200', borderActive: 'border-indigo-400 ring-4 ring-indigo-50', iconColor: 'text-indigo-500', optionSelectedBg: 'bg-indigo-50', optionSelectedText: 'text-indigo-800' };
 
-  // Textos dinámicos según si es reps o tiempo
-  const isTiempo = formData.unidad_objetivo === 'seg';
-  const labelMin = isTiempo ? "Tiempo Mín (seg)" : "Reps Mínimas";
-  const labelMax = isTiempo ? "Tiempo Máx (seg)" : "Reps Máximas";
-  const iconMinMax = isTiempo ? <Clock className="w-5 h-5" /> : <Hash className="w-5 h-5" />;
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
       <div className="space-y-4">
