@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE realizacion_ejercicio \n        SET ejercicio_id=$1, equipamiento_id=$2, carga_actual=$3, unidad_carga=$4, series=$5, reps_min=$6, reps_max=$7, unidad_objetivo=$8, descanso=$9\n        WHERE id=$10\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Float8",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Varchar",
+        "Int4",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "869d27edbf9cf0a4c35aa8509da6e0eca8e6d4dad7ef7dd98c12064fde7c69e0"
+}

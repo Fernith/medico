@@ -35,6 +35,7 @@ pub struct RutinaRealizacionDetalle {
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
+    pub unidad_objetivo: Option<String>,
     pub carga_actual: Option<f64>,
     pub unidad_carga: Option<String>,
     pub descanso: Option<i32>,
@@ -61,6 +62,7 @@ pub struct HistorialSeriePayload {
     pub orden_ejercicio: i32,
     pub serie_numero: i32,
     pub reps_completadas: Option<i32>,
+    pub unidad_objetivo: Option<String>,
     pub carga_completada: Option<f64>,
     pub unidad_carga: Option<String>,
 }
@@ -73,4 +75,23 @@ pub struct HistorialRutinaPayload {
     pub fecha_fin: DateTime<Utc>,
     pub duracion_segundos: i32,
     pub series: Vec<HistorialSeriePayload>,
+}
+
+// ==========================================
+// NUEVO: ESTADÍSTICAS Y GRÁFICAS
+// ==========================================
+#[derive(Debug, Serialize, FromRow)]
+pub struct EstadisticaSerieRow {
+    pub historial_rutina_id: Uuid,
+    pub rutina_nombre: String,
+    pub fecha_inicio: DateTime<Utc>,
+    pub ejercicio_id: Uuid,
+    pub ejercicio_nombre: String,
+    pub tipo_entrenamiento_nombre: Option<String>,
+    pub grupos_musculares: Vec<String>,
+    pub serie_numero: i32,
+    pub reps_completadas: Option<i32>,
+    pub unidad_objetivo: Option<String>,
+    pub carga_completada: Option<f64>,
+    pub unidad_carga: Option<String>,
 }

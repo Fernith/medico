@@ -7,6 +7,7 @@ import { TipoEntrenamientoTabla } from '../features/entrenamiento/TipoEntrenamie
 import { RealizacionTabla } from '../features/entrenamiento/RealizacionTabla';
 import { RutinasTabla } from '../features/entrenamiento/RutinasTabla';
 import { type Ejercicio } from '../features/entrenamiento/EjercicioForm';
+import { EstadisticasDashboard } from '../features/entrenamiento/estadisticas/EstadisticasDashboard';
 
 export const EntrenamientoPage: React.FC = () => {
   // Estado para controlar la vista actual (por defecto en estadísticas)
@@ -63,9 +64,8 @@ export const EntrenamientoPage: React.FC = () => {
           
           {/* VISTA: ESTADÍSTICAS */}
           {vista === 'estadisticas' && (
-            <div className="w-full py-16 flex flex-col items-center justify-center text-slate-400 space-y-4 bg-slate-50/50 rounded-3xl border border-slate-100">
-              <BarChart3 className="w-16 h-16 opacity-50 text-indigo-400" />
-              <p className="text-lg font-medium text-slate-500">Panel de estadísticas listo para construir...</p>
+            <div className="w-full animate-in fade-in duration-300">
+              <EstadisticasDashboard />
             </div>
           )}
 

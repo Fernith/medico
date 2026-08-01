@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            hr.id as \"historial_rutina_id!\",\n            hr.nombre as \"rutina_nombre!\",\n            hr.fecha_inicio as \"fecha_inicio!\",\n            hs.ejercicio_id as \"ejercicio_id!\",\n            hs.ejercicio_nombre as \"ejercicio_nombre!\",\n            te.nombre as \"tipo_entrenamiento_nombre?\",\n            COALESCE(array_agg(DISTINCT gm.nombre) FILTER (WHERE gm.nombre IS NOT NULL), ARRAY[]::text[]) as \"grupos_musculares!\",\n            hs.serie_numero as \"serie_numero!\",\n            hs.reps_completadas as \"reps_completadas?\",\n            hs.unidad_objetivo as \"unidad_objetivo?\",\n            hs.carga_completada as \"carga_completada?\",\n            hs.unidad_carga as \"unidad_carga?\"\n        FROM historial_series hs\n        JOIN historial_rutinas hr ON hs.historial_rutina_id = hr.id\n        JOIN ejercicios e ON hs.ejercicio_id = e.id\n        LEFT JOIN tipos_entrenamiento te ON e.tipo_entrenamiento_id = te.id\n        LEFT JOIN ejercicio_grupos egm ON e.id = egm.ejercicio_id\n        LEFT JOIN grupos_musculares gm ON egm.grupo_id = gm.id\n        GROUP BY \n            hr.id, hs.historial_rutina_id, hs.ejercicio_id, hs.ejercicio_nombre, \n            hs.fase, hs.orden_ejercicio, hs.serie_numero, hs.reps_completadas, \n            hs.unidad_objetivo, hs.carga_completada, hs.unidad_carga, te.id\n        ORDER BY hr.fecha_inicio DESC, hs.orden_ejercicio ASC, hs.serie_numero ASC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "historial_rutina_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "rutina_nombre!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "fecha_inicio!",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "ejercicio_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "ejercicio_nombre!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "tipo_entrenamiento_nombre?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "grupos_musculares!",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "serie_numero!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "reps_completadas?",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "unidad_objetivo?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "carga_completada?",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 11,
+        "name": "unidad_carga?",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      null,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "e4eb33587d787be529c904d77c8a73481aa52716da32e7aa3feb93c4521099b8"
+}

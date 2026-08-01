@@ -87,6 +87,7 @@ pub struct RealizacionEjercicio {
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
+    pub unidad_objetivo: Option<String>,
     pub descanso: Option<i32>,
     pub activo: bool,
     pub ejercicio_activo: Option<bool>,
@@ -101,5 +102,6 @@ pub struct RealizacionPayload {
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,
+    pub unidad_objetivo: Option<String>,
     pub descanso: Option<i32>,
 }

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO historial_series \n            (historial_rutina_id, ejercicio_id, ejercicio_nombre, fase, orden_ejercicio, serie_numero, reps_completadas, unidad_objetivo, carga_completada, unidad_carga) \n            VALUES ($1, $2, $3, $4::text::fase_rutina, $5, $6, $7, $8, $9, $10)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Varchar",
+        "Float8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6a5cf81eebad62c424ebb7529fc459028a3cfeb7975a7a65d426d5f7aeea502d"
+}

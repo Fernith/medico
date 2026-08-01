@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id,\n            rr.fase::text as \"fase!\", rr.orden, rr.descanso_posterior,\n            e.nombre as \"ejercicio_nombre!\", e.imagen as \"ejercicio_imagen?\",\n            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,\n            re.activo as \"realizacion_activa!\" /* <-- NUEVO */\n        FROM rutina_realizacion rr\n        JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id\n        JOIN ejercicios e ON re.ejercicio_id = e.id\n        WHERE rr.rutina_id = $1\n        ORDER BY \n            CASE rr.fase \n                WHEN 'Calentamiento'::fase_rutina THEN 1 \n                WHEN 'Principal'::fase_rutina THEN 2 \n                WHEN 'Postentreno'::fase_rutina THEN 3 \n            END,\n            rr.orden\n        ",
+  "query": "\n        SELECT \n            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id,\n            rr.fase::text as \"fase!\", rr.orden, rr.descanso_posterior,\n            e.nombre as \"ejercicio_nombre!\", e.imagen as \"ejercicio_imagen?\",\n            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,\n            re.activo as \"realizacion_activa!\",\n            re.unidad_objetivo\n        FROM rutina_realizacion rr\n        JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id\n        JOIN ejercicios e ON re.ejercicio_id = e.id\n        WHERE rr.rutina_id = $1\n        ORDER BY \n            CASE rr.fase \n                WHEN 'Calentamiento'::fase_rutina THEN 1 \n                WHEN 'Principal'::fase_rutina THEN 2 \n                WHEN 'Postentreno'::fase_rutina THEN 3 \n            END,\n            rr.orden\n        ",
   "describe": {
     "columns": [
       {
@@ -82,6 +82,11 @@
         "ordinal": 15,
         "name": "realizacion_activa!",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "unidad_objetivo",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -105,8 +110,9 @@
       true,
       true,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "2794def2bc536d69a0ae6752584728ac0416fdfa80a3c3dba470b13c75c4d900"
+  "hash": "65fabe7e6eb131e7cfe5717621aff4f2f18114acee25cc7e883eea8475f0283c"
 }

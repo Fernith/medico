@@ -135,7 +135,7 @@ export const RutinasTabla: React.FC = () => {
                                           <tr>
                                             <th className="px-4 py-2 font-semibold w-16 text-center">Nº</th>
                                             <th className="px-4 py-2 font-semibold">Ejercicio</th>
-                                            <th className="px-4 py-2 font-semibold text-center">Series x Reps</th>
+                                            <th className="px-4 py-2 font-semibold text-center">Series x Objetivo</th>
                                             <th className="px-4 py-2 font-semibold text-center">Desc. Entre Series</th>
                                             <th className="px-4 py-2 font-semibold text-center text-indigo-500">Desc. Posterior</th>
                                           </tr>
@@ -162,7 +162,20 @@ export const RutinasTabla: React.FC = () => {
                                                   </div>
                                                 </td>
                                                 <td className="px-4 py-2 text-center font-bold text-slate-600">
-                                                  {ej.series ? `${ej.series} x ` : ''}{ej.reps_min === ej.reps_max && ej.reps_min ? ej.reps_min : (ej.reps_min || ej.reps_max ? `${ej.reps_min || '?'} - ${ej.reps_max || '?'}` : '-')}
+                                                  {ej.series ? `${ej.series} x ` : ''}
+                                                  
+                                                  {ej.unidad_objetivo === 'seg'
+                                                    ? (ej.reps_min ? ej.reps_min : '-')
+                                                    : (ej.reps_min === ej.reps_max && ej.reps_min 
+                                                        ? ej.reps_min 
+                                                        : (ej.reps_min || ej.reps_max ? `${ej.reps_min || '?'} - ${ej.reps_max || '?'}` : '-'))
+                                                  }
+
+                                                  {(ej.reps_min || ej.reps_max) && (
+                                                    <span className="text-[11px] font-semibold text-slate-400 ml-1">
+                                                      {ej.unidad_objetivo || 'reps'}
+                                                    </span>
+                                                  )}
                                                 </td>
                                                 <td className="px-4 py-2 text-center text-slate-500">
                                                   {ej.descanso ? <span className="flex items-center justify-center gap-1"><Clock className="w-3 h-3"/> {ej.descanso}s</span> : '-'}

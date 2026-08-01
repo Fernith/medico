@@ -6,7 +6,8 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::rutina::{
-    Rutina, RutinaPayload, RutinaRealizacionDetalle, RutinaRealizacionPayload, HistorialRutinaPayload
+    Rutina, RutinaPayload, RutinaRealizacionDetalle, RutinaRealizacionPayload, HistorialRutinaPayload,
+    EstadisticaSerieRow
 };
 
 
@@ -51,7 +52,8 @@ pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): 
             rr.fase::text as "fase!", rr.orden, rr.descanso_posterior,
             e.nombre as "ejercicio_nombre!", e.imagen as "ejercicio_imagen?",
             re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,
-            re.activo as "realizacion_activa!" /* <-- NUEVO */
+            re.activo as "realizacion_activa!",
+            re.unidad_objetivo
         FROM rutina_realizacion rr
         JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id
         JOIN ejercicios e ON re.ejercicio_id = e.id
@@ -109,14 +111,53 @@ pub async fn finalizar_entrenamiento(State(pool): State<PgPool>, Json(payload): 
         sqlx::query!(
             r#"
             INSERT INTO historial_series 
-            (historial_rutina_id, ejercicio_id, ejercicio_nombre, fase, orden_ejercicio, serie_numero, reps_completadas, carga_completada, unidad_carga) 
-            VALUES ($1, $2, $3, $4::text::fase_rutina, $5, $6, $7, $8, $9)
-            "#, // <-- ELIMINADO EL CAMPO EQUIPAMIENTO
+            (historial_rutina_id, ejercicio_id, ejercicio_nombre, fase, orden_ejercicio, serie_numero, reps_completadas, unidad_objetivo, carga_completada, unidad_carga) 
+            VALUES ($1, $2, $3, $4::text::fase_rutina, $5, $6, $7, $8, $9, $10)
+            "#, 
             registro_historial.id, serie.ejercicio_id, serie.ejercicio_nombre, 
-            serie.fase, serie.orden_ejercicio, serie.serie_numero, serie.reps_completadas, serie.carga_completada, serie.unidad_carga
+            serie.fase, serie.orden_ejercicio, serie.serie_numero, 
+            serie.reps_completadas, serie.unidad_objetivo,
+            serie.carga_completada, serie.unidad_carga
         ).execute(&mut *tx).await.map_err(|e| e.to_string())?;
     }
 
     tx.commit().await.map_err(|e| e.to_string())?;
     Ok(Json(()))
+}
+
+// ==========================================
+// NUEVO: ESTADÍSTICAS
+// ==========================================
+pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Json<Vec<EstadisticaSerieRow>>, String> {
+    let stats = sqlx::query_as!(
+        EstadisticaSerieRow,
+        r#"
+        SELECT 
+            hr.id as "historial_rutina_id!",
+            hr.nombre as "rutina_nombre!",
+            hr.fecha_inicio as "fecha_inicio!",
+            hs.ejercicio_id as "ejercicio_id!",
+            hs.ejercicio_nombre as "ejercicio_nombre!",
+            te.nombre as "tipo_entrenamiento_nombre?",
+            COALESCE(array_agg(DISTINCT gm.nombre) FILTER (WHERE gm.nombre IS NOT NULL), ARRAY[]::text[]) as "grupos_musculares!",
+            hs.serie_numero as "serie_numero!",
+            hs.reps_completadas as "reps_completadas?",
+            hs.unidad_objetivo as "unidad_objetivo?",
+            hs.carga_completada as "carga_completada?",
+            hs.unidad_carga as "unidad_carga?"
+        FROM historial_series hs
+        JOIN historial_rutinas hr ON hs.historial_rutina_id = hr.id
+        JOIN ejercicios e ON hs.ejercicio_id = e.id
+        LEFT JOIN tipos_entrenamiento te ON e.tipo_entrenamiento_id = te.id
+        LEFT JOIN ejercicio_grupos egm ON e.id = egm.ejercicio_id
+        LEFT JOIN grupos_musculares gm ON egm.grupo_id = gm.id
+        GROUP BY 
+            hr.id, hs.historial_rutina_id, hs.ejercicio_id, hs.ejercicio_nombre, 
+            hs.fase, hs.orden_ejercicio, hs.serie_numero, hs.reps_completadas, 
+            hs.unidad_objetivo, hs.carga_completada, hs.unidad_carga, te.id
+        ORDER BY hr.fecha_inicio DESC, hs.orden_ejercicio ASC, hs.serie_numero ASC
+        "#
+    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    Ok(Json(stats))
 }

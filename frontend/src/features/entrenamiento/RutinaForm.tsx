@@ -10,9 +10,9 @@ export interface RutinaRealizacionDetalle {
   id: string; rutina_id: string; realizacion_id: string; ejercicio_id: string;
   fase: string; orden: number; descanso_posterior: number | null;
   ejercicio_nombre: string; ejercicio_imagen: string;
-  series: number | null; reps_min: number | null; reps_max: number | null;
+  series: number | null; reps_min: number | null; reps_max: number | null; unidad_objetivo: string | null;
   carga_actual: number | null; unidad_carga: string | null; descanso: number | null;
-  realizacion_activa: boolean; // <-- NUEVO
+  realizacion_activa: boolean;
 }
 
 interface ItemFase { tempId: string; realizacion_id: string; ejercicio_nombre: string; descanso_posterior: string; }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO realizacion_ejercicio (ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, descanso)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n        RETURNING id\n        ",
+  "query": "\n        INSERT INTO realizacion_ejercicio (ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n        RETURNING id\n        ",
   "describe": {
     "columns": [
       {
@@ -18,6 +18,7 @@
         "Int4",
         "Int4",
         "Int4",
+        "Varchar",
         "Int4"
       ]
     },
@@ -25,5 +26,5 @@
       false
     ]
   },
-  "hash": "c2bccf99b11007da7bc239ba076a3604c806bcaa4ab24e1e61ec3f7416cb3d84"
+  "hash": "37fa6d1ba86ed6f4bbb5b83e6d2c84804217024975d178f528a4fe1c865b3009"
 }

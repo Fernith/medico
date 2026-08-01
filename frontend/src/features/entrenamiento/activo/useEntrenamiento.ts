@@ -10,6 +10,7 @@ export interface SetHistorial {
   orden_ejercicio: number;
   serie_numero: number;
   reps_completadas: number | null;
+  unidad_objetivo: string;
   carga_completada: number | null;
   unidad_carga: string | null;
 }
@@ -69,6 +70,7 @@ export const useEntrenamiento = (onClose: () => void) => {
         orden_ejercicio: current.orden,
         serie_numero: currentSerie,
         reps_completadas: reps ? parseInt(reps) : null,
+        unidad_objetivo: current.unidad_objetivo || 'reps',
         carga_completada: carga ? parseFloat(carga) : null,
         unidad_carga: current.unidad_carga
       };

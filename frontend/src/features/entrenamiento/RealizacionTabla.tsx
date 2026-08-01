@@ -120,7 +120,7 @@ export const RealizacionTabla: React.FC = () => {
                 <th className="w-8 px-4"></th>
                 <th className="w-24"></th>
                 <th className="px-4 py-3 font-semibold">Ejercicio</th>
-                <th className="px-4 py-3 font-semibold text-center">Series x Reps</th>
+                <th className="px-4 py-3 font-semibold text-center">Series x Objetivo</th>
                 <th className="px-4 py-3 font-semibold text-center">Carga</th>
                 <th className="px-4 py-3 font-semibold text-center">Descanso</th>
                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
@@ -147,7 +147,20 @@ export const RealizacionTabla: React.FC = () => {
                       {r.ejercicio_nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
                     </td>
                     <td className="px-4 py-3 text-center text-slate-700 font-bold">
-                      {r.series ? `${r.series} x ` : ''}{r.reps_min === r.reps_max && r.reps_min ? r.reps_min : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'}` : '-')}
+                      {r.series ? `${r.series} x ` : ''}
+                      
+                      {r.unidad_objetivo === 'seg' 
+                        ? (r.reps_min ? r.reps_min : '-')
+                        : (r.reps_min === r.reps_max && r.reps_min 
+                            ? r.reps_min 
+                            : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'}` : '-'))
+                      }
+
+                      {(r.reps_min || r.reps_max) && (
+                        <span className="text-[11px] font-semibold text-slate-400 ml-1">
+                          {r.unidad_objetivo || 'reps'}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.carga_actual ? <span className="font-extrabold text-indigo-700">{r.carga_actual} <span className="text-[10px] font-semibold uppercase text-slate-500">{r.unidad_carga}</span></span> : '-'}
