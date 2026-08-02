@@ -1,45 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Play, Timer, CheckCircle2, Trophy, Dumbbell, FastForward, List, Flag } from 'lucide-react';
+import { Play, Timer, CheckCircle2, Trophy, Dumbbell, FastForward, List, Flag, RotateCcw, Pause, SkipForward } from 'lucide-react';
 import { ModalListadoRutina, playBeep, BarraProgreso } from './UIComponents';
 
-// --- NUEVO: SISTEMA DE TEMAS POR FASE ---
 const getPhaseTheme = (fase: string) => {
   switch (fase) {
     case 'Calentamiento': return {
-      text: 'text-orange-400',
-      textLight: 'text-orange-300',
-      bg: 'bg-orange-600',
-      bgHover: 'hover:bg-orange-500',
-      bgTransparent: 'bg-orange-900/30',
-      border: 'border-orange-400/50',
-      borderDim: 'border-orange-500/30',
-      shadow: 'shadow-[0_0_30px_rgba(249,115,22,0.3)]',
-      shadowLg: 'shadow-[0_0_80px_rgba(249,115,22,0.15)]',
-      badgeBg: 'bg-orange-600/90'
+      text: 'text-orange-400', textLight: 'text-orange-300', bg: 'bg-orange-600', bgHover: 'hover:bg-orange-500',
+      bgTransparent: 'bg-orange-900/30', border: 'border-orange-400/50', borderDim: 'border-orange-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(249,115,22,0.3)]', shadowLg: 'shadow-[0_0_80px_rgba(249,115,22,0.15)]', badgeBg: 'bg-orange-600/90'
     };
     case 'Postentreno': return {
-      text: 'text-cyan-400',
-      textLight: 'text-cyan-300',
-      bg: 'bg-cyan-600',
-      bgHover: 'hover:bg-cyan-500',
-      bgTransparent: 'bg-cyan-900/30',
-      border: 'border-cyan-400/50',
-      borderDim: 'border-cyan-500/30',
-      shadow: 'shadow-[0_0_30px_rgba(6,182,212,0.3)]',
-      shadowLg: 'shadow-[0_0_80px_rgba(6,182,212,0.15)]',
-      badgeBg: 'bg-cyan-600/90'
+      text: 'text-cyan-400', textLight: 'text-cyan-300', bg: 'bg-cyan-600', bgHover: 'hover:bg-cyan-500',
+      bgTransparent: 'bg-cyan-900/30', border: 'border-cyan-400/50', borderDim: 'border-cyan-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(6,182,212,0.3)]', shadowLg: 'shadow-[0_0_80px_rgba(6,182,212,0.15)]', badgeBg: 'bg-cyan-600/90'
     };
-    default: return { // Principal
-      text: 'text-indigo-400',
-      textLight: 'text-indigo-300',
-      bg: 'bg-indigo-600',
-      bgHover: 'hover:bg-indigo-500',
-      bgTransparent: 'bg-indigo-900/30',
-      border: 'border-indigo-400/50',
-      borderDim: 'border-indigo-500/30',
-      shadow: 'shadow-[0_0_30px_rgba(79,70,229,0.3)]',
-      shadowLg: 'shadow-[0_0_80px_rgba(79,70,229,0.15)]',
-      badgeBg: 'bg-indigo-600/90'
+    default: return { 
+      text: 'text-indigo-400', textLight: 'text-indigo-300', bg: 'bg-indigo-600', bgHover: 'hover:bg-indigo-500',
+      bgTransparent: 'bg-indigo-900/30', border: 'border-indigo-400/50', borderDim: 'border-indigo-500/30',
+      shadow: 'shadow-[0_0_30px_rgba(79,70,229,0.3)]', shadowLg: 'shadow-[0_0_80px_rgba(79,70,229,0.15)]', badgeBg: 'bg-indigo-600/90'
     };
   }
 };
@@ -68,33 +46,67 @@ export const PasoSeleccion = ({ state, actions }: any) => (
   </div>
 );
 
-export const PasoResumenInicial = ({ state, actions }: any) => (
-  <div className="w-full max-w-3xl flex-1 flex flex-col mt-4 px-4 pb-32 animate-in fade-in duration-300">
-    <div className="text-center mb-8">
-      <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-md">{state.selectedRutina?.nombre}</h1>
-      <p className="text-indigo-400 font-bold mt-3 uppercase tracking-widest text-sm">{state.ejerciciosPlanificados.length} ejercicios planificados</p>
+export const PasoResumenInicial = ({ state, actions }: any) => {
+  const fasesOrder = ['Calentamiento', 'Principal', 'Postentreno'];
+
+  return (
+    <div className="w-full max-w-3xl flex-1 flex flex-col mt-4 px-4 pb-32 animate-in fade-in duration-300">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-md">{state.selectedRutina?.nombre}</h1>
+        <p className="text-indigo-400 font-bold mt-3 uppercase tracking-widest text-sm">{state.ejerciciosPlanificados.length} ejercicios planificados</p>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+        {fasesOrder.map(faseNombre => {
+          const ejerciciosFase = state.ejerciciosPlanificados
+            .map((ej: any, idx: number) => ({ ej, idx }))
+            .filter((item: any) => item.ej.fase === faseNombre);
+
+          if (ejerciciosFase.length === 0) return null;
+
+          let titleColor = 'text-indigo-400';
+          if (faseNombre === 'Calentamiento') titleColor = 'text-orange-400';
+          if (faseNombre === 'Postentreno') titleColor = 'text-cyan-400';
+
+          return (
+            <div key={faseNombre} className="mb-8 last:mb-0">
+              <h3 className={`text-sm font-black uppercase tracking-widest mb-4 ml-2 ${titleColor}`}>
+                {faseNombre}
+              </h3>
+              <div className="space-y-4">
+                {ejerciciosFase.map(({ ej, idx }: any) => {
+                  const isSeg = ej.unidad_objetivo === 'seg';
+                  const targetText = isSeg 
+                    ? `${ej.reps_min || '?'} seg` 
+                    : `${ej.reps_min || '?'}${ej.reps_max && ej.reps_max !== ej.reps_min ? ` - ${ej.reps_max}` : ''} reps`;
+
+                  return (
+                    <div key={`${ej.id}-${idx}`} className="p-4 bg-slate-800/80 backdrop-blur-sm rounded-2xl flex items-center gap-5 border border-slate-700/50">
+                      <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-slate-400 flex-shrink-0">{idx + 1}</div>
+                      {ej.ejercicio_imagen ? <img src={ej.ejercicio_imagen} className="w-20 h-20 rounded-xl object-cover bg-black/50 shadow-inner" /> : <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center"><Dumbbell className="w-10 h-10 text-slate-600"/></div>}
+                      <div>
+                        <h4 className="font-bold text-xl text-white leading-tight">{ej.ejercicio_nombre}</h4>
+                        <p className="text-slate-400 font-medium mt-1.5">{ej.series || 1} series × {targetText}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex gap-4 justify-center pointer-events-none z-10">
+        <button onClick={actions.goBackToSelect} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-slate-300 transition-colors pointer-events-auto shadow-lg border border-slate-700">Atrás</button>
+        <button onClick={actions.startWorkout} disabled={state.ejerciciosPlanificados.length === 0}
+         className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed">
+          <Play fill="currentColor" className="w-6 h-6"/> {state.ejerciciosPlanificados.length === 0 ? 'No hay ejercicios activos' : 'Empezar Rutina'}
+        </button>
+      </div>
     </div>
-    <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2">
-      {state.ejerciciosPlanificados.map((ej: any, idx: number) => (
-        <div key={`${ej.id}-${idx}`} className="p-4 bg-slate-800/80 backdrop-blur-sm rounded-2xl flex items-center gap-5 border border-slate-700/50">
-          <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-slate-400 flex-shrink-0">{idx + 1}</div>
-          {ej.ejercicio_imagen ? <img src={ej.ejercicio_imagen} className="w-20 h-20 rounded-xl object-cover bg-black/50 shadow-inner" /> : <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center"><Dumbbell className="w-10 h-10 text-slate-600"/></div>}
-          <div>
-            <h4 className="font-bold text-xl text-white leading-tight">{ej.ejercicio_nombre}</h4>
-            <p className="text-slate-400 font-medium mt-1.5">{ej.series || 1} series × {ej.reps_max || ej.reps_min || '?'} reps</p>
-          </div>
-        </div>
-      ))}
-    </div>
-    <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex gap-4 justify-center pointer-events-none z-10">
-      <button onClick={actions.goBackToSelect} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-slate-300 transition-colors pointer-events-auto shadow-lg border border-slate-700">Atrás</button>
-      <button onClick={actions.startWorkout} disabled={state.ejerciciosPlanificados.length === 0}
-       className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed">
-        <Play fill="currentColor" className="w-6 h-6"/> {state.ejerciciosPlanificados.length === 0 ? 'No hay ejercicios activos' : 'Empezar Rutina'}
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 export const PasoEntrenando = ({ state, actions }: any) => {
   const [showList, setShowList] = useState(false);
@@ -104,16 +116,60 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   const currentSerie = setsHechos + 1;
   const totalSeries = ej.series || 1;
 
+  const isTimeBased = ej.unidad_objetivo === 'seg';
+  
+  // Estados para modo normal
   const [carga, setCarga] = useState('');
   const [reps, setReps] = useState('');
 
-  // TEMA DINÁMICO
+  // Lógica Compleja de Temporizador
+  const [timeMode, setTimeMode] = useState<'prep' | 'active'>('prep');
+  const [isPaused, setIsPaused] = useState(false);
+  const [timerValue, setTimerValue] = useState(5);
+
   const theme = getPhaseTheme(ej.fase);
 
+  // Inicialización de cada serie
   useEffect(() => {
     setCarga(ej.carga_actual?.toString() || '');
-    setReps(ej.reps_max?.toString() || ej.reps_min?.toString() || '');
-  }, [ej.id, currentSerie]);
+    if (isTimeBased) {
+      setTimeMode('prep');
+      setIsPaused(false);
+      setTimerValue(5);
+    } else {
+      setReps(ej.reps_min?.toString() || '');
+    }
+  }, [ej.id, currentSerie, isTimeBased]);
+
+  // Intervalo del Cronómetro
+  useEffect(() => {
+    if (!isTimeBased || isPaused) return;
+    const t = setInterval(() => {
+      setTimerValue(prev => {
+        if (prev <= 1) {
+          clearInterval(t);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [isTimeBased, isPaused, timeMode]);
+
+  // Manejador de fin de cronómetro (Cuando llega a 0)
+  useEffect(() => {
+    if (!isTimeBased || isPaused || timerValue > 0) return;
+    
+    if (timeMode === 'prep') {
+      playBeep(); // Suena al acabar la preparación
+      setTimeMode('active');
+      setTimerValue(ej.reps_min || 0); // Cargamos el tiempo del ejercicio
+    } else if (timeMode === 'active') {
+      playBeep(); // Suena al finalizar el ejercicio
+      // Avanza automáticamente al descanso guardando los datos teóricos
+      actions.completeSet(ej.reps_min?.toString() || '0', carga);
+    }
+  }, [timerValue, timeMode, isTimeBased, isPaused, ej.reps_min, carga]);
 
   const nextExercise = state.ejerciciosPlanificados[state.currentExerciseIndex + 1];
   const nextText = nextExercise ? `Próximo: ${nextExercise.ejercicio_nombre}` : 'Último ejercicio de la rutina';
@@ -121,21 +177,15 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   return (
     <div className="w-full flex flex-col flex-1 pb-44 animate-in slide-in-from-right-4 duration-300">
       
-      <div className="w-full max-w-3xl mx-auto px-4 py-3 sticky top-[73px] z-20 bg-slate-900/95 backdrop-blur-md mb-4">
-        <BarraProgreso 
-          ejercicios={state.ejerciciosPlanificados} 
-          historial={state.historial} 
-          currentIndex={state.currentExerciseIndex} 
-        />
+      <div className="w-full max-w-3xl mx-auto px-4 py-3 sticky top-[73px] z-20 bg-slate-900/95 backdrop-blur-md mb-4 border-b border-slate-800">
+        <BarraProgreso ejercicios={state.ejerciciosPlanificados} historial={state.historial} currentIndex={state.currentExerciseIndex} />
       </div>
 
-      {/* TÍTULO Y FASE CON COLOR DINÁMICO */}
       <div className="w-full max-w-2xl mx-auto px-6 mt-4 flex flex-col items-center text-center">
-        <span className={`${theme.text} font-bold text-sm tracking-widest uppercase mb-1`}>{ej.fase}</span>
-        <h2 className="text-3xl md:text-5xl font-black leading-tight text-white drop-shadow-sm">{ej.ejercicio_nombre}</h2>
+        {/* Títulos reducidos 1 nivel */}
+        <h2 className="text-2xl md:text-4xl font-black leading-tight text-white drop-shadow-sm">{ej.ejercicio_nombre}</h2>
       </div>
 
-      {/* IMAGEN DE LADO A LADO CON ETIQUETA DINÁMICA */}
       <div className="relative w-full max-w-6xl mx-auto flex justify-center px-4 mb-4 mt-6">
         {ej.ejercicio_imagen ? (
           <img src={ej.ejercicio_imagen} className="w-full h-auto max-h-[40vh] md:max-h-[50vh] object-contain rounded-2xl drop-shadow-2xl opacity-95" />
@@ -149,15 +199,30 @@ export const PasoEntrenando = ({ state, actions }: any) => {
 
       <div className="w-full max-w-md mx-auto px-6">
         <div className="grid grid-cols-2 gap-5 mt-2">
-          <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center">
+          {/* INPUT DE PESO SIEMPRE VISIBLE (Text reducido a 4xl) */}
+          <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center justify-center">
             <label className="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Peso ({ej.unidad_carga || 'kg'})</label>
-            <input type="number" step="0.1" value={carga} onChange={e => setCarga(e.target.value)} className="w-full bg-transparent text-5xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
+            <input type="number" step="0.1" value={carga} onChange={e => setCarga(e.target.value)} className="w-full bg-transparent text-4xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
           </div>
-          <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center">
-            <label className="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Reps</label>
-            <input type="number" value={reps} onChange={e => setReps(e.target.value)} className="w-full bg-transparent text-5xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
-          </div>
+          
+          {/* LADO DERECHO: REPS O TEMPORIZADOR */}
+          {isTimeBased ? (
+            <div className={`bg-slate-800 p-5 rounded-3xl border shadow-xl text-center flex flex-col items-center justify-center transition-colors ${timeMode === 'prep' ? 'border-rose-500/50' : theme.border}`}>
+              <label className={`block text-xs font-bold mb-1 uppercase tracking-wider ${timeMode === 'prep' ? 'text-rose-400' : theme.text}`}>
+                {timeMode === 'prep' ? 'Prepárate' : 'Tiempo'}
+              </label>
+              <div className={`text-4xl font-black tabular-nums ${timeMode === 'prep' ? 'text-rose-500 animate-pulse' : 'text-white'}`}>
+                {timeMode === 'prep' ? timerValue : `${Math.floor(timerValue/60)}:${(timerValue%60).toString().padStart(2, '0')}`}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center justify-center">
+              <label className="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Reps</label>
+              <input type="number" value={reps} onChange={e => setReps(e.target.value)} className="w-full bg-transparent text-4xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
+            </div>
+          )}
         </div>
+        
         <div className="mt-6 bg-slate-800/40 px-5 py-3 rounded-2xl border border-slate-700/50 w-full text-center shadow-inner">
           <span className="text-sm font-bold text-slate-400">{nextText}</span>
         </div>
@@ -165,16 +230,32 @@ export const PasoEntrenando = ({ state, actions }: any) => {
 
       <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex flex-col items-center pt-10 pb-6 px-6 z-20 pointer-events-none">
         
-        {/* BOTÓN DINÁMICO */}
-        <button onClick={() => actions.completeSet(reps, carga)} className={`w-full max-w-md py-4 ${theme.bg} ${theme.bgHover} rounded-2xl text-xl font-black flex items-center justify-center gap-3 ${theme.shadow} pointer-events-auto transition-transform active:scale-95`}>
-          <CheckCircle2 className="w-7 h-7" /> Completar Serie
-        </button>
+        {/* BOTONES PRINCIPALES DEPENDIENDO DEL MODO */}
+        {isTimeBased ? (
+          <div className="w-full max-w-md flex justify-between gap-3 pointer-events-auto">
+            {/* Izquierda: Reiniciar */}
+            <button onClick={() => { setTimeMode('prep'); setTimerValue(5); setIsPaused(false); }} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl flex justify-center items-center text-slate-300 border border-slate-700 active:scale-95 transition-transform">
+              <RotateCcw className="w-6 h-6" />
+            </button>
+            {/* Centro: Pausar / Reanudar */}
+            <button onClick={() => setIsPaused(!isPaused)} className={`flex-[2] py-4 rounded-2xl flex justify-center items-center text-white font-black text-lg shadow-lg active:scale-95 transition-all ${isPaused ? 'bg-amber-600 hover:bg-amber-500 shadow-[0_0_30px_rgba(217,119,6,0.3)]' : theme.bg + ' ' + theme.bgHover + ' ' + theme.shadow}`}>
+              {isPaused ? <><Play className="w-6 h-6 mr-2" fill="currentColor" /> Reanudar</> : <><Pause className="w-6 h-6 mr-2" fill="currentColor"/> Pausar</>}
+            </button>
+            {/* Derecha: Avanzar/Saltar */}
+            <button onClick={() => actions.completeSet(ej.reps_min?.toString() || '0', carga)} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl flex justify-center items-center text-slate-300 border border-slate-700 active:scale-95 transition-transform">
+              <SkipForward className="w-6 h-6" />
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => actions.completeSet(reps, carga)} className={`w-full max-w-md py-4 ${theme.bg} ${theme.bgHover} rounded-2xl text-xl font-black flex items-center justify-center gap-3 ${theme.shadow} pointer-events-auto transition-transform active:scale-95`}>
+            <CheckCircle2 className="w-7 h-7" /> Completar Serie
+          </button>
+        )}
 
         <div className="w-full max-w-md flex justify-between mt-4 pointer-events-auto">
           <button onClick={() => setShowList(true)} className="flex items-center justify-center gap-2 text-slate-400 hover:text-indigo-300 font-bold px-4 py-2 rounded-lg transition-colors">
             <List className="w-5 h-5" /> Ver Rutina
           </button>
-          
           <button onClick={actions.finishWorkoutEarly} className="flex items-center justify-center gap-2 text-slate-400 hover:text-rose-400 font-bold px-4 py-2 rounded-lg transition-colors">
             <Flag className="w-5 h-5" /> Finalizar
           </button>
@@ -201,26 +282,22 @@ export const PasoDescanso = ({ state, actions }: any) => {
   const nextExercise = state.ejerciciosPlanificados[state.currentExerciseIndex];
   const nextText = nextExercise ? `Próximo: ${nextExercise.ejercicio_nombre}` : 'Último ejercicio de la rutina';
   
-  // TEMA DINÁMICO (Basado en la fase del ejercicio que va a empezar)
   const theme = getPhaseTheme(nextExercise?.fase || 'Principal');
 
   return (
     <div className="w-full flex-1 flex flex-col pb-24 animate-in fade-in duration-300">
-      
-      <div className="w-full max-w-3xl mx-auto px-4 mt-2 mb-8">
+      <div className="w-full max-w-3xl mx-auto px-4 py-3 sticky top-[73px] z-20 bg-slate-900/95 backdrop-blur-md mb-8 border-b border-slate-800">
         <BarraProgreso ejercicios={state.ejerciciosPlanificados} historial={state.historial} currentIndex={state.currentExerciseIndex} />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-12">
         <div className="text-center space-y-2">
-          {/* ICONO Y ETIQUETA DINÁMICOS */}
           <Timer className={`w-12 h-12 ${theme.text} mx-auto mb-4`} />
           <h2 className="text-3xl font-black text-white drop-shadow-sm">Descanso</h2>
           <p className={`${theme.textLight} font-bold ${theme.bgTransparent} border ${theme.borderDim} px-5 py-2 rounded-full shadow-sm`}>{nextText}</p>
         </div>
         
         <div className="relative flex items-center justify-center">
-          {/* CÍRCULO CON SOMBRA Y TEXTO DINÁMICO */}
           <div className={`w-72 h-72 rounded-full border-[12px] border-slate-800 flex items-center justify-center ${theme.shadowLg}`}>
             <span className={`text-8xl font-black tracking-tighter ${theme.text} drop-shadow-md`}>
               {Math.floor(state.timeLeft / 60)}:{(state.timeLeft % 60).toString().padStart(2, '0')}
@@ -232,7 +309,6 @@ export const PasoDescanso = ({ state, actions }: any) => {
           <button onClick={() => { playBeep(); actions.skipRest(); }} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-colors border border-slate-700 text-slate-300 shadow-lg">
             Omitir Descanso <FastForward className="w-5 h-5" />
           </button>
-
           <button onClick={actions.finishWorkoutEarly} className="text-slate-400 hover:text-rose-400 font-bold px-4 py-3 rounded-2xl transition-colors flex items-center justify-center gap-2">
             <Flag className="w-5 h-5" /> Finalizar Entrenamiento
           </button>
@@ -267,7 +343,7 @@ export const PasoFinalizado = ({ state, actions }: any) => {
                 <div key={s.serie_numero} className="flex justify-between items-center bg-slate-900/50 p-3 rounded-xl border border-slate-800">
                   <span className="text-slate-400 font-bold text-sm">Serie {s.serie_numero}</span>
                   <span className="font-black text-lg text-indigo-300">
-                    {s.carga_completada || 0} <span className="text-sm font-medium text-indigo-400/70">{s.unidad_carga || 'kg'}</span> × {s.reps_completadas || 0} <span className="text-sm font-medium text-indigo-400/70">reps</span>
+                    {s.carga_completada || 0} <span className="text-sm font-medium text-indigo-400/70">{s.unidad_carga || 'kg'}</span> × {s.reps_completadas || 0} <span className="text-sm font-medium text-indigo-400/70">{s.unidad_objetivo || 'reps'}</span>
                   </span>
                 </div>
               ))}

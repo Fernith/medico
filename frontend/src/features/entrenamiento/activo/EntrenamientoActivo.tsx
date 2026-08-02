@@ -11,6 +11,15 @@ export const EntrenamientoActivo: React.FC<EntrenamientoActivoProps> = ({ onClos
   const [showAbortModal, setShowAbortModal] = useState(false);
   const { state, actions } = useEntrenamiento(onClose);
 
+  // LÓGICA DE TÍTULO DINÁMICO
+  let headerTitle = "ENTRENAMIENTO ACTIVO";
+  if ((state.step === 'WORKOUT' || state.step === 'REST') && state.ejerciciosPlanificados.length > 0) {
+    const ejActual = state.ejerciciosPlanificados[state.currentExerciseIndex];
+    if (ejActual && ejActual.fase) {
+      headerTitle = ejActual.fase.toUpperCase();
+    }
+  }
+
   return (
     <>
       {/* CAPA PRINCIPAL DEL ENTRENAMIENTO */}
@@ -21,7 +30,9 @@ export const EntrenamientoActivo: React.FC<EntrenamientoActivoProps> = ({ onClos
           <div className="w-full max-w-3xl px-4 py-4 flex justify-between items-center bg-slate-900/90 sticky top-0 z-30 backdrop-blur-md border-b border-slate-800">
             <div className="flex items-center gap-2">
               <Activity className="w-6 h-6 text-indigo-400" />
-              <span className="font-bold tracking-widest text-sm text-slate-300 uppercase">Entrenamiento Activo</span>
+              <span className="font-bold tracking-widest text-sm text-slate-300 transition-all duration-300">
+                {headerTitle}
+              </span>
             </div>
             <button onClick={() => setShowAbortModal(true)} className="p-2 bg-slate-800 hover:bg-rose-500 rounded-full transition-colors shadow-sm">
               <X className="w-6 h-6" strokeWidth={2.5} />
