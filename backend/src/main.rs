@@ -1,6 +1,6 @@
 use axum::Router;
-use std::net::SocketAddr;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
+use std::env;
 
 mod config;
 mod routes;
@@ -16,19 +16,25 @@ async fn main() {
     // 2. Iniciamos el cron y el disparador delegándolo al nuevo archivo
     tasks::iniciar_tareas_de_fondo(configuracion.database_pool.clone()).await;
 
-    // Enrutador Principal
+    // Enrutador Principal de la API
     let api_router = routes::construir_router(configuracion.database_pool);
     
+    // Configurar el SPA: Sirve la carpeta dist, y si no encuentra la ruta, devuelve index.html
+    let frontend_service = ServeDir::new("frontend/dist")
+        .not_found_service(ServeFile::new("frontend/dist/index.html"));
+
     let app = Router::new()
         .merge(api_router)
-        .fallback_service(ServeDir::new("dist"))
+        .fallback_service(frontend_service)
         .layer(configuracion.cors_layer);
 
+    // Leer el puerto que Render asigna, o usar 3000 en local
+    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    let addr = format!("0.0.0.0:{}", port);
+
     // Encendido del Servidor
-    let direccion = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("Servidor Full Stack corriendo de forma segura en: http://{}", direccion);
-    println!("👉 Puedes acceder desde tu navegador en: http://localhost:3000"); // Añadido para mayor claridad
+    println!("🚀 Servidor Full Stack corriendo en: http://{}", addr);
     
-    let oyente = tokio::net::TcpListener::bind(&direccion).await.unwrap();
+    let oyente = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(oyente, app).await.unwrap();
 }

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE medicacion_activa SET activo = NOT activo WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2333e64f94763c6d27546d36a5b4c185f45d20495ed1128cefe206e6fe5a4841"
+}

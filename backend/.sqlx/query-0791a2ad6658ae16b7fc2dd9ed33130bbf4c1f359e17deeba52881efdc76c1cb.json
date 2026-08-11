@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pasos (fecha, cantidad) VALUES ($1, $2) ON CONFLICT (fecha) DO UPDATE SET cantidad = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0791a2ad6658ae16b7fc2dd9ed33130bbf4c1f359e17deeba52881efdc76c1cb"
+}

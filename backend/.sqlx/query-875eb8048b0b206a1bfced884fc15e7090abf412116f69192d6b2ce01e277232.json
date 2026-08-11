@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE medicacion_activa SET medicamento_id=$1, frecuencia=$2::text::frecuencia_medicacion, cantidad=$3::float8, fecha_inicio=$4, fecha_fin=$5, anotaciones=$6 WHERE id=$7",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Float8",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "875eb8048b0b206a1bfced884fc15e7090abf412116f69192d6b2ce01e277232"
+}

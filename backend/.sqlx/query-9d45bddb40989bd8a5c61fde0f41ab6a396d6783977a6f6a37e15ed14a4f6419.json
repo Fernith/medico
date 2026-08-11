@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO medicacion_activa (medicamento_id, frecuencia, cantidad, fecha_inicio, fecha_fin, anotaciones) VALUES ($1, $2::text::frecuencia_medicacion, $3::float8, $4, $5, $6)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Float8",
+        "Timestamptz",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9d45bddb40989bd8a5c61fde0f41ab6a396d6783977a6f6a37e15ed14a4f6419"
+}

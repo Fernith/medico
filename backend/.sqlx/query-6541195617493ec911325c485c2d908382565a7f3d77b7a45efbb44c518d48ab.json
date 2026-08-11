@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada) VALUES ($1, $2, $3::float8)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Float8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6541195617493ec911325c485c2d908382565a7f3d77b7a45efbb44c518d48ab"
+}

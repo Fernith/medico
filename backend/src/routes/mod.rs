@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -57,6 +57,22 @@ pub fn construir_router(pool: PgPool) -> Router {
         // TIPO ENTRENAMIENTO
         .route("/api/tipos-entrenamiento", get(ejercicio::get_tipos_entrenamiento).post(ejercicio::create_tipo_entrenamiento))
         .route("/api/tipos-entrenamiento/:id", delete(ejercicio::delete_tipo_entrenamiento))
+
+        // --- CATEGORÍAS MEDICAMENTOS ---
+        .route("/api/categorias-medicamentos", get(medicamento::get_categorias).post(medicamento::create_categoria))
+        .route("/api/categorias-medicamentos/:id", delete(medicamento::delete_categoria))
+
+        // --- MEDICAMENTOS ---
+        .route("/api/medicamentos", get(medicamento::get_medicamentos).post(medicamento::create_medicamento))
+        .route("/api/medicamentos/:id", put(medicamento::update_medicamento).delete(medicamento::delete_medicamento))
+
+        // --- MEDICACIÓN ACTIVA ---
+        .route("/api/medicaciones-activas", get(medicamento::get_medicaciones_activas).post(medicamento::create_medicacion_activa))
+        .route("/api/medicaciones-activas/:id", put(medicamento::update_medicacion_activa).delete(medicamento::delete_medicacion_activa))
+        .route("/api/medicaciones-activas/:id/toggle", patch(medicamento::toggle_medicacion_activa))
+
+        // --- HISTORIAL DE TOMAS ---
+        .route("/api/historial-medicacion", post(medicamento::add_historial_medicacion))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 

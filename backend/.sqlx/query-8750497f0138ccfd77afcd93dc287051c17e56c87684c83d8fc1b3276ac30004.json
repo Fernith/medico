@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE medicamento SET nombre=$1, categoria_id=$2, formato=$3::text::formato_medicamento, dosis=$4::float8, unidad_dosis=$5, notas=$6 WHERE id=$7",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid",
+        "Text",
+        "Float8",
+        "Varchar",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8750497f0138ccfd77afcd93dc287051c17e56c87684c83d8fc1b3276ac30004"
+}

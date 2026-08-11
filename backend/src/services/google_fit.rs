@@ -97,7 +97,7 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
     let now_spain = Utc::now() + offset_spain;
     let medianoche_spain = now_spain.date_naive().and_hms_opt(0, 0, 0).unwrap();
     
-    let start_time = (medianoche_spain - Duration::days(14)).and_utc().timestamp_millis() - offset_spain.num_milliseconds();
+    let start_time = (medianoche_spain - Duration::days(31)).and_utc().timestamp_millis() - offset_spain.num_milliseconds();
     let end_time = Utc::now().timestamp_millis();
     
     println!("⏱️ Ventana de tiempo: de {} a {}", start_time, end_time);
@@ -105,7 +105,7 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
     let client = reqwest::Client::new();
 
     // ==========================================
-    // PROCESADO DE SUEÑO
+    // 1. PROCESADO DE SUEÑO
     // ==========================================
     println!("🔍 Solicitando datos de sueño a Google Fit...");
     let body_sueno = json!({
@@ -147,7 +147,6 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
             println!("🪣 Se encontraron {} sesiones (buckets) en el rango.", buckets.len());
             for bucket in buckets {
                 let act_type = bucket["session"]["activityType"].as_i64();
-                println!("   👉 Analizando bucket. ActivityType: {:?}", act_type);
 
                 if act_type == Some(72) { 
                     let session_start_ms = bucket["session"]["startTimeMillis"].as_str().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
@@ -186,27 +185,16 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
                         }
 
                         if !tiene_fases {
-                            println!("   ⚠️ Esta sesión no tenía fases crudas detalladas. Se asume todo como Ligero.");
                             session.light_ms = session_end_ms - session_start_ms;
                         }
 
                         let fecha_sesion = (Utc.timestamp_millis_opt(session_end_ms).unwrap() + offset_spain).naive_utc().date();
-                        println!("   ✅ Sesión de sueño registrada para el día: {}", fecha_sesion);
                         sleep_by_date.entry(fecha_sesion).or_default().push(session);
-                    } else {
-                        println!("   ❌ Sesión ignorada: Tiempos de inicio/fin inválidos.");
                     }
                 }
             }
-        } else {
-            println!("⚠️ La petición de sesiones fue exitosa pero no devolvió el array 'bucket'.");
         }
 
-        println!("📅 Total de Días con sueño listos para guardar: {}", sleep_by_date.len());
-
-        // ==========================================
-        // GUARDAR EN LA BASE DE DATOS
-        // ==========================================
         for (fecha, mut sessions) in sleep_by_date {
             sessions.sort_by_key(|s| -(s.end_ms - s.start_ms));
             let main_sleep = &sessions[0];
@@ -216,7 +204,6 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
             let mut siesta_end: Option<DateTime<Utc>> = None;
 
             if sessions.len() > 1 {
-                println!("   🛌 Encontradas múltiples sesiones para el {}. Calculando siestas...", fecha);
                 let siesta_principal = &sessions[1];
                 siesta_start = Some(Utc.timestamp_millis_opt(siesta_principal.start_ms).unwrap());
                 siesta_end = Some(Utc.timestamp_millis_opt(siesta_principal.end_ms).unwrap());
@@ -236,9 +223,6 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
             let min_siesta = (siesta_total_ms / 60000) as i32;
             
             let total_dormido = min_ligero + min_profundo + min_rem;
-
-            println!("💾 Preparando INSERT BD para {}: Total: {}m, Ligero: {}m, Profundo: {}m, REM: {}m, Siesta: {}m", 
-                     fecha, total_dormido, min_ligero, min_profundo, min_rem, min_siesta);
 
             if total_dormido > 0 || min_siesta > 0 {
                 match sqlx::query!(
@@ -260,15 +244,65 @@ pub async fn sync_data(pool: &PgPool) -> Result<(), String> {
                     min_ligero, min_profundo, min_rem, min_despierto,
                     min_siesta, siesta_start, siesta_end
                 ).execute(pool).await {
-                    Ok(_) => println!("   ✅ BD: Insertado/Actualizado correctamente el {}.", fecha),
-                    Err(e) => eprintln!("   ❌ BD ERROR FATAL: No se pudo insertar en BBDD: {}", e),
+                    Ok(_) => println!("   ✅ BD: Sueño guardado para el {}.", fecha),
+                    Err(e) => eprintln!("   ❌ BD ERROR: Fallo al guardar el sueño: {}", e),
                 }
-            } else {
-                println!("   ⚠️ BD: Saltando {}. total_dormido y min_siesta son 0.", fecha);
             }
         }
     } else {
         eprintln!("❌ ERROR API SUEÑO (Sesiones): {:?}", res_sueno.text().await);
+    }
+
+    // ==========================================
+    // 2. PROCESADO DE PASOS
+    // ==========================================
+    println!("🚶 Solicitando datos de pasos a Google Fit...");
+    let body_pasos = json!({
+        "aggregateBy": [{"dataTypeName": "com.google.step_count.delta"}],
+        "bucketByTime": {"durationMillis": 86400000},
+        "startTimeMillis": start_time,
+        "endTimeMillis": end_time
+    });
+
+    let res_pasos = client.post("https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate")
+        .bearer_auth(&access_token).json(&body_pasos).send().await.map_err(|e| e.to_string())?;
+
+    if res_pasos.status().is_success() {
+        let texto_crudo = res_pasos.text().await.unwrap_or_default();
+        let json_data: serde_json::Value = serde_json::from_str(&texto_crudo).unwrap_or_default();
+        
+        if let Some(buckets) = json_data["bucket"].as_array() {
+            println!("🪣 Se encontraron {} buckets de pasos en el rango.", buckets.len());
+            for bucket in buckets {
+                if let Some(start_ms) = bucket["startTimeMillis"].as_str().and_then(|s| s.parse::<i64>().ok()) {
+                    let fecha = (Utc.timestamp_millis_opt(start_ms).unwrap() + offset_spain).naive_utc().date();
+                    let mut total_pasos = 0;
+
+                    if let Some(datasets) = bucket["dataset"].as_array() {
+                        for dataset in datasets {
+                            if let Some(points) = dataset["point"].as_array() {
+                                for point in points {
+                                    if let Some(values) = point["value"].as_array() {
+                                        if let Some(val) = values.get(0).and_then(|v| v["intVal"].as_i64()) {
+                                            total_pasos += val as i32;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if total_pasos > 0 {
+                        match sqlx::query!("INSERT INTO pasos (fecha, cantidad) VALUES ($1, $2) ON CONFLICT (fecha) DO UPDATE SET cantidad = $2", fecha, total_pasos)
+                            .execute(pool).await {
+                                Ok(_) => println!("   ✅ BD: Pasos guardados para el {}: {} pasos", fecha, total_pasos),
+                                Err(e) => eprintln!("   ❌ BD ERROR: No se pudieron guardar los pasos del {}: {}", fecha, e),
+                            }
+                    }
+                }
+            }
+        }
+    } else {
+        eprintln!("❌ ERROR API PASOS: {:?}", res_pasos.text().await);
     }
 
     println!("🏁 --- SINCRONIZACIÓN FINALIZADA ---\n");
