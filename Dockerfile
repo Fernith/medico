@@ -13,7 +13,7 @@ RUN npm run build
 # ==========================================
 # ETAPA 2: Construir el Backend (Rust)
 # ==========================================
-FROM rust:1.78-slim-bookworm AS backend-builder
+FROM rust:slim-bookworm AS backend-builder
 WORKDIR /app
 
 # Instalar dependencias para compilar OpenSSL y Reqwest
