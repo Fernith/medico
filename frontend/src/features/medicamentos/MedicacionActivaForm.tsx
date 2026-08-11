@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { Activity, Clock, Calendar, Hash, FileText } from 'lucide-react';
+import { Activity, Clock, Hash, FileText } from 'lucide-react';
 import { type Medicamento } from './MedicamentoForm';
 
 export interface MedicacionActiva {

@@ -9,7 +9,6 @@ export type RangoTiempoSueno = '7d' | '14d' | '1m' | '3m' | 'custom';
 export const SuenoPage: React.FC = () => {
   const [suenos, setSuenos] = useState<SuenoDB[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
   
   const [rango, setRango] = useState<RangoTiempoSueno>('7d');
   const [customDias, setCustomDias] = useState<number | ''>('');
@@ -31,22 +30,6 @@ export const SuenoPage: React.FC = () => {
   useEffect(() => {
     fetchSueno();
   }, []);
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch('/api/sincronizar_google_fit', { method: 'POST' });
-      if (res.ok) {
-        await fetchSueno();
-      } else {
-        alert('Hubo un problema sincronizando con Google Fit.');
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6 pb-24">
