@@ -4,7 +4,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { CategoriaForm } from './CategoriaForm';
 
-export interface CategoriaMedicamento { id: string; nombre: string; }
+export interface CategoriaMedicamento { id: string; nombre: string; color: string; }
 
 export const CategoriasTabla: React.FC = () => {
   const [categorias, setCategorias] = useState<CategoriaMedicamento[]>([]);
@@ -57,7 +57,12 @@ export const CategoriasTabla: React.FC = () => {
             <tbody>
               {categorias.map(cat => (
                 <tr key={cat.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-bold text-slate-800">{cat.nombre}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: cat.color }}></div>
+                      <span className="font-bold text-slate-800">{cat.nombre}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button onClick={() => setDeleteId(cat.id)} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4 inline" /></button>
                   </td>

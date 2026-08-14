@@ -5,6 +5,7 @@ import { type MedicacionActiva } from '../features/medicamentos/MedicacionActiva
 import { MedicamentosTabla } from '../features/medicamentos/MedicamentosTabla';
 import { CategoriasTabla } from '../features/medicamentos/CategoriasTabla';
 import { MedicacionesActivasTabla } from '../features/medicamentos/MedicacionesActivasTabla';
+import { HistorialMedicacionesTabla } from '../features/medicamentos/HistorialMedicacionesTabla'; // <-- IMPORTADO
 
 export const MedicamentosPage: React.FC = () => {
   const [vista, setVista] = useState<'estadisticas' | 'configuracion'>('estadisticas');
@@ -65,11 +66,10 @@ export const MedicamentosPage: React.FC = () => {
       {!isLoading ? (
         <div className="mt-4">
           
-          {/* VISTA: ESTADÍSTICAS */}
+          {/* VISTA: ESTADÍSTICAS E HISTORIAL */}
           {vista === 'estadisticas' && (
-            <div className="w-full py-16 flex flex-col items-center justify-center text-slate-400 space-y-4 bg-slate-50/50 rounded-3xl border border-slate-100 animate-in fade-in duration-300">
-              <BarChart3 className="w-16 h-16 opacity-50 text-teal-400" />
-              <p className="text-lg font-medium text-slate-500">El Dashboard de tomas se integrará pronto...</p>
+            <div className="w-full animate-in fade-in duration-300">
+              <HistorialMedicacionesTabla />
             </div>
           )}
 
@@ -77,12 +77,10 @@ export const MedicamentosPage: React.FC = () => {
           {vista === 'configuracion' && (
             <div className="flex flex-col gap-12 animate-in fade-in duration-300">
               
-              {/* SECCIÓN PRINCIPAL: PLANIFICACIÓN ACTIVA */}
               <div className="w-full">
                  <MedicacionesActivasTabla activas={activas} medicamentos={medicamentos} />
               </div>
 
-              {/* SECCIÓN MAESTRA: CATÁLOGO */}
               <div className="w-full space-y-4 pt-6 border-t border-slate-200">
                 <div className="flex items-center gap-2 text-slate-600 mb-2">
                   <Archive className="w-5 h-5 text-teal-500" />

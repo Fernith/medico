@@ -3,10 +3,11 @@ import { PasosWidget } from '../features/dashboard/PasosWidget';
 import { SuenoWidget } from '../features/dashboard/SuenoWidget';
 import { ReglaWidget } from '../features/dashboard/ReglaWidget';
 import { Link } from 'react-router-dom';
-import { Dumbbell, Pill, Stethoscope } from 'lucide-react';
+import { Dumbbell, Stethoscope } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 import { PesoWidget } from '../features/dashboard/PesoWidget';
 import { EntrenamientoActivo } from '../features/entrenamiento/activo/EntrenamientoActivo';
+import { MedicamentosWidget } from '../features/dashboard/MedicamentosWidget';
 
 interface PasosDB { 
   hoy: number; 
@@ -36,7 +37,6 @@ export const DashboardPage = () => {
   const [datosSueno, setDatosSueno] = useState<{ hoyMinutos: number, ultimos7DiasMin: number, ultimos7DiasMax: number, media7Dias: number, ultimaFecha: string | null } | null>(null);
   const [ultimoCiclo, setUltimoCiclo] = useState<CicloDB | null>(null);
 
-  // <-- AÑADIDO: ESTADO PARA EL ENTRENAMIENTO
   const [isWorkoutActive, setIsWorkoutActive] = useState(false); 
 
   useEffect(() => {
@@ -95,7 +95,6 @@ export const DashboardPage = () => {
 
   return (
     <>
-      {/* <-- AÑADIDO: OVERLAY DEL ENTRENAMIENTO */}
       {isWorkoutActive && <EntrenamientoActivo onClose={() => setIsWorkoutActive(false)} />}
 
       <div className="space-y-8 animate-in fade-in duration-500">
@@ -103,16 +102,13 @@ export const DashboardPage = () => {
           <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">Resumen</h1>
           
           <button 
-            onClick={() => setIsWorkoutActive(true)} /* <-- AÑADIDO: Lanza el modal */
+            onClick={() => setIsWorkoutActive(true)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 group w-full sm:w-auto"
           >
             <Dumbbell className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span>Iniciar entrenamiento</span>
           </button>
         </header>
-
-        {datosSueno && <SuenoWidget data={datosSueno} />}
-        {datosPasos && <PasosWidget data={datosPasos} />}
         
         {/* CUADRÍCULA DINÁMICA: 4 columnas si hay regla, 3 si no */}
         <div className={`grid grid-cols-1 gap-4 ${mostrarRegla ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
@@ -127,10 +123,8 @@ export const DashboardPage = () => {
               />
             )}
 
-            <Link to="/medicamentos" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
-              <div className="p-4 bg-blue-50 text-blue-500 rounded-2xl group-hover:scale-110 transition-transform"><Pill className="w-8 h-8" /></div>
-              <span className="font-bold text-slate-700">Medicamentos</span>
-            </Link>
+            {/* NUEVO WIDGET DE MEDICAMENTOS */}
+            <MedicamentosWidget />
 
             <Link to="/sintomas" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
               <div className="p-4 bg-orange-50 text-orange-500 rounded-2xl group-hover:scale-110 transition-transform"><Stethoscope className="w-8 h-8" /></div>
@@ -138,6 +132,9 @@ export const DashboardPage = () => {
             </Link>
 
         </div>
+
+        {datosSueno && <SuenoWidget data={datosSueno} />}
+        {datosPasos && <PasosWidget data={datosPasos} />}
       </div>
     </>
   );

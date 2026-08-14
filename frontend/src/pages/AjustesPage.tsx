@@ -3,6 +3,7 @@ import { useAjustes } from '../context/AjustesContext';
 import { AjustesParametrosRegla } from '../features/ajustes/AjustesParametrosRegla';
 import { AjusteVisibilidadRegla } from '../features/ajustes/AjusteVisibilidadRegla';
 import { AjusteObjetivoSueno } from '../features/ajustes/AjusteObjetivoSueno';
+import { AjusteUnidadesDosis } from '../features/ajustes/AjusteUnidadesDosis'; // <-- IMPORTADO
 
 export const AjustesPage: React.FC = () => {
   const { ajustes } = useAjustes();
@@ -22,6 +23,7 @@ export const AjustesPage: React.FC = () => {
         <AjusteVisibilidadRegla />
         <AjustesParametrosRegla isVisible={mostrarRegla} />
         <AjusteObjetivoSueno/>
+        <AjusteUnidadesDosis />
       </div>
       
     </div>

@@ -9,14 +9,15 @@ use crate::models::medicamento::{
     CategoriaMedicamento, CategoriaMedicamentoPayload, 
     Medicamento, MedicamentoPayload, 
     MedicacionActiva, MedicacionActivaPayload,
-    HistorialMedicacionPayload
+    HistorialMedicacionPayload, HistorialMedicacion,
+    UnidadDosis, UnidadDosisPayload, RangoFechasQuery
 };
 
 // ==========================================
 // CATEGORÍAS
 // ==========================================
 pub async fn get_categorias(State(pool): State<PgPool>) -> Result<Json<Vec<CategoriaMedicamento>>, String> {
-    let categorias = sqlx::query_as!(CategoriaMedicamento, "SELECT id, nombre FROM categoria_medicamento ORDER BY nombre")
+    let categorias = sqlx::query_as!(CategoriaMedicamento, "SELECT id, nombre, color FROM categoria_medicamento ORDER BY nombre")
         .fetch_all(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(categorias))
 }
@@ -24,8 +25,8 @@ pub async fn get_categorias(State(pool): State<PgPool>) -> Result<Json<Vec<Categ
 pub async fn create_categoria(State(pool): State<PgPool>, Json(payload): Json<CategoriaMedicamentoPayload>) -> Result<Json<CategoriaMedicamento>, String> {
     let registro = sqlx::query_as!(
         CategoriaMedicamento,
-        "INSERT INTO categoria_medicamento (nombre) VALUES ($1) RETURNING id, nombre",
-        payload.nombre
+        "INSERT INTO categoria_medicamento (nombre, color) VALUES ($1, $2) RETURNING id, nombre, color",
+        payload.nombre, payload.color
     ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(registro))
 }
@@ -79,6 +80,10 @@ pub async fn delete_medicamento(Path(id): Path<Uuid>, State(pool): State<PgPool>
 // MEDICACIÓN ACTIVA
 // ==========================================
 pub async fn get_medicaciones_activas(State(pool): State<PgPool>) -> Result<Json<Vec<MedicacionActiva>>, String> {
+    
+    // 🔥 DISPARADOR LAZY GENERATION: Generamos tomas pendientes antes de devolver los datos
+    crate::tasks::generar_tomas_pendientes(&pool).await;
+
     let activas = sqlx::query_as!(
         MedicacionActiva,
         r#"
@@ -127,8 +132,107 @@ pub async fn delete_medicacion_activa(Path(id): Path<Uuid>, State(pool): State<P
 // ==========================================
 pub async fn add_historial_medicacion(State(pool): State<PgPool>, Json(payload): Json<HistorialMedicacionPayload>) -> Result<Json<()>, String> {
     sqlx::query!(
-        "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada) VALUES ($1, $2, $3::float8)",
-        payload.medicamento_id, payload.fecha_hora, payload.cantidad_tomada
+        "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada, pendiente) VALUES ($1, $2, $3::float8, $4)",
+        payload.medicamento_id, payload.fecha_hora, payload.cantidad_tomada, payload.pendiente
     ).execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+pub async fn get_historial(State(pool): State<PgPool>) -> Result<Json<Vec<HistorialMedicacion>>, String> {
+    let historial = sqlx::query_as!(
+        HistorialMedicacion,
+        r#"
+        SELECT 
+            h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
+            m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
+            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente
+        FROM historial_medicacion h
+        JOIN medicamento m ON h.medicamento_id = m.id
+        ORDER BY h.fecha_hora DESC
+        "#
+    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(historial))
+}
+
+pub async fn update_historial_medicacion(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<HistorialMedicacionPayload>) -> Result<Json<()>, String> {
+    sqlx::query!(
+        "UPDATE historial_medicacion SET medicamento_id=$1, fecha_hora=$2, cantidad_tomada=$3::float8, pendiente=$4 WHERE id=$5",
+        payload.medicamento_id, payload.fecha_hora, payload.cantidad_tomada, payload.pendiente, id
+    ).execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+pub async fn delete_historial_medicacion(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    sqlx::query!("DELETE FROM historial_medicacion WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+pub async fn marcar_historial_tomado(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    sqlx::query!("UPDATE historial_medicacion SET pendiente = false WHERE id=$1", id)
+        .execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+// ==========================================
+// UNIDADES DE DOSIS (Ajustes)
+// ==========================================
+pub async fn get_unidades_dosis(State(pool): State<PgPool>) -> Result<Json<Vec<UnidadDosis>>, String> {
+    let unidades = sqlx::query_as!(
+        UnidadDosis, 
+        "SELECT id, nombre, abreviatura FROM unidad_dosis ORDER BY nombre"
+    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(unidades))
+}
+
+pub async fn create_unidad_dosis(State(pool): State<PgPool>, Json(payload): Json<UnidadDosisPayload>) -> Result<Json<UnidadDosis>, String> {
+    let registro = sqlx::query_as!(
+        UnidadDosis,
+        "INSERT INTO unidad_dosis (nombre, abreviatura) VALUES ($1, $2) RETURNING id, nombre, abreviatura",
+        payload.nombre, payload.abreviatura
+    ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(registro))
+}
+
+pub async fn delete_unidad_dosis(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    sqlx::query!("DELETE FROM unidad_dosis WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+pub async fn update_unidad_dosis(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<UnidadDosisPayload>) -> Result<Json<()>, String> {
+    sqlx::query!(
+        "UPDATE unidad_dosis SET nombre=$1, abreviatura=$2 WHERE id=$3",
+        payload.nombre, payload.abreviatura, id
+    ).execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+// RANGOS
+pub async fn get_historial_rango(
+    State(pool): State<PgPool>,
+    axum::extract::Query(query): axum::extract::Query<RangoFechasQuery>,
+) -> Result<Json<Vec<HistorialMedicacion>>, String> {
+    let historial = sqlx::query_as!(
+        HistorialMedicacion,
+        r#"
+        SELECT 
+            h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
+            m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
+            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente
+        FROM historial_medicacion h
+        JOIN medicamento m ON h.medicamento_id = m.id
+        WHERE h.pendiente = true 
+          AND h.fecha_hora >= $1 
+          AND h.fecha_hora <= $2
+        ORDER BY h.fecha_hora ASC
+        "#,
+        query.start, query.end
+    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    
+    Ok(Json(historial))
+}
+
+pub async fn marcar_historial_pendiente(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    sqlx::query!("UPDATE historial_medicacion SET pendiente = true WHERE id=$1", id)
+        .execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }

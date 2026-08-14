@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE historial_medicacion SET medicamento_id=$1, fecha_hora=$2, cantidad_tomada=$3::float8, pendiente=$4 WHERE id=$5",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Float8",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "12fbc4c667bfcadeb4e7b9a99991090b137e442b8d46c9658dfc37300c839aa8"
+}

@@ -62,6 +62,10 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/categorias-medicamentos", get(medicamento::get_categorias).post(medicamento::create_categoria))
         .route("/api/categorias-medicamentos/:id", delete(medicamento::delete_categoria))
 
+        // --- UNIDADES DE DOSIS (DICCIONARIO) ---
+        .route("/api/unidades-dosis", get(medicamento::get_unidades_dosis).post(medicamento::create_unidad_dosis))
+        .route("/api/unidades-dosis/:id", put(medicamento::update_unidad_dosis).delete(medicamento::delete_unidad_dosis))
+
         // --- MEDICAMENTOS ---
         .route("/api/medicamentos", get(medicamento::get_medicamentos).post(medicamento::create_medicamento))
         .route("/api/medicamentos/:id", put(medicamento::update_medicamento).delete(medicamento::delete_medicamento))
@@ -72,7 +76,11 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/medicaciones-activas/:id/toggle", patch(medicamento::toggle_medicacion_activa))
 
         // --- HISTORIAL DE TOMAS ---
-        .route("/api/historial-medicacion", post(medicamento::add_historial_medicacion))
+        .route("/api/historial-medicacion/pendientes", get(medicamento::get_historial_rango))
+        .route("/api/historial-medicacion", get(medicamento::get_historial).post(medicamento::add_historial_medicacion))
+        .route("/api/historial-medicacion/:id", put(medicamento::update_historial_medicacion).delete(medicamento::delete_historial_medicacion))
+        .route("/api/historial-medicacion/:id/tomado", patch(medicamento::marcar_historial_tomado))
+        .route("/api/historial-medicacion/:id/pendiente", patch(medicamento::marcar_historial_pendiente))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
 

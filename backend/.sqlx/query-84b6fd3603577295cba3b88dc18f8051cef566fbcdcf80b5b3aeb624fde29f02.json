@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT MAX(fecha_hora) as max_fecha \n            FROM historial_medicacion \n            WHERE medicamento_id = $1 AND fecha_hora >= $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "max_fecha",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "84b6fd3603577295cba3b88dc18f8051cef566fbcdcf80b5b3aeb624fde29f02"
+}

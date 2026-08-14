@@ -77,7 +77,7 @@ export const MedicacionActivaForm: React.FC<MedicacionActivaFormProps> = ({ init
           <input type="datetime-local" value={formData.fecha_inicio} onChange={(e) => handleChange('fecha_inicio', e.target.value)} required className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium" />
         </div>
         <div className="space-y-1">
-          <label className="block text-sm font-bold text-slate-700 ml-1">Fin (Dejar vacío si es crónico)</label>
+          <label className="block text-sm font-bold text-slate-700 ml-1">Fin (Opcional)</label>
           <input type="datetime-local" value={formData.fecha_fin} onChange={(e) => handleChange('fecha_fin', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-medium" />
         </div>
       </div>

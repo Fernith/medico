@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO categoria_medicamento (nombre, color) VALUES ($1, $2) RETURNING id, nombre, color",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "nombre",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "color",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "46114e6af10da3454dfadd89dee4d6b16b0b74bbd4e472f76b0e4153d3bf60d2"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE historial_medicacion SET pendiente = false WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "02b7c6f44aa381434771d05ff578a8e660d7cf385044311a8a934f0a1105a6ee"
+}

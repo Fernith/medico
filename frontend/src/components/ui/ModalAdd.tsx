@@ -3,6 +3,7 @@ import { Modal, type ModalColorTheme } from './Modal';
 import { PesoForm } from '../../features/peso/PesoForm';
 import { ReglaForm } from '../../features/regla/ReglaForm';
 import { MedicionForm } from '../../features/peso/MedicionForm';
+import { HistorialMedicacionForm } from '../../features/medicamentos/HistorialMedicacionForm';
 
 interface ModalAddProps {
   isOpen: boolean;
@@ -10,7 +11,7 @@ interface ModalAddProps {
 }
 
 // Ahora tenemos 3 posibles pestañas
-type TabType = 'peso' | 'medicion' | 'regla';
+type TabType = 'peso' | 'medicion' | 'regla' | 'medicacion';
 
 export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>('peso');
@@ -45,11 +46,18 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
     modalBorder: 'border-pink-400',
   };
 
+  const medicacionTheme: Partial<ModalColorTheme> = { 
+    titleColor: 'text-teal-900', 
+    headerBorder: 'border-teal-100', 
+    closeIconHover: 'hover:text-teal-500', 
+    modalBorder: 'border-teal-400' };
+
   // Seleccionamos el tema activo según la pestaña
   const currentTheme = 
     activeTab === 'peso' ? pesoTheme : 
     activeTab === 'medicion' ? medicionTheme : 
-    reglaTheme;
+    activeTab === 'regla' ? reglaTheme : 
+    medicacionTheme;
 
   return (
     <Modal 
@@ -92,6 +100,16 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
         >
           Regla
         </button>
+        <button 
+          onClick={() => setActiveTab('medicacion')} 
+          className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+            activeTab === 'medicacion' 
+              ? 'bg-white text-teal-600 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Medicación
+            </button>
       </div>
 
       {/* Contenido Dinámico */}
@@ -106,6 +124,9 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
         
         {activeTab === 'regla' && (
           <ReglaForm onSuccess={onClose} onCancel={onClose} />
+        )}
+        {activeTab === 'medicacion' && (
+          <HistorialMedicacionForm onSuccess={onClose} onCancel={onClose} />
         )}
       </div>
     </Modal>

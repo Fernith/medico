@@ -20,32 +20,46 @@ export const PesoWidget = () => {
 
   const imc = ultimoPeso ? calcularIMC(ultimoPeso, 180) : null;
 
+  const renderContent = () => {
+    if (!ultimoPeso) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <p className="text-gray-500 font-medium">Sin datos</p>
+          <p className="text-sm text-gray-400 mt-1">Registra tu peso</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center mt-2 group-hover:scale-105 transition-transform">
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+          Último peso:
+        </span>
+        <span className="text-5xl font-black text-emerald-900">
+          {ultimoPeso} <span className="text-2xl">kg</span>
+        </span>
+        {imc && (
+          <span className="text-xs text-emerald-500 font-medium text-center mt-2 px-2">
+            IMC: {imc}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Link 
       to="/peso" 
-      className="bg-white p-5 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col h-full group"
+      className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col h-full group"
     >
-      <div className="flex justify-between items-start w-full">
-        <h2 className="text-base font-bold text-slate-700 group-hover:text-emerald-600 transition-colors">Peso</h2>
-        <svg className="w-4 h-4 text-gray-300 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="text-xl font-bold text-emerald-900 group-hover:text-emerald-600 transition-colors">Peso</h2>
+        <svg className="w-5 h-5 text-gray-300 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
         </svg>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center mt-2 group-hover:scale-105 transition-transform">
-        {ultimoPeso ? (
-          <>
-            <span className="text-4xl font-black text-emerald-600">
-              {ultimoPeso} <span className="text-xl">kg</span>
-            </span>
-            <span className="text-xs text-slate-400 font-medium mt-1">
-              IMC: {imc}
-            </span>
-          </>
-        ) : (
-          <span className="text-sm text-slate-400 font-medium">Sin datos</span>
-        )}
-      </div>
+      {renderContent()}
     </Link>
   );
 };

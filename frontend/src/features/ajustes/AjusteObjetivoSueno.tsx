@@ -80,7 +80,7 @@ export const AjusteObjetivoSueno: React.FC = () => {
         </div>
       )}
 
-      <div className="flex justify-start pt-4 border-t border-indigo-50">
+      <div className="border-indigo-50 sm:col-span-1">
         <button 
           type="submit" 
           disabled={isSubmitting || horas === '' || deuda === ''}

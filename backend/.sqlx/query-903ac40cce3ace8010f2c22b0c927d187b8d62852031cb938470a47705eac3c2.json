@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            h.id, h.medicamento_id, m.nombre as \"medicamento_nombre!\",\n            m.formato::text as \"formato!\", m.dosis::float8 as \"dosis_base!\", m.unidad_dosis as \"unidad_dosis!\",\n            h.fecha_hora, h.cantidad_tomada::float8 as \"cantidad_tomada!\", h.pendiente\n        FROM historial_medicacion h\n        JOIN medicamento m ON h.medicamento_id = m.id\n        WHERE h.pendiente = true \n          AND h.fecha_hora >= $1 \n          AND h.fecha_hora <= $2\n        ORDER BY h.fecha_hora ASC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "medicamento_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "medicamento_nombre!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "formato!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "dosis_base!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "unidad_dosis!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "fecha_hora",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "cantidad_tomada!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 8,
+        "name": "pendiente",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null,
+      null,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "903ac40cce3ace8010f2c22b0c927d187b8d62852031cb938470a47705eac3c2"
+}

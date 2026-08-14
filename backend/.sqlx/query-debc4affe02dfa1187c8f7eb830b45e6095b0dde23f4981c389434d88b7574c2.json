@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, nombre FROM categoria_medicamento ORDER BY nombre",
+  "query": "SELECT id, nombre, abreviatura FROM unidad_dosis ORDER BY nombre",
   "describe": {
     "columns": [
       {
@@ -12,6 +12,11 @@
         "ordinal": 1,
         "name": "nombre",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "abreviatura",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -19,8 +24,9 @@
     },
     "nullable": [
       false,
+      false,
       false
     ]
   },
-  "hash": "7cc072f3cf54dd66faa31433058932743f8f5c919d880b020a8d6f7a757ddb9e"
+  "hash": "debc4affe02dfa1187c8f7eb830b45e6095b0dde23f4981c389434d88b7574c2"
 }

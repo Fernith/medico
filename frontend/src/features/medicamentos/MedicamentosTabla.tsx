@@ -73,7 +73,7 @@ export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ m
               {currentItems.map(med => (
                 <tr key={med.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td className="px-4 py-3 font-bold text-slate-800">{med.nombre}</td>
-                  <td className="px-4 py-3 text-slate-600 font-medium">{med.formato} - {med.dosis}{med.unidad_dosis}</td>
+                  <td className="px-4 py-3 text-slate-600 font-medium">{med.formato} - {med.dosis} {med.unidad_dosis}</td>
                   <td className="px-4 py-3">
                     <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-semibold uppercase tracking-wider">{med.categoria_nombre || 'Sin categoría'}</span>
                   </td>

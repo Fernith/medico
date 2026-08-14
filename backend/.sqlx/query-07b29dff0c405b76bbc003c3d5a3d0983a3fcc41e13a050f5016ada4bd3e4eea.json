@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM historial_medicacion WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "07b29dff0c405b76bbc003c3d5a3d0983a3fcc41e13a050f5016ada4bd3e4eea"
+}

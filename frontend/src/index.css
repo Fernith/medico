@@ -7,3 +7,36 @@
 body {
   background-color: #f8fafc; 
 }
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent; /* slate-300 y transparente */
+}
+
+/* Chrome, Edge, y Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;  /* Vertical */
+  height: 6px; /* Horizontal */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; 
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0; /* slate-200 (muy sutil cuando no se usa) */
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* Al pasar el ratón por encima del contenedor, oscurecemos un poco la barra */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+}
+
+/* Al pasar el ratón exactamente por encima de la barra, se vuelve turquesa */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #2dd4bf; /* teal-400 */
+}

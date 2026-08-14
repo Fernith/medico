@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO unidad_dosis (nombre, abreviatura) VALUES ($1, $2) RETURNING id, nombre, abreviatura",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "nombre",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "abreviatura",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c68c66e7f830bb797367bf7114644a878c1e1f5cd512e3834af579272c69089b"
+}

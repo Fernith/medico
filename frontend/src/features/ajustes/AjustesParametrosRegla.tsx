@@ -114,7 +114,7 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({ 
         </div>
       )}
 
-      <div className="flex justify-end pt-4 border-t border-pink-50">
+      <div className="border-pink-50 sm:col-span-1">
         <button 
           type="submit" 
           disabled={isSubmitting || ciclo === '' || periodo === ''}

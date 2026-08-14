@@ -13,23 +13,11 @@ interface MedicamentoFormProps { initialData?: Medicamento | null; onSuccess: ()
 
 const FORMATOS = ['Pastilla', 'Cápsula', 'Polvo', 'Líquido', 'Crema', 'Inyectable'];
 
-// Diccionario de unidades en español para el selector
-const UNIDADES_DOSIS = [
-  { value: 'mg', label: 'Miligramos (mg)' },
-  { value: 'g', label: 'Gramos (g)' },
-  { value: 'mcg', label: 'Microgramos (mcg)' },
-  { value: 'ml', label: 'Mililitros (ml)' },
-  { value: 'gotas', label: 'Gotas' },
-  { value: 'UI', label: 'Unidades Int. (UI)' },
-  { value: 'sobres', label: 'Sobres' },
-  { value: 'cucharadas', label: 'Cucharadas' },
-  { value: 'puffs', label: 'Inhalaciones (Puffs)' },
-  { value: 'uds', label: 'Unidades sueltas' }
-];
-
 export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const [categorias, setCategorias] = useState<CategoriaMedicamento[]>([]);
+  const [unidadesDosis, setUnidadesDosis] = useState<{value: string, label: string}[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || '',
     categoria_id: initialData?.categoria_id || '',
@@ -41,6 +29,11 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
 
   useEffect(() => {
     fetch('/api/categorias-medicamentos').then(res => res.json()).then(setCategorias).catch(console.error);
+    
+    // Cargar diccionario dinámico de unidades
+    fetch('/api/unidades-dosis').then(res => res.json()).then(data => {
+      setUnidadesDosis(data.map((u: any) => ({ value: u.abreviatura, label: `${u.nombre} (${u.abreviatura})` })));
+    }).catch(console.error);
   }, []);
 
   const handleChange = (campo: string, valor: any) => setFormData(prev => ({ ...prev, [campo]: valor }));
@@ -65,7 +58,6 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-      
       <Input label="Nombre del Medicamento / Suplemento" placeholder="Ej: Ibuprofeno, Creatina..." value={formData.nombre} onChange={(e) => handleChange('nombre', e.target.value)} colorTheme={inputTheme} icon={<Pill className="w-5 h-5" />} />
       
       <div className="space-y-1">
@@ -73,14 +65,13 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
         <Select value={formData.categoria_id} onChange={(val) => handleChange('categoria_id', val)} options={[{value: '', label: 'Sin categoría'}, ...categorias.map(c => ({ value: c.id, label: c.nombre }))]} icon={<Tag className="w-5 h-5" />} colorTheme={selectTheme} />
       </div>
 
-      {/* FILA 1: FORMATO SOLO */}
       <div className="space-y-1">
         <label className="block text-sm font-bold text-slate-700 ml-1">Formato</label>
         <Select value={formData.formato} onChange={(val) => handleChange('formato', val)} options={FORMATOS.map(f => ({ value: f, label: f }))} icon={<Droplet className="w-5 h-5" />} colorTheme={selectTheme} />
       </div>
 
-      {/* FILA 2: DOSIS Y UNIDADES JUNTAS */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* ARREGLO DE LAYOUT: Columnas simétricas en móviles/PC para que no se corte el texto */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input type="number" step="0.1" label="Dosis (Por unidad/toma)" placeholder="Ej: 500" value={formData.dosis} onChange={(e) => handleChange('dosis', e.target.value)} colorTheme={inputTheme} icon={<Scale className="w-5 h-5" />} />
         
         <div className="space-y-1">
@@ -88,7 +79,7 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
           <Select 
             value={formData.unidad_dosis} 
             onChange={(val) => handleChange('unidad_dosis', val)} 
-            options={UNIDADES_DOSIS} 
+            options={unidadesDosis.length > 0 ? unidadesDosis : [{value: 'mg', label: 'Miligramos (mg)'}]} 
             colorTheme={selectTheme} 
           />
         </div>

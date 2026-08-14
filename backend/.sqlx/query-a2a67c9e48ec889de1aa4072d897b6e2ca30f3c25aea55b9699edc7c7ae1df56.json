@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM unidad_dosis WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a2a67c9e48ec889de1aa4072d897b6e2ca30f3c25aea55b9699edc7c7ae1df56"
+}
