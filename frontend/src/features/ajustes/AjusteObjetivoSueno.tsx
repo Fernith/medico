@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input'; 
 import { useAjustes } from '../../context/AjustesContext';
+import { decimalToTimeStr, timeStrToDecimal } from '../../utils/suenoCalculations';
 
 export const AjusteObjetivoSueno: React.FC = () => {
   const { ajustes, actualizarAjuste } = useAjustes();
-  const [horas, setHoras] = useState<number | ''>('');
-  const [deuda, setDeuda] = useState<number | ''>('');
+  
+  // El input type="time" trabaja siempre con strings "HH:mm"
+  const [horasStr, setHorasStr] = useState<string>('');
+  const [deudaStr, setDeudaStr] = useState<string>('');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error', texto: string } | null>(null);
 
   useEffect(() => {
-    setHoras(Number(ajustes['objetivo_horas_sueno']) || 8);
-    setDeuda(Number(ajustes['limite_deuda_sueno']) || 5);
+    // Al cargar la BD, convertimos el 7.5 a "07:30"
+    setHorasStr(decimalToTimeStr(ajustes['objetivo_horas_sueno'], '08:00'));
+    setDeudaStr(decimalToTimeStr(ajustes['limite_deuda_sueno'], '05:00'));
   }, [ajustes]);
 
   useEffect(() => {
@@ -26,8 +31,9 @@ export const AjusteObjetivoSueno: React.FC = () => {
     setIsSubmitting(true);
     setMensaje(null);
     
-    const horasFinal = horas === '' ? 8 : horas;
-    const deudaFinal = deuda === '' ? 5 : deuda;
+    // Al guardar, convertimos el "07:30" a 7.5 (float) para la BD
+    const horasFinal = timeStrToDecimal(horasStr);
+    const deudaFinal = timeStrToDecimal(deudaStr);
     
     try {
       await actualizarAjuste('objetivo_horas_sueno', horasFinal.toString());
@@ -47,30 +53,28 @@ export const AjusteObjetivoSueno: React.FC = () => {
           <span className="text-indigo-500">🌙</span> Objetivo y Deuda de Sueño
         </h2>
         <p className="text-sm text-slate-500">
-          Define tus horas ideales y el límite máximo de horas que te permites perder antes de entrar en riesgo fisiológico.
+          Define tus horas ideales y el límite máximo de tiempo que te permites perder antes de entrar en riesgo fisiológico.
         </p>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input 
-          type="number" 
-          label="Horas objetivo por noche"
-          value={horas} 
+          type="time" 
+          label="Objetivo por noche (HH:mm)"
+          value={horasStr} 
           onChange={(e) => {
-            setHoras(e.target.value === '' ? '' : Number(e.target.value));
+            setHorasStr(e.target.value);
             setMensaje(null);
           }}
-          min={3} max={15}
         />
         <Input 
-          type="number" 
-          label="Límite Deuda de Sueño (h)"
-          value={deuda} 
+          type="time" 
+          label="Límite Deuda de Sueño (HH:mm)"
+          value={deudaStr} 
           onChange={(e) => {
-            setDeuda(e.target.value === '' ? '' : Number(e.target.value));
+            setDeudaStr(e.target.value);
             setMensaje(null);
           }}
-          min={0} max={30}
         />
       </div>
 
@@ -80,10 +84,10 @@ export const AjusteObjetivoSueno: React.FC = () => {
         </div>
       )}
 
-      <div className="border-indigo-50 sm:col-span-1">
+      <div className="flex justify-start pt-4 border-t border-indigo-50">
         <button 
           type="submit" 
-          disabled={isSubmitting || horas === '' || deuda === ''}
+          disabled={isSubmitting || !horasStr || !deudaStr}
           className="px-8 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors disabled:opacity-50 shadow-sm"
         >
           {isSubmitting ? 'Guardando...' : 'Guardar Ajustes'}

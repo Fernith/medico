@@ -116,9 +116,9 @@ export const AjusteUnidadesDosis: React.FC = () => {
           </div>
         </form>
 
-        {/* TABLA DE RESULTADOS */}
-        <div className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50">
-          <table className="w-full text-sm text-left">
+        {/* TABLA DE RESULTADOS SCROLLEABLE */}
+        <div className="border border-slate-100 rounded-xl bg-slate-50/50 overflow-x-auto custom-scrollbar">
+          <table className="w-full text-sm text-left whitespace-nowrap">
             <thead className="bg-slate-100 text-slate-500 border-b border-slate-200">
               <tr>
                 <th className="px-4 py-3 font-semibold">Nombre</th>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { type SuenoDB, getChartY } from '../../utils/suenoCalculations';
+import { type SuenoDB, getChartY, formatMinutos } from '../../utils/suenoCalculations';
 
 interface SuenoVariabilidadTablaProps {
   data: SuenoDB[];
@@ -54,9 +54,15 @@ export const SuenoVariabilidadTabla: React.FC<SuenoVariabilidadTablaProps> = ({ 
         );
       };
 
+      // NUEVO: Calculamos la media de horas dormidas
+      const meanSleepMinutes = filtered.length > 0
+        ? filtered.reduce((acc, d) => acc + d.minutos_sueno, 0) / filtered.length
+        : 0;
+
       return {
         dias: days,
         etiqueta: `Últimos ${days} días`,
+        mediaDormido: meanSleepMinutes > 0 ? formatMinutos(meanSleepMinutes) : '--:--',
         acostarse: formatStat(getStats('inicio')),
         despertarse: formatStat(getStats('fin')),
       };
@@ -75,11 +81,12 @@ export const SuenoVariabilidadTabla: React.FC<SuenoVariabilidadTablaProps> = ({ 
         <span className="text-indigo-500">⏳</span> Variabilidad y Estabilidad
       </h2>
       
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr className="border-b-2 border-indigo-100">
               <th className="pb-3 pt-2 px-4 text-xs font-bold uppercase tracking-widest text-indigo-400">Periodo</th>
+              <th className="pb-3 pt-2 px-4 text-xs font-bold uppercase tracking-widest text-indigo-400">Media Dormido</th>
               <th className="pb-3 pt-2 px-4 text-xs font-bold uppercase tracking-widest text-indigo-400">Hora de Acostarse</th>
               <th className="pb-3 pt-2 px-4 text-xs font-bold uppercase tracking-widest text-indigo-400">Hora de Despertarse</th>
             </tr>
@@ -88,6 +95,7 @@ export const SuenoVariabilidadTabla: React.FC<SuenoVariabilidadTablaProps> = ({ 
             {stats.map((row) => (
               <tr key={row.dias} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 <td className="py-4 px-4 font-bold text-slate-600">{row.etiqueta}</td>
+                <td className="py-4 px-4 font-extrabold text-indigo-600">{row.mediaDormido}</td>
                 <td className="py-4 px-4">{row.acostarse}</td>
                 <td className="py-4 px-4">{row.despertarse}</td>
               </tr>

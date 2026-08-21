@@ -5,22 +5,21 @@ import { RealizacionForm, type RealizacionEjercicio } from './RealizacionForm';
 import { Select } from '../../components/ui/Select';
 import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const ITEMS_PER_PAGE = 15;
-
 export const RealizacionTabla: React.FC = () => {
   const [realizaciones, setRealizaciones] = useState<RealizacionEjercicio[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState<RealizacionEjercicio | null>(null);
   
-  // Estados para modales de confirmación
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [reactivateId, setReactivateId] = useState<string | null>(null);
-  const [blockedReactivateItem, setBlockedReactivateItem] = useState<RealizacionEjercicio | null>(null); // <-- NUEVO ESTADO
+  const [blockedReactivateItem, setBlockedReactivateItem] = useState<RealizacionEjercicio | null>(null);
   
   const [viewImage, setViewImage] = useState<RealizacionEjercicio | null>(null);
   
   const [filtroEstado, setFiltroEstado] = useState<'activos' | 'inactivos' | 'todos'>('activos');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchRealizaciones = async () => {
@@ -46,7 +45,6 @@ export const RealizacionTabla: React.FC = () => {
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
 
-  // <-- MODIFICADO: En lugar de un alert, abrimos el nuevo modal de bloqueo
   const attemptReactivate = (r: RealizacionEjercicio) => {
     if (r.ejercicio_activo === false) {
       setBlockedReactivateItem(r);
@@ -76,11 +74,11 @@ export const RealizacionTabla: React.FC = () => {
     return list;
   }, [realizaciones, filtroEstado, searchTerm]);
 
-  const totalPages = Math.ceil(realizacionesFiltradas.length / ITEMS_PER_PAGE) || 1;
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = realizacionesFiltradas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(realizacionesFiltradas.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = realizacionesFiltradas.slice(startIndex, startIndex + itemsPerPage);
 
-  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm]);
+  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm, itemsPerPage]);
 
   return (
     <>
@@ -89,7 +87,6 @@ export const RealizacionTabla: React.FC = () => {
           <h2 className="text-lg font-bold text-indigo-800 shrink-0">Ejercicios Planificados</h2>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
-            {/* BUSCADOR */}
             <div className="relative w-full sm:w-64 flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input 
@@ -98,7 +95,6 @@ export const RealizacionTabla: React.FC = () => {
               />
             </div>
 
-            {/* SELECTOR */}
             <div className="w-full sm:w-48">
               <Select 
                 value={filtroEstado} onChange={(val) => setFiltroEstado(val as any)}
@@ -113,7 +109,8 @@ export const RealizacionTabla: React.FC = () => {
           </div>
         </div>
         
-        <div className="overflow-x-auto flex-1">
+        {/* CORRECCIÓN: Eliminado min-h-[300px] */}
+        <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
               <tr>
@@ -130,7 +127,6 @@ export const RealizacionTabla: React.FC = () => {
               {currentItems.map(r => {
                 const isActivo = r.activo !== false;
                 const rowClass = `border-b border-slate-50 transition-colors ${isActivo ? 'hover:bg-slate-50/50' : 'bg-slate-50/50 hover:bg-slate-100/50 opacity-80'}`;
-                //const textClassPrimary = isActivo ? 'text-slate-800' : 'text-slate-500';
 
                 return (
                   <tr key={r.id} className={rowClass}>
@@ -186,13 +182,45 @@ export const RealizacionTabla: React.FC = () => {
           </table>
         </div>
 
-        {/* CONTROLES DE PAGINACIÓN */}
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
-            <span className="font-medium">Mostrando {startIndex + 1} a {Math.min(startIndex + ITEMS_PER_PAGE, realizacionesFiltradas.length)} de {realizacionesFiltradas.length}</span>
-            <div className="flex gap-2">
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-indigo-600 font-medium disabled:opacity-50 disabled:hover:text-slate-500 transition-colors"><ChevronLeft className="w-4 h-4"/> Anterior</button>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-indigo-600 font-medium disabled:opacity-50 disabled:hover:text-slate-500 transition-colors">Siguiente <ChevronRight className="w-4 h-4"/></button>
+        {realizacionesFiltradas.length > 0 && (
+          <div className="p-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
+            <div className="flex items-center gap-2 order-1 sm:order-none">
+              <span className="font-semibold text-slate-600">Filas:</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => setItemsPerPage(Number(e.target.value))} 
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-indigo-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            
+            <span className="font-medium text-slate-600 order-3 sm:order-none w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0">
+              Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, realizacionesFiltradas.length)} de {realizacionesFiltradas.length} resultados
+            </span>
+
+            <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm order-2 sm:order-none ml-auto sm:ml-0">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600"/>
+              </button>
+              <span className="font-bold text-slate-700 min-w-[3rem] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600"/>
+              </button>
             </div>
           </div>
         )}
@@ -225,7 +253,6 @@ export const RealizacionTabla: React.FC = () => {
         title="Restaurar Configuración" description="¿Quieres volver a activar esta configuración? Volverá a estar disponible para añadir a tus rutinas." confirmText="Restaurar" variant="success"
       />
 
-      {/* NUEVO MODAL DE BLOQUEO (Alerta visual) */}
       <ConfirmModal 
         isOpen={!!blockedReactivateItem} 
         onCancel={() => setBlockedReactivateItem(null)} 

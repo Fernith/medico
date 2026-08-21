@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RutinaForm, type Rutina, type RutinaRealizacionDetalle } from './RutinaForm';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const RutinasTabla: React.FC = () => {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
@@ -13,6 +13,9 @@ export const RutinasTabla: React.FC = () => {
   const [expandedRutinaId, setExpandedRutinaId] = useState<string | null>(null);
   const [rutinaDetalles, setRutinaDetalles] = useState<Record<string, RutinaRealizacionDetalle[]>>({});
   const [collapsedFases, setCollapsedFases] = useState<Record<string, boolean>>({});
+
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchRutinas = async () => {
     try {
@@ -59,6 +62,12 @@ export const RutinasTabla: React.FC = () => {
 
   const toggleFase = (rutinaId: string, fase: string) => setCollapsedFases(prev => ({ ...prev, [`${rutinaId}_${fase}`]: !prev[`${rutinaId}_${fase}`] }));
 
+  const totalPages = Math.ceil(rutinas.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = rutinas.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => { setCurrentPage(1); }, [itemsPerPage, rutinas.length]);
+
   const modalTheme = { titleColor: 'text-indigo-900', headerBorder: 'border-indigo-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-indigo-600', modalBorder: 'border-indigo-400' };
 
   return (
@@ -71,7 +80,8 @@ export const RutinasTabla: React.FC = () => {
           </button>
         </div>
         
-        <div className="overflow-x-auto flex-1">
+        {/* CORRECCIÓN: Eliminado min-h-[300px] */}
+        <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
               <tr>
@@ -83,7 +93,7 @@ export const RutinasTabla: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {rutinas.map(rutina => (
+              {currentItems.map(rutina => (
                 <React.Fragment key={rutina.id}>
                   <tr className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                     <td className="px-4 py-3">
@@ -206,9 +216,53 @@ export const RutinasTabla: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {rutinas.length > 0 && (
+          <div className="p-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
+            
+            <div className="flex items-center gap-2 order-1 sm:order-none">
+              <span className="font-semibold text-slate-600">Filas:</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => setItemsPerPage(Number(e.target.value))} 
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-indigo-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            
+            <span className="font-medium text-slate-600 order-3 sm:order-none w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0">
+              Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, rutinas.length)} de {rutinas.length} resultados
+            </span>
+
+            <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm order-2 sm:order-none ml-auto sm:ml-0">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600"/>
+              </button>
+              <span className="font-bold text-slate-700 min-w-[3rem] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600"/>
+              </button>
+            </div>
+
+          </div>
+        )}
       </div>
 
-      {/* APLICAMOS POSITION="TOP" A LOS MODALES */}
       <Modal preventClose isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Crear Nueva Rutina" size="xl" position="top" colorTheme={modalTheme}>
         <RutinaForm onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>

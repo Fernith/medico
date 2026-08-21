@@ -4,21 +4,32 @@ import { calcularIMC } from '../../utils/pesoCalculations';
 
 export const PesoWidget = () => {
   const [ultimoPeso, setUltimoPeso] = useState<number | null>(null);
+  const [altura, setAltura] = useState<number>(180); // Por defecto si falla la petición
   
   useEffect(() => {
+    // 1. Llamada para traer el último peso
     fetch('/api/pesos')
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) {
-          // Asumimos que viene ordenado por BBDD o lo forzamos
           const last = data.sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
           setUltimoPeso(last.peso);
         }
       })
       .catch(console.error);
+
+    // 2. Llamada para traer los datos del usuario (altura real)
+    fetch('/api/usuario')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.altura) {
+          setAltura(data.altura);
+        }
+      })
+      .catch(console.error);
   }, []);
 
-  const imc = ultimoPeso ? calcularIMC(ultimoPeso, 180) : null;
+  const imc = ultimoPeso ? calcularIMC(ultimoPeso, altura) : null;
 
   const renderContent = () => {
     if (!ultimoPeso) {

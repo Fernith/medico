@@ -88,6 +88,17 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
                 <YAxis type="category" dataKey="name" hide />
                 <Tooltip 
                   cursor={{fill: 'transparent'}} 
+                  wrapperStyle={{ zIndex: 1000 }}
+                  contentStyle={{ 
+                    backgroundColor: '#ffffff', 
+                    borderRadius: '12px', 
+                    border: '1px solid #e2e8f0', 
+                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
+                    fontWeight: 'bold',
+                    color: '#475569',
+                    padding: '8px 12px'
+                  }}
+                  itemStyle={{ color: '#db2777', fontWeight: '900', fontSize: '1.1rem' }}
                   formatter={() => [`${data.totalMes.toLocaleString('es-ES')} pasos`, 'Total Acumulado']} 
                 />
                 <Bar dataKey="valor" fill="#f9a8d4" radius={12} background={{ fill: '#f1f5f9' }} />

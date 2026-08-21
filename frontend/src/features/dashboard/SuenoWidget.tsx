@@ -81,6 +81,17 @@ export const SuenoWidget = ({ data }: SuenoWidgetProps) => {
                 <YAxis type="category" dataKey="name" hide />
                 <Tooltip 
                   cursor={{fill: 'transparent'}} 
+                  wrapperStyle={{ zIndex: 1000 }}
+                  contentStyle={{ 
+                    backgroundColor: '#ffffff', 
+                    borderRadius: '12px', 
+                    border: '1px solid #e2e8f0', 
+                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
+                    fontWeight: 'bold',
+                    color: '#475569',
+                    padding: '8px 12px'
+                  }}
+                  itemStyle={{ color: '#9333ea', fontWeight: '900', fontSize: '1.1rem' }}
                   formatter={(value: any) => {
                     if (Array.isArray(value)) return [`De ${formatearMinutos(value[0] * 60)} a ${formatearMinutos(value[1] * 60)}`, 'Rango'];
                     return [formatearMinutos(Number(value) * 60), 'Rango'];

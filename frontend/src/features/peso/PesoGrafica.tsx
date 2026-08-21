@@ -24,8 +24,8 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
     const dataMax = Math.max(...allValues);
 
     // Rango dinámico inteligente de +- 5kg (Sin forzar valores extremos)
-    const minCalc = Math.floor(dataMin - 5);
-    const maxCalc = Math.ceil(dataMax + 5);
+    const minCalc = Math.floor(dataMin - 1);
+    const maxCalc = Math.ceil(dataMax + 1);
 
     return { chartData: cronologico, yMin: minCalc, yMax: maxCalc };
   }, [data, altura]);

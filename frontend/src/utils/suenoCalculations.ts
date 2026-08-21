@@ -16,7 +16,7 @@ export interface SuenoDB {
 export const formatMinutos = (mins: number | null | undefined): string => {
   if (mins == null || isNaN(mins)) return '0 m';
   const h = Math.floor(mins / 60);
-  const m = mins % 60;
+  const m = Math.floor(mins % 60); // Redondeo por seguridad
   if (h === 0) return `${m} m`;
   return `${h} h ${m.toString().padStart(2, '0')} m`;
 };
@@ -31,4 +31,26 @@ export const getChartY = (dateString: string | null): number | null => {
   // Si la hora es menor a las 14:00, asumimos que pertenece a la mañana/madrugada de "ese" ciclo de sueño
   if (hours < 14) return hours + 24;
   return hours;
+};
+
+// ==========================================
+// CONVERSORES DECIMALES (Para Ajustes de Sueño)
+// ==========================================
+
+/** Convierte decimal (7.5) a formato input time ("07:30") */
+export const decimalToTimeStr = (decimal: number | string | undefined | null, fallback = "08:00"): string => {
+  const num = Number(decimal);
+  if (isNaN(num) || decimal == null) return fallback;
+  
+  const h = Math.floor(num);
+  const m = Math.round((num - h) * 60);
+  
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+/** Convierte formato input time ("07:30") a decimal (7.5) */
+export const timeStrToDecimal = (timeStr: string): number => {
+  if (!timeStr) return 0;
+  const [h, m] = timeStr.split(':').map(Number);
+  return h + (m / 60);
 };

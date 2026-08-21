@@ -3,6 +3,7 @@ import { type MedicionDB } from '../../utils/medicionCalculations';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MedicionForm } from './MedicionForm';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MedidasTablaProps {
   mediciones: MedicionDB[];
@@ -11,6 +12,9 @@ interface MedidasTablaProps {
 export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
   const [editItem, setEditItem] = useState<MedicionDB | null>(null);
   const [deleteId, setDeleteId] = useState<string | number | null>(null);
+
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -24,13 +28,21 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
     }
   };
 
+  const totalPages = Math.ceil(mediciones.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = mediciones.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => { setCurrentPage(1); }, [itemsPerPage, mediciones.length]);
+
   return (
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-rose-100 overflow-hidden h-full flex flex-col">
         <div className="p-4 bg-rose-50/50 border-b border-rose-100">
           <h2 className="text-lg font-bold text-rose-800">Historial de Medidas</h2>
         </div>
-        <div className="overflow-x-auto flex-1">
+        
+        {/* CORRECCIÓN: Eliminado min-h-[250px] */}
+        <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
               <tr>
@@ -41,14 +53,13 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
               </tr>
             </thead>
             <tbody>
-              {mediciones.map(m => (
+              {currentItems.map(m => (
                 <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-700">{new Date(m.fecha).toLocaleDateString()}</td>
                   <td className="px-4 py-3 font-bold text-rose-600">{m.cm_cintura ? `${m.cm_cintura} cm` : '-'}</td>
                   <td className="px-4 py-3 font-bold text-rose-600">{m.cm_cadera ? `${m.cm_cadera} cm` : '-'}</td>
                   
-                  <td className="px-4 py-3 text-right space-x-3">
-                    {/* Botón Editar (Lápiz) */}
+                  <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
                     <button 
                       onClick={() => setEditItem(m as any)} 
                       className="text-slate-400 hover:text-rose-500 transition-colors"
@@ -58,7 +69,6 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
                     </button>
-                    {/* Botón Borrar (Papelera) */}
                     <button 
                       onClick={() => setDeleteId(m.id)} 
                       className="text-slate-400 hover:text-red-500 transition-colors"
@@ -73,7 +83,7 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
               ))}
               {mediciones.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={4} className="px-4 py-12 text-center text-slate-500">
                     No hay medidas registradas todavía.
                   </td>
                 </tr>
@@ -81,6 +91,50 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
             </tbody>
           </table>
         </div>
+
+        {mediciones.length > 0 && (
+          <div className="p-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
+            
+            <div className="flex items-center gap-2 order-1 sm:order-none">
+              <span className="font-semibold text-slate-600">Filas:</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => setItemsPerPage(Number(e.target.value))} 
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-rose-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            
+            <span className="font-medium text-slate-600 order-3 sm:order-none w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0">
+              Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, mediciones.length)} de {mediciones.length} resultados
+            </span>
+
+            <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm order-2 sm:order-none ml-auto sm:ml-0">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600"/>
+              </button>
+              <span className="font-bold text-slate-700 min-w-[3rem] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600"/>
+              </button>
+            </div>
+
+          </div>
+        )}
       </div>
 
       <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Medida">

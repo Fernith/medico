@@ -6,8 +6,6 @@ import { Select } from '../../components/ui/Select';
 import { MedicacionActivaForm, type MedicacionActiva } from './MedicacionActivaForm';
 import { type Medicamento } from './MedicamentoForm';
 
-const ITEMS_PER_PAGE = 15;
-
 interface Props { activas: MedicacionActiva[]; medicamentos: Medicamento[]; }
 
 export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamentos }) => {
@@ -17,6 +15,9 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
   
   const [filtroEstado, setFiltroEstado] = useState<'activos' | 'inactivos' | 'todos'>('activos');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // PAGINACIÓN: Inicializada a 5
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
   const handleDelete = async () => {
@@ -51,11 +52,11 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
     return list;
   }, [activas, filtroEstado, searchTerm]);
 
-  const totalPages = Math.ceil(activasFiltradas.length / ITEMS_PER_PAGE) || 1;
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = activasFiltradas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(activasFiltradas.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = activasFiltradas.slice(startIndex, startIndex + itemsPerPage);
 
-  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm]);
+  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm, itemsPerPage]);
 
   return (
     <>
@@ -88,12 +89,12 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
           </div>
         </div>
 
-        <div className="overflow-x-auto flex-1">
+        <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 sticky top-0 z-10">
               <tr>
                 <th className="w-8 px-4"></th>
-                <th className="px-4 py-3 font-semibold">Medicamento</th>
+                <th className="px-4 py-3 font-semibold">Medicamento y Anotaciones</th>
                 <th className="px-4 py-3 font-semibold">Toma</th>
                 <th className="px-4 py-3 font-semibold">Frecuencia</th>
                 <th className="px-4 py-3 font-semibold">Periodo</th>
@@ -105,34 +106,38 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
                 const isActivo = act.activo;
                 const rowClass = `border-b border-slate-50 transition-colors ${isActivo ? 'hover:bg-slate-50/50' : 'bg-slate-50/50 hover:bg-slate-100/50 opacity-80'}`;
                 
-                // LÓGICA DE TOMA MATEMÁTICA Y VISUAL
                 const isDosis = ['Polvo', 'Líquido', 'Crema', 'Inyectable'].includes(act.formato);
                 const medBase = medicamentos.find(m => m.id === act.medicamento_id);
-                // Calculamos el total de X gramos/mg cruzando la cantidad tomada por la dosis unitaria del catálogo
                 const dosisTotal = medBase ? (act.cantidad * medBase.dosis) : act.cantidad;
 
                 return (
                   <tr key={act.id} className={rowClass}>
-                    <td className="px-4 py-3 text-center"><div className={`w-3 h-3 rounded-full shadow-inner ${isActivo ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-amber-500 shadow-amber-500/50'}`} title={isActivo ? 'Activo' : 'Pausado'}></div></td>
-                    <td className="px-4 py-3">
-                      <div className={`font-bold ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>{act.medicamento_nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest">(Pausado)</span>}</div>
-                      {act.anotaciones && <div className="text-xs text-slate-400 truncate max-w-[200px] mt-0.5">{act.anotaciones}</div>}
+                    <td className="px-4 py-3 text-center align-top pt-4"><div className={`w-3 h-3 rounded-full shadow-inner ${isActivo ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-amber-500 shadow-amber-500/50'}`} title={isActivo ? 'Activo' : 'Pausado'}></div></td>
+                    <td className="px-4 py-3 align-top">
+                      <div className={`font-bold ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
+                        {act.medicamento_nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-amber-500 uppercase tracking-widest">(Pausado)</span>}
+                      </div>
+                      {/* CORRECCIÓN: Mostrar descripción entera (whitespace-normal) */}
+                      {act.anotaciones && (
+                        <div className="text-xs text-slate-500 mt-1 whitespace-normal leading-relaxed max-w-sm">
+                          {act.anotaciones}
+                        </div>
+                      )}
                     </td>
                     
-                    {/* COLUMNA DE TOMA AJUSTADA */}
-                    <td className="px-4 py-3 font-bold text-teal-700">
+                    <td className="px-4 py-3 font-bold text-teal-700 align-top pt-4">
                       {isDosis 
                         ? `${act.cantidad} Dosis de ${dosisTotal} ${act.unidad_dosis}` 
                         : `${act.cantidad} ${act.formato}(s) (${dosisTotal} ${act.unidad_dosis})`
                       }
                     </td>
                     
-                    <td className="px-4 py-3 text-slate-600 font-medium">{act.frecuencia}</td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
+                    <td className="px-4 py-3 text-slate-600 font-medium align-top pt-4">{act.frecuencia}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500 align-top pt-4">
                       <div><span className="font-semibold text-slate-700">De:</span> {formatearFecha(act.fecha_inicio)}</div>
                       <div><span className="font-semibold text-slate-700">A:</span> {act.fecha_fin ? formatearFecha(act.fecha_fin) : 'Indefinido'}</div>
                     </td>
-                    <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
+                    <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap align-top pt-4">
                       <button onClick={() => handleToggle(act.id)} className={`transition-colors ${act.activo ? 'text-slate-400 hover:text-amber-500' : 'text-slate-400 hover:text-emerald-500'}`} title={act.activo ? 'Pausar' : 'Reanudar'}>
                         {act.activo ? <Pause className="w-5 h-5 inline" fill="currentColor" /> : <Play className="w-5 h-5 inline" fill="currentColor" />}
                       </button>
@@ -149,13 +154,46 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
           </table>
         </div>
 
-        {/* CONTROLES DE PAGINACIÓN */}
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
-            <span className="font-medium">Mostrando {startIndex + 1} a {Math.min(startIndex + ITEMS_PER_PAGE, activasFiltradas.length)} de {activasFiltradas.length}</span>
-            <div className="flex gap-2">
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-teal-600 font-medium disabled:opacity-50 disabled:hover:text-slate-500 transition-colors"><ChevronLeft className="w-4 h-4"/> Anterior</button>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-teal-600 font-medium disabled:opacity-50 disabled:hover:text-slate-500 transition-colors">Siguiente <ChevronRight className="w-4 h-4"/></button>
+        {/* PAGINACIÓN RESPONSIVE */}
+        {activasFiltradas.length > 0 && (
+          <div className="p-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
+            <div className="flex items-center gap-2 order-1 sm:order-none">
+              <span className="font-semibold text-slate-600">Filas:</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => setItemsPerPage(Number(e.target.value))} 
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-teal-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            
+            <span className="font-medium text-slate-600 order-3 sm:order-none w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0">
+              Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, activasFiltradas.length)} de {activasFiltradas.length} resultados
+            </span>
+
+            <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm order-2 sm:order-none ml-auto sm:ml-0">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600"/>
+              </button>
+              <span className="font-bold text-slate-700 min-w-[3rem] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-slate-600"/>
+              </button>
             </div>
           </div>
         )}
