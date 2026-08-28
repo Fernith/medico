@@ -17,6 +17,8 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/sueno", get(sueno::listar_sueno))
         //PASOS
         .route("/api/pasos", get(pasos::listar_pasos))
+        .route("/api/pasos/historial", get(pasos::get_historial).post(pasos::create_paso))
+        .route("/api/pasos/historial/:id", put(pasos::update_paso).delete(pasos::delete_paso))
         // RUTAS DE AUTENTICACIÓN (Google Fit)
         .route("/api/auth/google/login", get(google_fit::login_google))
         .route("/api/auth/google/callback", get(google_fit::oauth_callback))

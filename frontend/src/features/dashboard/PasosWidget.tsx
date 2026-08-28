@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Activity, Smile, Meh, Frown } from 'lucide-react';
+import { Activity, Smile, Meh, Frown, ChevronRight } from 'lucide-react';
 import { formatearFechaRelativa } from '../../utils/formatters';
 
 interface PasosWidgetProps {
@@ -16,8 +17,8 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
   const porcPasos = Math.min(100, (data.hoy / data.meta) * 100);
   
   const dataRosco = [
-    { value: porcPasos, fill: '#ec4899' },
-    { value: 100 - porcPasos, fill: '#fce7f3' } 
+    { value: porcPasos, fill: '#f97316' },   // orange-500
+    { value: 100 - porcPasos, fill: '#ffedd5' } // orange-100
   ];
   
   const barraVisualMes = Math.min(data.totalMes, data.metaMensual);
@@ -29,28 +30,33 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
   const IconoEstado = data.hoy >= data.meta 
     ? <Smile className="w-10 h-10 text-green-500" />
     : data.hoy >= 6000 
-      ? <Meh className="w-10 h-10 text-orange-400" />
-      : <Frown className="w-10 h-10 text-pink-500" />;
+      ? <Meh className="w-10 h-10 text-amber-400" />
+      : <Frown className="w-10 h-10 text-red-500" />;
 
   const { sufijo } = formatearFechaRelativa(data.ultimaFecha);
 
   return (
-    <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
-      
+    <Link 
+      to="/pasos" 
+      className="block bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all relative overflow-hidden group"
+    >
       <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-pink-50 rounded-2xl">
-            <Activity className="w-7 h-7 text-pink-500" />
+          <div className="p-3 bg-orange-50 rounded-2xl group-hover:bg-orange-100 transition-colors">
+            <Activity className="w-7 h-7 text-orange-500 group-hover:text-orange-600 transition-colors" />
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-800">Pasos</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-extrabold text-orange-600 group-hover:text-orange-800 transition-colors">Pasos</h2>
+              <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-orange-500 transition-colors" strokeWidth={3} />
+            </div>
             <p className="text-sm text-slate-400 font-medium hidden md:block">Actividad física</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
             <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-wider">Caminados {sufijo}</p>
-            <p className="text-3xl md:text-4xl font-black text-pink-600">{data.hoy.toLocaleString('es-ES')}</p>
+            <p className="text-3xl md:text-4xl font-black text-orange-600">{data.hoy.toLocaleString('es-ES')}</p>
           </div>
           <div className="hidden md:block">{IconoEstado}</div>
         </div>
@@ -98,10 +104,10 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
                     color: '#475569',
                     padding: '8px 12px'
                   }}
-                  itemStyle={{ color: '#db2777', fontWeight: '900', fontSize: '1.1rem' }}
+                  itemStyle={{ color: '#ea580c', fontWeight: '900', fontSize: '1.1rem' }}
                   formatter={() => [`${data.totalMes.toLocaleString('es-ES')} pasos`, 'Total Acumulado']} 
                 />
-                <Bar dataKey="valor" fill="#f9a8d4" radius={12} background={{ fill: '#f1f5f9' }} />
+                <Bar dataKey="valor" fill="#fdba74" radius={12} background={{ fill: '#f1f5f9' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -110,7 +116,7 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
             <span className="absolute left-0 top-0 text-slate-400">0</span>
             
             <span 
-              className="absolute top-0 -translate-x-1/2 text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded-md transition-all duration-500"
+              className="absolute top-0 -translate-x-1/2 text-orange-600 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md transition-all duration-500"
               style={{ left: `${pinPercent}%` }}
             >
               {data.totalMes.toLocaleString('es-ES')}
@@ -121,6 +127,6 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
         </div>
 
       </div>
-    </div>
+    </Link>
   );
 };

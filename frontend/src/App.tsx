@@ -11,6 +11,7 @@ import { MedicamentosPage } from './pages/MedicamentosPage';
 import { SintomasPage } from './pages/SintomasPage';
 import { GlobalAddButton } from './components/layout/GlobalAddButton';
 import { EntrenamientoPage } from './pages/EntrenamientoPage';
+import { PasosPage } from './pages/PasosPage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="/sintomas" element={<SintomasPage />} />
               <Route path="/ajustes" element={<AjustesPage />} />
               <Route path="/usuario" element={<UsuarioPage />} />
+              <Route path="/pasos" element={<PasosPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
