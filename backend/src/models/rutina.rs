@@ -12,6 +12,7 @@ pub struct Rutina {
     pub nombre: String,
     pub descripcion: Option<String>,
     pub color: Option<String>,
+    pub activo: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -49,6 +50,11 @@ pub struct RutinaRealizacionPayload {
     pub fase: String,
     pub orden: i32,
     pub descanso_posterior: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EstadoPayload {
+    pub activo: bool,
 }
 
 // ==========================================

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE realizacion_ejercicio SET activo = false WHERE id = $1",
+  "query": "DELETE FROM realizacion_ejercicio WHERE id=$1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "ac330f4687ad1e345c63aae7aae936a29fd4203eb15183dad5c338c01c920f46"
+  "hash": "84cf50c4264f171a91c115e652dd8177eadb093c90446b5f5ad082e278b26f75"
 }

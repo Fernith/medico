@@ -4,7 +4,7 @@ import { Select } from '../../components/ui/Select';
 import { Type, AlignLeft, Palette, Plus, Trash2, Clock, Activity } from 'lucide-react';
 import { type RealizacionEjercicio } from './RealizacionForm';
 
-export interface Rutina { id: string; nombre: string; descripcion: string; color: string; }
+export interface Rutina { id: string; nombre: string; descripcion: string; color: string; activo: boolean }
 
 export interface RutinaRealizacionDetalle {
   id: string; rutina_id: string; realizacion_id: string; ejercicio_id: string;

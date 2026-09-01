@@ -1,14 +1,15 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE realizacion_ejercicio SET activo = true WHERE id = $1",
+  "query": "UPDATE rutinas SET activo = $1 WHERE id=$2",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
+        "Bool",
         "Uuid"
       ]
     },
     "nullable": []
   },
-  "hash": "43b09deedcb0bec4654d2fb9ec53eea0fbe0c52a11ae8b045c7e06ee73af1437"
+  "hash": "4f39e6454e072ffb144dabc5f849e8d19ceefb96da007959b66ae31803e719f3"
 }

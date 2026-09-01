@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM rutina_realizacion WHERE realizacion_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cdf6290d2b49eef261243d2a0c86d05074d769d2b12bfba53e5805bad9a14d29"
+}

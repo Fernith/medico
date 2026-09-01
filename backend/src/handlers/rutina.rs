@@ -15,15 +15,20 @@ use crate::models::rutina::{
 // RUTINAS (Cabecera)
 // ==========================================
 pub async fn get_rutinas(State(pool): State<PgPool>) -> Result<Json<Vec<Rutina>>, String> {
-    let rutinas = sqlx::query_as!(Rutina, "SELECT id, nombre, descripcion, color FROM rutinas ORDER BY nombre")
+    // CORRECCIÓN: COALESCE asegura que nunca sea nulo, y el '!' calma al compilador de SQLx
+    let rutinas = sqlx::query_as!(
+        Rutina, 
+        r#"SELECT id, nombre, descripcion, color, COALESCE(activo, true) as "activo!" FROM rutinas ORDER BY nombre"#
+    )
         .fetch_all(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(rutinas))
 }
 
 pub async fn create_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaPayload>) -> Result<Json<Rutina>, String> {
+    // CORRECCIÓN: Aplicado también en el RETURNING
     let registro = sqlx::query_as!(
         Rutina,
-        "INSERT INTO rutinas (nombre, descripcion, color) VALUES ($1, $2, $3) RETURNING id, nombre, descripcion, color",
+        r#"INSERT INTO rutinas (nombre, descripcion, color) VALUES ($1, $2, $3) RETURNING id, nombre, descripcion, color, COALESCE(activo, true) as "activo!""#,
         payload.nombre, payload.descripcion, payload.color
     ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(registro))
@@ -35,8 +40,30 @@ pub async fn update_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Jso
     Ok(Json(()))
 }
 
-pub async fn delete_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM rutinas WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+// BORRADO FÍSICO DEFINITIVO (Emulando ON DELETE SET NULL)
+pub async fn delete_rutina_fisico(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+
+    // 1. Desvinculamos el historial (ON DELETE SET NULL manual)
+    sqlx::query!("UPDATE historial_rutinas SET rutina_id = NULL WHERE rutina_id = $1", id)
+        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    // 2. Borramos la rutina físicamente
+    sqlx::query!("DELETE FROM rutinas WHERE id=$1", id)
+        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    tx.commit().await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+// MODIFICAR ESTADO (Archivar / Restaurar)
+pub async fn cambiar_estado_rutina(
+    Path(id): Path<Uuid>, 
+    State(pool): State<PgPool>, 
+    Json(payload): Json<crate::models::rutina::EstadoPayload>
+) -> Result<Json<()>, String> {
+    sqlx::query!("UPDATE rutinas SET activo = $1 WHERE id=$2", payload.activo, id)
+        .execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }
 
@@ -73,7 +100,6 @@ pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): 
 }
 
 pub async fn add_realizacion_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaRealizacionPayload>) -> Result<Json<()>, String> {
-    // Usamos el ::text::fase_rutina para el ENUM igual que hicimos en grupos musculares
     sqlx::query!(
         "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior) VALUES ($1, $2, $3::text::fase_rutina, $4, $5)",
         payload.rutina_id, payload.realizacion_id, payload.fase, payload.orden, payload.descanso_posterior

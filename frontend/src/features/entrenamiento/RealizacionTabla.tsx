@@ -3,14 +3,16 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RealizacionForm, type RealizacionEjercicio } from './RealizacionForm';
 import { Select } from '../../components/ui/Select';
-import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, Filter, Search, ChevronLeft, ChevronRight, Archive, RefreshCw } from 'lucide-react';
 
 export const RealizacionTabla: React.FC = () => {
   const [realizaciones, setRealizaciones] = useState<RealizacionEjercicio[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState<RealizacionEjercicio | null>(null);
   
+  // Modales de Acción
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [archiveId, setArchiveId] = useState<string | null>(null);
   const [reactivateId, setReactivateId] = useState<string | null>(null);
   const [blockedReactivateItem, setBlockedReactivateItem] = useState<RealizacionEjercicio | null>(null);
   
@@ -36,7 +38,12 @@ export const RealizacionTabla: React.FC = () => {
     return () => window.removeEventListener('registroAgregado', handleRegistro);
   }, []);
 
-  const handleDelete = async () => {
+  // ==========================================
+  // LÓGICA DE LAS 3 ACCIONES
+  // ==========================================
+
+  // 1. Borrado Físico Definidivo
+  const handleHardDelete = async () => {
     if (!deleteId) return;
     try {
       await fetch(`/api/realizaciones/${deleteId}`, { method: 'DELETE' });
@@ -45,7 +52,25 @@ export const RealizacionTabla: React.FC = () => {
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
 
+  // 2. Modificar Estado Lógico (Inactivar/Restaurar)
+  const handleToggleState = async (id: string, activo: boolean) => {
+    try {
+      await fetch(`/api/realizaciones/${id}/estado`, { 
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activo })
+      });
+      window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
+      window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
+    } catch (e) { console.error(e); } 
+    finally { 
+      setArchiveId(null);
+      setReactivateId(null);
+    }
+  };
+
   const attemptReactivate = (r: RealizacionEjercicio) => {
+    // Si el Ejercicio PADRE está archivado, bloqueamos la reactivación
     if (r.ejercicio_activo === false) {
       setBlockedReactivateItem(r);
       return;
@@ -53,25 +78,15 @@ export const RealizacionTabla: React.FC = () => {
     setReactivateId(r.id);
   };
 
-  const confirmReactivate = async () => {
-    if (!reactivateId) return;
-    try {
-      await fetch(`/api/realizaciones/${reactivateId}/reactivar`, { method: 'PATCH' });
-      window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
-      window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
-    } catch (e) { console.error(e); } finally { setReactivateId(null); }
-  };
-
   const modalTheme = { titleColor: 'text-indigo-900', headerBorder: 'border-indigo-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-indigo-600', modalBorder: 'border-indigo-400' };
   const selectTheme = { borderNormal: 'border-slate-200', borderActive: 'border-indigo-400 ring-4 ring-indigo-50', textSelected: 'text-indigo-900', iconColor: 'text-indigo-500', optionSelectedBg: 'bg-indigo-50', optionSelectedText: 'text-indigo-700', optionHoverBg: 'hover:bg-indigo-50/50', optionHoverText: 'hover:text-indigo-900', checkIcon: 'text-indigo-500' };
 
   const realizacionesFiltradas = useMemo(() => {
-    const list = realizaciones.filter(r => {
+    return realizaciones.filter(r => {
       const cumpleEstado = filtroEstado === 'todos' || (filtroEstado === 'activos' && r.activo !== false) || (filtroEstado === 'inactivos' && r.activo === false);
       const cumpleBusqueda = r.ejercicio_nombre.toLowerCase().includes(searchTerm.toLowerCase());
       return cumpleEstado && cumpleBusqueda;
     });
-    return list;
   }, [realizaciones, filtroEstado, searchTerm]);
 
   const totalPages = Math.ceil(realizacionesFiltradas.length / itemsPerPage) || 1;
@@ -103,13 +118,12 @@ export const RealizacionTabla: React.FC = () => {
               />
             </div>
 
-            <button onClick={() => setIsAddOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-indigo-500/30 w-full sm:w-auto" style={{ height: '42px' }}>
-              <Plus className="w-4 h-4" strokeWidth={3} /> <span>Añadir</span>
+            <button onClick={() => setIsAddOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-sm w-full sm:w-auto" style={{ height: '42px' }}>
+              <Plus className="w-4 h-4" strokeWidth={3} /> Añadir
             </button>
           </div>
         </div>
         
-        {/* CORRECCIÓN: Eliminado min-h-[300px] */}
         <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
@@ -119,6 +133,7 @@ export const RealizacionTabla: React.FC = () => {
                 <th className="px-4 py-3 font-semibold">Ejercicio</th>
                 <th className="px-4 py-3 font-semibold text-center">Series x Objetivo</th>
                 <th className="px-4 py-3 font-semibold text-center">Carga</th>
+                <th className="px-4 py-3 font-semibold text-center">Equipamiento</th>
                 <th className="px-4 py-3 font-semibold text-center">Descanso</th>
                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
               </tr>
@@ -144,39 +159,44 @@ export const RealizacionTabla: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-center text-slate-700 font-bold">
                       {r.series ? `${r.series} x ` : ''}
-                      
                       {r.unidad_objetivo === 'seg' 
                         ? (r.reps_min ? r.reps_min : '-')
-                        : (r.reps_min === r.reps_max && r.reps_min 
-                            ? r.reps_min 
-                            : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'}` : '-'))
+                        : (r.reps_min === r.reps_max && r.reps_min ? r.reps_min : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'}` : '-'))
                       }
-
-                      {(r.reps_min || r.reps_max) && (
-                        <span className="text-[11px] font-semibold text-slate-400 ml-1">
-                          {r.unidad_objetivo || 'reps'}
-                        </span>
-                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {r.carga_actual ? <span className="font-extrabold text-indigo-700">{r.carga_actual} <span className="text-[10px] font-semibold uppercase text-slate-500">{r.unidad_carga}</span></span> : '-'}
+                      {r.carga_actual ? <span className="font-extrabold text-indigo-700">{r.carga_actual} <span className="text-[10px] font-semibold uppercase text-slate-500">{r.unidad_carga}</span></span> : <span className="text-slate-300">-</span>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {r.equipamiento_nombre ? (
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                          {r.equipamiento_nombre}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center text-slate-600">
-                      {r.descanso ? <span className="flex items-center justify-center gap-1 font-medium"><Clock className="w-4 h-4 text-slate-400"/> {r.descanso}s</span> : '-'}
+                      {r.descanso ? <span className="flex items-center justify-center gap-1 font-medium"><Clock className="w-4 h-4 text-slate-400"/> {r.descanso}s</span> : <span className="text-slate-300">-</span>}
                     </td>
                     <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
-                      <button onClick={() => setEditItem(r)} className="text-slate-400 hover:text-indigo-500 transition-colors"><Edit2 className="w-5 h-5 inline" /></button>
+                      <button onClick={() => setEditItem(r)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
+                      
+                      {/* BOTÓN ARCHIVAR / RESTAURAR */}
                       {isActivo ? (
-                        <button onClick={() => setDeleteId(r.id)} className="text-slate-400 hover:text-rose-500 transition-colors"><Trash2 className="w-5 h-5 inline" /></button>
+                        <button onClick={() => setArchiveId(r.id)} className="text-slate-400 hover:text-amber-500 transition-colors" title="Archivar/Inactivar"><Archive className="w-5 h-5 inline" /></button>
                       ) : (
-                        <button onClick={() => attemptReactivate(r)} className="text-slate-400 hover:text-emerald-500 transition-colors"><RefreshCw className="w-5 h-5 inline" /></button>
+                        <button onClick={() => attemptReactivate(r)} className="text-slate-400 hover:text-emerald-500 transition-colors" title="Restaurar/Activar"><RefreshCw className="w-5 h-5 inline" /></button>
                       )}
+
+                      {/* BOTÓN BORRADO FÍSICO */}
+                      <button onClick={() => setDeleteId(r.id)} className="text-slate-400 hover:text-red-500 transition-colors ml-2" title="Borrar Definitivamente"><Trash2 className="w-5 h-5 inline" /></button>
                     </td>
                   </tr>
                 );
               })}
-              {currentItems.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-500"><ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />No hay configuraciones planificadas.</td></tr>
+              {realizacionesFiltradas.length === 0 && (
+                <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-500">No hay configuraciones planificadas.</td></tr>
               )}
             </tbody>
           </table>
@@ -186,11 +206,7 @@ export const RealizacionTabla: React.FC = () => {
           <div className="p-4 border-t border-slate-100 flex flex-wrap sm:flex-nowrap items-center justify-between text-sm text-slate-500 bg-slate-50/50 gap-4">
             <div className="flex items-center gap-2 order-1 sm:order-none">
               <span className="font-semibold text-slate-600">Filas:</span>
-              <select 
-                value={itemsPerPage} 
-                onChange={(e) => setItemsPerPage(Number(e.target.value))} 
-                className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-indigo-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
-              >
+              <select value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-indigo-500">
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
@@ -198,29 +214,13 @@ export const RealizacionTabla: React.FC = () => {
                 <option value={50}>50</option>
               </select>
             </div>
-            
             <span className="font-medium text-slate-600 order-3 sm:order-none w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0">
               Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, realizacionesFiltradas.length)} de {realizacionesFiltradas.length} resultados
             </span>
-
             <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm order-2 sm:order-none ml-auto sm:ml-0">
-              <button 
-                disabled={currentPage === 1} 
-                onClick={() => setCurrentPage(p => p - 1)} 
-                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-600"/>
-              </button>
-              <span className="font-bold text-slate-700 min-w-[3rem] text-center">
-                {currentPage} / {totalPages}
-              </span>
-              <button 
-                disabled={currentPage === totalPages} 
-                onClick={() => setCurrentPage(p => p + 1)} 
-                className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-slate-600"/>
-              </button>
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30"><ChevronLeft className="w-5 h-5"/></button>
+              <span className="font-bold text-slate-700 min-w-[3rem] text-center">{currentPage} / {totalPages}</span>
+              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="p-1 hover:bg-slate-100 rounded-md disabled:opacity-30"><ChevronRight className="w-5 h-5"/></button>
             </div>
           </div>
         )}
@@ -235,6 +235,7 @@ export const RealizacionTabla: React.FC = () => {
         </div>
       )}
 
+      {/* MODALES CONFIGURACIÓN */}
       <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Configurar Ejercicio" size="lg" colorTheme={modalTheme}>
         <RealizacionForm onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
@@ -243,26 +244,39 @@ export const RealizacionTabla: React.FC = () => {
         {editItem && <RealizacionForm initialData={editItem} onSuccess={() => setEditItem(null)} onCancel={() => setEditItem(null)} />}
       </Modal>
 
+      {/* MODAL 1: INACTIVAR */}
       <ConfirmModal 
-        isOpen={!!deleteId} onCancel={() => setDeleteId(null)} onConfirm={handleDelete}
-        title="Archivar Configuración" description="¿Seguro que quieres archivar esta configuración? Las rutinas que ya la usen se mantendrán, pero no podrás añadirla a rutinas nuevas." variant="danger" confirmText="Inactivar"
+        isOpen={!!archiveId} onCancel={() => setArchiveId(null)} onConfirm={() => handleToggleState(archiveId!, false)}
+        title="Archivar Configuración" 
+        description="Si archivas esta configuración, dejará de estar disponible para añadir a nuevas rutinas, pero las que ya lo usan seguirán funcionando con normalidad." 
+        variant="secondary" confirmText="Archivar"
       />
 
+      {/* MODAL 2: REACTIVAR */}
       <ConfirmModal 
-        isOpen={!!reactivateId} onCancel={() => setReactivateId(null)} onConfirm={confirmReactivate}
-        title="Restaurar Configuración" description="¿Quieres volver a activar esta configuración? Volverá a estar disponible para añadir a tus rutinas." confirmText="Restaurar" variant="success"
+        isOpen={!!reactivateId} onCancel={() => setReactivateId(null)} onConfirm={() => handleToggleState(reactivateId!, true)}
+        title="Restaurar Configuración" 
+        description="¿Quieres volver a activar esta configuración? Volverá a estar disponible para añadir a tus rutinas." 
+        confirmText="Restaurar"
+        variant='success'
       />
 
+      {/* MODAL 3: BORRADO FÍSICO */}
+      <ConfirmModal 
+        isOpen={!!deleteId} onCancel={() => setDeleteId(null)} onConfirm={handleHardDelete}
+        title="Borrar Definitivamente" 
+        description="⚠️ ATENCIÓN: Esta acción eliminará la configuración por completo de la base de datos y la quitará de las rutinas que la estén usando. Su historial de entrenamiento se desvinculará." 
+        variant="danger" confirmText="Borrar para siempre"
+      />
+
+      {/* MODAL DE BLOQUEO DE REACTIVACIÓN (Por dependencia rota) */}
       <ConfirmModal 
         isOpen={!!blockedReactivateItem} 
         onCancel={() => setBlockedReactivateItem(null)} 
         onConfirm={() => setBlockedReactivateItem(null)}
         title="⚠️ Acción Bloqueada" 
         description={`No puedes restaurar esta configuración porque el ejercicio principal ("${blockedReactivateItem?.ejercicio_nombre}") está inactivo en el Diccionario de Ejercicios. Por favor, restaura primero el ejercicio maestro.`} 
-        variant="danger" 
-        confirmText="Entendido" 
-        cancelText="Cerrar"
-        hideCancel
+        variant="danger" confirmText="Entendido" cancelText="Cerrar" hideCancel
       />
     </>
   );

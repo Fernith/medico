@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { Hash, Scale, Clock, Activity, Target } from 'lucide-react';
+import { Hash, Scale, Clock, Activity, Target, Dumbbell } from 'lucide-react';
 import { type Ejercicio } from './EjercicioForm';
 
 export interface RealizacionEjercicio {
@@ -9,6 +9,8 @@ export interface RealizacionEjercicio {
   ejercicio_id: string;
   ejercicio_nombre: string;
   ejercicio_imagen: string;
+  equipamiento_id?: string | null;
+  equipamiento_nombre?: string | null;
   carga_actual?: number | null;
   unidad_carga?: string;
   series?: number | null;
@@ -17,7 +19,7 @@ export interface RealizacionEjercicio {
   descanso?: number | null;
   activo: boolean;
   ejercicio_activo?: boolean | null;
-  unidad_objetivo?: string; // <-- NUEVO
+  unidad_objetivo?: string;
 }
 
 interface RealizacionFormProps {
@@ -29,22 +31,28 @@ interface RealizacionFormProps {
 export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
+  const [equipamientos, setEquipamientos] = useState<{id: string, nombre: string}[]>([]);
 
   const [formData, setFormData] = useState({
     ejercicio_id: initialData?.ejercicio_id || '',
+    equipamiento_id: initialData?.equipamiento_id || '',
     carga_actual: initialData?.carga_actual?.toString() || '',
     unidad_carga: initialData?.unidad_carga || 'kg',
     series: initialData?.series?.toString() || '',
     reps_min: initialData?.reps_min?.toString() || '',
     reps_max: initialData?.reps_max?.toString() || '',
     descanso: initialData?.descanso?.toString() || '',
-    unidad_objetivo: initialData?.unidad_objetivo || 'reps', // <-- NUEVO (Valor por defecto)
+    unidad_objetivo: initialData?.unidad_objetivo || 'reps',
   });
 
   useEffect(() => {
     const fetchData = async () => {
-      const resEj = await fetch('/api/ejercicios');
+      const [resEj, resEq] = await Promise.all([
+        fetch('/api/ejercicios'),
+        fetch('/api/equipamiento') // Asegúrate de que esta es tu ruta en routes/mod.rs
+      ]);
       if (resEj.ok) setEjercicios(await resEj.json());
+      if (resEq.ok) setEquipamientos(await resEq.json());
     };
     fetchData();
   }, []);
@@ -61,14 +69,14 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
     try {
       const payload = {
         ejercicio_id: formData.ejercicio_id,
-        equipamiento_id: null,
+        equipamiento_id: formData.equipamiento_id || null,
         carga_actual: formData.carga_actual ? parseFloat(formData.carga_actual) : null,
         unidad_carga: formData.unidad_carga || null,
         series: formData.series ? parseInt(formData.series) : null,
         reps_min: formData.reps_min ? parseInt(formData.reps_min) : null,
         reps_max: formData.reps_max ? parseInt(formData.reps_max) : null,
         descanso: formData.descanso ? parseInt(formData.descanso) : null,
-        unidad_objetivo: formData.unidad_objetivo || 'reps', // <-- NUEVO
+        unidad_objetivo: formData.unidad_objetivo || 'reps',
       };
 
       const url = initialData ? `/api/realizaciones/${initialData.id}` : '/api/realizaciones';
@@ -94,16 +102,31 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
       <div className="space-y-4">
         
-        <div className="space-y-1">
-          <label className="block text-sm font-bold text-slate-700 ml-1">Ejercicio a realizar</label>
-          <Select 
-            searchable
-            value={formData.ejercicio_id}
-            onChange={(val) => handleChange('ejercicio_id', val)}
-            options={ejercicios.filter(e => e.activo !== false).map(e => ({ value: e.id, label: e.nombre }))}
-            icon={<Activity className="w-5 h-5" />}
-            colorTheme={selectTheme}
-          />
+        {/* FILA DE EJERCICIO Y EQUIPAMIENTO */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-sm font-bold text-slate-700 ml-1">Ejercicio</label>
+            <Select 
+              searchable
+              value={formData.ejercicio_id}
+              onChange={(val) => handleChange('ejercicio_id', val)}
+              options={ejercicios.filter(e => e.activo !== false).map(e => ({ value: e.id, label: e.nombre }))}
+              icon={<Activity className="w-5 h-5" />}
+              colorTheme={selectTheme}
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <label className="block text-sm font-bold text-slate-700 ml-1">Equipamiento <span className="text-slate-400 font-normal">(Opcional)</span></label>
+            <Select 
+              searchable
+              value={formData.equipamiento_id}
+              onChange={(val) => handleChange('equipamiento_id', val)}
+              options={[{ value: '', label: 'Ninguno / Por defecto' }, ...equipamientos.map(e => ({ value: e.id, label: e.nombre }))]}
+              icon={<Dumbbell className="w-5 h-5" />}
+              colorTheme={selectTheme}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-2">
@@ -111,10 +134,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
           <Input type="number" label="Descanso (segundos)" placeholder="Ej: 90" value={formData.descanso} onChange={(e) => handleChange('descanso', e.target.value)} colorTheme={inputTheme} icon={<Clock className="w-5 h-5" />} />
         </div>
 
-        {/* CONTENEDOR DE OBJETIVO (GRID 3 COLUMNAS) */}
-        {/* CONTENEDOR DE OBJETIVO ADAPTATIVO */}
         <div className={`grid ${formData.unidad_objetivo === 'seg' ? 'grid-cols-2' : 'grid-cols-3'} gap-4`}>
-          
           <Input 
             type="number" 
             label={formData.unidad_objetivo === 'seg' ? "Tiempo (segundos)" : "Reps Mínimas"} 
@@ -124,7 +144,6 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
             colorTheme={inputTheme} 
             icon={formData.unidad_objetivo === 'seg' ? <Clock className="w-5 h-5" /> : <Hash className="w-5 h-5" />} 
           />
-
           {formData.unidad_objetivo !== 'seg' && (
             <Input 
               type="number" 
@@ -136,13 +155,11 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
               icon={<Hash className="w-5 h-5" />} 
             />
           )}
-
           <div className="space-y-1">
             <label className="block text-sm font-bold text-slate-700 ml-1">Unidad</label>
             <Select 
               value={formData.unidad_objetivo}
               onChange={(val) => {
-                // Al cambiar a segundos, borramos reps_max para mantener los datos limpios
                 if (val === 'seg') handleChange('reps_max', '');
                 handleChange('unidad_objetivo', val);
               }}

@@ -105,3 +105,8 @@ pub struct RealizacionPayload {
     pub unidad_objetivo: Option<String>,
     pub descanso: Option<i32>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct EstadoPayload {
+    pub activo: bool,
+}

@@ -22,32 +22,76 @@ const getPhaseTheme = (fase: string) => {
   }
 };
 
-export const PasoSeleccion = ({ state, actions }: any) => (
-  <div className="w-full max-w-lg p-6 space-y-6 flex-1 flex flex-col mt-8">
-    <h1 className="text-3xl font-black mb-4 text-center">¿Qué toca hoy?</h1>
-    {state.rutinas.length === 0 ? (
-      <div className="p-6 bg-slate-800 rounded-2xl text-center text-slate-400">No hay rutinas creadas.</div>
-    ) : (
-      <div className="space-y-4">
-        {state.rutinas.map((r: any) => (
-          <button key={r.id} onClick={() => actions.selectRutina(r)} className="w-full flex items-center justify-between p-5 bg-slate-800 hover:bg-slate-700 rounded-2xl transition-all border border-slate-700 hover:border-indigo-500 group text-left">
-            <div className="flex items-center gap-4">
-              <div className="w-4 h-12 rounded-full shadow-sm" style={{ backgroundColor: r.color || '#4f46e5' }} />
-              <div>
-                <h3 className="text-xl font-bold text-white">{r.nombre}</h3>
-                {r.descripcion && <p className="text-slate-400 text-sm mt-1">{r.descripcion}</p>}
-              </div>
-            </div>
-            <Play className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="currentColor" />
-          </button>
-        ))}
+export const PasoSeleccion = ({ state, actions }: any) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const rutinasActivas = state.rutinas.filter((r: any) => r.activo !== false);
+
+  const handleSelect = async (r: any) => {
+    setIsLoading(true);
+    try {
+      await actions.selectRutina(r);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-lg p-6 flex-1 flex flex-col items-center justify-center mt-8 animate-in fade-in zoom-in duration-300">
+        <div className="bg-slate-800/90 backdrop-blur-md p-10 rounded-[2rem] border border-slate-700 shadow-2xl flex flex-col items-center text-center">
+          <svg className="w-16 h-16 text-indigo-500 animate-spin mb-6" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <h2 className="text-2xl font-black text-white mb-2">Cargando rutina</h2>
+          <p className="text-slate-400 font-medium">Preparando los ejercicios planificados...</p>
+        </div>
       </div>
-    )}
-  </div>
-);
+    );
+  }
+
+  return (
+    <div className="w-full max-w-lg p-6 space-y-6 flex-1 flex flex-col mt-8">
+      <h1 className="text-3xl font-black mb-4 text-center">¿Qué toca hoy?</h1>
+      {rutinasActivas.length === 0 ? (
+        <div className="p-6 bg-slate-800 rounded-2xl text-center text-slate-400">No hay rutinas activas.</div>
+      ) : (
+        <div className="space-y-4">
+          {rutinasActivas.map((r: any) => (
+            <button key={r.id} onClick={() => handleSelect(r)} className="w-full flex items-center justify-between p-5 bg-slate-800 hover:bg-slate-700 rounded-2xl transition-all border border-slate-700 hover:border-indigo-500 group text-left">
+              <div className="flex items-center gap-4">
+                <div className="w-4 h-12 rounded-full shadow-sm" style={{ backgroundColor: r.color || '#4f46e5' }} />
+                <div>
+                  <h3 className="text-xl font-bold text-white">{r.nombre}</h3>
+                  {r.descripcion && <p className="text-slate-400 text-sm mt-1">{r.descripcion}</p>}
+                </div>
+              </div>
+              <Play className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 transition-colors" fill="currentColor" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const PasoResumenInicial = ({ state, actions }: any) => {
+  const [isStarting, setIsStarting] = useState(false);
   const fasesOrder = ['Calentamiento', 'Principal', 'Postentreno'];
+
+  const handleStart = async () => {
+    setIsStarting(true);
+    try {
+      await actions.startWorkout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl flex-1 flex flex-col mt-4 px-4 pb-32 animate-in fade-in duration-300">
@@ -99,9 +143,20 @@ export const PasoResumenInicial = ({ state, actions }: any) => {
 
       <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex gap-4 justify-center pointer-events-none z-10">
         <button onClick={actions.goBackToSelect} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-slate-300 transition-colors pointer-events-auto shadow-lg border border-slate-700">Atrás</button>
-        <button onClick={actions.startWorkout} disabled={state.ejerciciosPlanificados.length === 0}
-         className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed">
-          <Play fill="currentColor" className="w-6 h-6"/> {state.ejerciciosPlanificados.length === 0 ? 'No hay ejercicios activos' : 'Empezar Rutina'}
+        <button 
+          onClick={handleStart} 
+          disabled={state.ejerciciosPlanificados.length === 0 || isStarting}
+          className="flex-1 max-w-md py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-transform active:scale-95 pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isStarting ? (
+            <svg className="w-6 h-6 animate-spin flex-shrink-0 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Play fill="currentColor" className="w-6 h-6" />
+          )}
+          {state.ejerciciosPlanificados.length === 0 ? 'No hay ejercicios activos' : (isStarting ? 'Preparando...' : 'Empezar Rutina')}
         </button>
       </div>
     </div>
@@ -118,18 +173,15 @@ export const PasoEntrenando = ({ state, actions }: any) => {
 
   const isTimeBased = ej.unidad_objetivo === 'seg';
   
-  // Estados para modo normal
   const [carga, setCarga] = useState('');
   const [reps, setReps] = useState('');
 
-  // Lógica Compleja de Temporizador
   const [timeMode, setTimeMode] = useState<'prep' | 'active'>('prep');
   const [isPaused, setIsPaused] = useState(false);
   const [timerValue, setTimerValue] = useState(5);
 
   const theme = getPhaseTheme(ej.fase);
 
-  // Inicialización de cada serie
   useEffect(() => {
     setCarga(ej.carga_actual?.toString() || '');
     if (isTimeBased) {
@@ -141,7 +193,6 @@ export const PasoEntrenando = ({ state, actions }: any) => {
     }
   }, [ej.id, currentSerie, isTimeBased]);
 
-  // Intervalo del Cronómetro
   useEffect(() => {
     if (!isTimeBased || isPaused) return;
     const t = setInterval(() => {
@@ -156,17 +207,15 @@ export const PasoEntrenando = ({ state, actions }: any) => {
     return () => clearInterval(t);
   }, [isTimeBased, isPaused, timeMode]);
 
-  // Manejador de fin de cronómetro (Cuando llega a 0)
   useEffect(() => {
     if (!isTimeBased || isPaused || timerValue > 0) return;
     
     if (timeMode === 'prep') {
-      playBeep(); // Suena al acabar la preparación
+      playBeep();
       setTimeMode('active');
-      setTimerValue(ej.reps_min || 0); // Cargamos el tiempo del ejercicio
+      setTimerValue(ej.reps_min || 0);
     } else if (timeMode === 'active') {
-      playBeep(); // Suena al finalizar el ejercicio
-      // Avanza automáticamente al descanso guardando los datos teóricos
+      playBeep();
       actions.completeSet(ej.reps_min?.toString() || '0', carga);
     }
   }, [timerValue, timeMode, isTimeBased, isPaused, ej.reps_min, carga]);
@@ -182,7 +231,6 @@ export const PasoEntrenando = ({ state, actions }: any) => {
       </div>
 
       <div className="w-full max-w-2xl mx-auto px-6 mt-4 flex flex-col items-center text-center">
-        {/* Títulos reducidos 1 nivel */}
         <h2 className="text-2xl md:text-4xl font-black leading-tight text-white drop-shadow-sm">{ej.ejercicio_nombre}</h2>
       </div>
 
@@ -199,13 +247,11 @@ export const PasoEntrenando = ({ state, actions }: any) => {
 
       <div className="w-full max-w-md mx-auto px-6">
         <div className="grid grid-cols-2 gap-5 mt-2">
-          {/* INPUT DE PESO SIEMPRE VISIBLE (Text reducido a 4xl) */}
           <div className="bg-slate-800 p-5 rounded-3xl border border-slate-700 shadow-xl text-center flex flex-col items-center justify-center">
             <label className="block text-slate-400 text-xs font-bold mb-3 uppercase tracking-wider">Peso ({ej.unidad_carga || 'kg'})</label>
             <input type="number" step="0.1" value={carga} onChange={e => setCarga(e.target.value)} className="w-full bg-transparent text-4xl font-black text-white focus:outline-none focus:ring-0 text-center" placeholder="0" />
           </div>
           
-          {/* LADO DERECHO: REPS O TEMPORIZADOR */}
           {isTimeBased ? (
             <div className={`bg-slate-800 p-5 rounded-3xl border shadow-xl text-center flex flex-col items-center justify-center transition-colors ${timeMode === 'prep' ? 'border-rose-500/50' : theme.border}`}>
               <label className={`block text-xs font-bold mb-1 uppercase tracking-wider ${timeMode === 'prep' ? 'text-rose-400' : theme.text}`}>
@@ -230,18 +276,14 @@ export const PasoEntrenando = ({ state, actions }: any) => {
 
       <div className="fixed bottom-0 left-0 w-full bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex flex-col items-center pt-10 pb-6 px-6 z-20 pointer-events-none">
         
-        {/* BOTONES PRINCIPALES DEPENDIENDO DEL MODO */}
         {isTimeBased ? (
           <div className="w-full max-w-md flex justify-between gap-3 pointer-events-auto">
-            {/* Izquierda: Reiniciar */}
             <button onClick={() => { setTimeMode('prep'); setTimerValue(5); setIsPaused(false); }} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl flex justify-center items-center text-slate-300 border border-slate-700 active:scale-95 transition-transform">
               <RotateCcw className="w-6 h-6" />
             </button>
-            {/* Centro: Pausar / Reanudar */}
             <button onClick={() => setIsPaused(!isPaused)} className={`flex-[2] py-4 rounded-2xl flex justify-center items-center text-white font-black text-lg shadow-lg active:scale-95 transition-all ${isPaused ? 'bg-amber-600 hover:bg-amber-500 shadow-[0_0_30px_rgba(217,119,6,0.3)]' : theme.bg + ' ' + theme.bgHover + ' ' + theme.shadow}`}>
               {isPaused ? <><Play className="w-6 h-6 mr-2" fill="currentColor" /> Reanudar</> : <><Pause className="w-6 h-6 mr-2" fill="currentColor"/> Pausar</>}
             </button>
-            {/* Derecha: Avanzar/Saltar */}
             <button onClick={() => actions.completeSet(ej.reps_min?.toString() || '0', carga)} className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl flex justify-center items-center text-slate-300 border border-slate-700 active:scale-95 transition-transform">
               <SkipForward className="w-6 h-6" />
             </button>
@@ -319,6 +361,26 @@ export const PasoDescanso = ({ state, actions }: any) => {
 };
 
 export const PasoFinalizado = ({ state, actions }: any) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Lógica para detectar si faltan ejercicios por hacer
+  const hasUnfinishedExercises = state.ejerciciosPlanificados.some((ej: any) => {
+    const setsHechos = state.historial.filter((h: any) => h.rutina_realizacion_id === ej.id).length;
+    const totalPlanned = ej.series || 1;
+    return setsHechos < totalPlanned;
+  });
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await actions.saveWorkout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const agrupados = state.ejerciciosPlanificados.map((ej: any) => ({
     ejercicio: ej,
     series: state.historial.filter((h: any) => h.rutina_realizacion_id === ej.id)
@@ -352,9 +414,33 @@ export const PasoFinalizado = ({ state, actions }: any) => {
         ))}
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex justify-center z-20 pointer-events-none">
-        <button onClick={actions.saveWorkout} className="w-full max-w-md py-4 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)] pointer-events-auto active:scale-95">
-          <CheckCircle2 className="w-7 h-7" /> Guardar en Historial
+      <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-900 via-slate-900 to-transparent flex gap-3 justify-center z-20 pointer-events-none">
+        
+        {/* BOTÓN VOLVER (Solo visible si hay ejercicios incompletos) */}
+        {hasUnfinishedExercises && (
+          <button 
+            onClick={actions.resumeWorkout} 
+            disabled={isSaving}
+            className="px-6 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl text-lg font-bold text-slate-300 transition-colors shadow-lg border border-slate-700 pointer-events-auto active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-5 h-5" /> Volver
+          </button>
+        )}
+
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className="flex-1 max-w-sm py-4 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-xl font-black flex items-center justify-center gap-3 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)] pointer-events-auto active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? (
+            <svg className="w-7 h-7 animate-spin flex-shrink-0 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <CheckCircle2 className="w-7 h-7" />
+          )}
+          {isSaving ? 'Guardando...' : 'Guardar'}
         </button>
       </div>
     </div>

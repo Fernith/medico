@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE realizacion_ejercicio SET activo = $1 WHERE id=$2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "dfed1529233b039c7cef74566d3bfef8e7ba3056ddf747402b53403374347a6e"
+}

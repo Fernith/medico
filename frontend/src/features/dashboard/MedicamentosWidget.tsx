@@ -72,14 +72,13 @@ export const MedicamentosWidget: React.FC = () => {
   return (
     <>
       <div className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col h-full">
-        
-        {/* CABECERA MINIMALISTA (Estilo Regla) */}
+
         <Link 
           to="/medicamentos" 
           className="flex items-center gap-2 mb-6 group w-max"
         >
           <h3 className="font-bold text-teal-800 text-xl group-hover:text-teal-600 transition-colors">Pastillas Hoy</h3>
-          <ChevronRight className="w-5 h-5 text-teal-300 group-hover:text-teal-500 transition-colors" strokeWidth={3} />
+          <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-teal-500 transition-colors" strokeWidth={3} />
         </Link>
 
         {/* LISTADO DE PENDIENTES CON SCROLL (Máximo ~2 elementos visibles) */}

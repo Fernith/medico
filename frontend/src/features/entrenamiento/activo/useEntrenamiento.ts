@@ -125,13 +125,17 @@ export const useEntrenamiento = (onClose: () => void) => {
       setStep('WORKOUT');
     },
 
-    // NUEVA ACCIÓN: Finaliza el entrenamiento prematuramente
     finishWorkoutEarly: () => {
       if (historial.length === 0) {
         alert("No has completado ninguna serie. Si quieres salir, usa la X de arriba a la derecha.");
         return;
       }
       setStep('FINISHED');
+    },
+
+    // NUEVA ACCIÓN: Permite volver al entrenamiento si se cortó antes de tiempo
+    resumeWorkout: () => {
+      setStep('WORKOUT');
     },
 
     saveWorkout: async () => {

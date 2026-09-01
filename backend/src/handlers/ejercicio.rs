@@ -225,13 +225,30 @@ pub async fn update_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>
     Ok(Json(()))
 }
 
-pub async fn delete_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE realizacion_ejercicio SET activo = false WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+// BORRADO FÍSICO DEFINITIVO (Emulando ON DELETE CASCADE)
+pub async fn delete_realizacion_fisica(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+
+    // 1. Eliminamos sus apariciones en las rutinas (ON DELETE CASCADE manual)
+    sqlx::query!("DELETE FROM rutina_realizacion WHERE realizacion_id = $1", id)
+        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    // 2. Borramos la realización físicamente
+    sqlx::query!("DELETE FROM realizacion_ejercicio WHERE id=$1", id)
+        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    tx.commit().await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }
 
-pub async fn reactivate_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE realizacion_ejercicio SET activo = true WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+// MODIFICAR ESTADO (Archivar / Restaurar)
+pub async fn cambiar_estado_realizacion(
+    Path(id): Path<Uuid>, 
+    State(pool): State<PgPool>, 
+    Json(payload): Json<crate::models::ejercicio::EstadoPayload>
+) -> Result<Json<()>, String> {
+    sqlx::query!("UPDATE realizacion_ejercicio SET activo = $1 WHERE id=$2", payload.activo, id)
+        .execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }
 

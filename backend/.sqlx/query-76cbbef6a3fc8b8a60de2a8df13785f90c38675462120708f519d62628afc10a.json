@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE historial_rutinas SET rutina_id = NULL WHERE rutina_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "76cbbef6a3fc8b8a60de2a8df13785f90c38675462120708f519d62628afc10a"
+}
