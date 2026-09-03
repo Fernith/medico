@@ -2,11 +2,10 @@ import React, { useMemo } from 'react';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { type SuenoDB, formatMinutos, getChartY } from '../../utils/suenoCalculations';
 
-// Tipamos los props para recibir el estado desde el padre
 interface SuenoHorarioGraficaProps {
   data: SuenoDB[];
-  rango: '7d' | '14d' | '1m' | '3m' | 'custom';
-  setRango: (rango: '7d' | '14d' | '1m' | '3m' | 'custom') => void;
+  rango: '7d' | '14d' | '1m' | '3m' | '6m' | 'custom';
+  setRango: (rango: '7d' | '14d' | '1m' | '3m' | '6m' | 'custom') => void;
   customDias: number | '';
   setCustomDias: (dias: number | '') => void;
 }
@@ -26,6 +25,7 @@ export const SuenoHorarioGrafica: React.FC<SuenoHorarioGraficaProps> = ({
     if (rango === '14d') dias = 14;
     else if (rango === '1m') dias = 30;
     else if (rango === '3m') dias = 90;
+    else if (rango === '6m') dias = 180;
     else if (rango === 'custom') dias = Number(customDias) || 7;
 
     const limiteFecha = new Date();
@@ -43,24 +43,56 @@ export const SuenoHorarioGrafica: React.FC<SuenoHorarioGraficaProps> = ({
       const napStart = getChartY(d.siesta_hora_inicio);
       const napEnd = getChartY(d.siesta_hora_fin);
 
+      // LÓGICA DE DIVISIÓN PARA EVITAR DESBORDAMIENTOS (Límite: 14 a 38)
+      let main_range = mainStart !== null && mainEnd !== null ? [mainStart, mainEnd] : null;
+      let main_range_split = null;
+      if (mainStart !== null && mainEnd !== null && mainStart > mainEnd) {
+        main_range = [mainStart, 38]; // Tramo hasta el final del día (abajo del todo)
+        main_range_split = [14, mainEnd]; // Tramo desde el inicio del día (arriba del todo)
+      }
+
+      let nap_range = napStart !== null && napEnd !== null ? [napStart, napEnd] : null;
+      let nap_range_split = null;
+      if (napStart !== null && napEnd !== null && napStart > napEnd) {
+        nap_range = [napStart, 38];
+        nap_range_split = [14, napEnd];
+      }
+
+      let midpoint = null;
+      if (mainStart !== null && mainEnd !== null) {
+        if (mainStart > mainEnd) {
+          let m = mainStart + ((38 - mainStart) + (mainEnd - 14)) / 2;
+          if (m >= 38) m -= 24;
+          midpoint = m;
+        } else {
+          midpoint = (mainStart + mainEnd) / 2;
+        }
+      }
+
       const allVals = [mainStart, mainEnd, napStart, napEnd].filter((v): v is number => v !== null && !isNaN(v));
       if (allVals.length > 0) {
-        minZoom = Math.min(minZoom, ...allVals);
-        maxZoom = Math.max(maxZoom, ...allVals);
+        if (main_range_split || nap_range_split) {
+          // Si hay división, forzamos a mostrar todo el lienzo para que se vea el cruce
+          minZoom = 14; maxZoom = 38;
+        } else {
+          minZoom = Math.min(minZoom, ...allVals);
+          maxZoom = Math.max(maxZoom, ...allVals);
+        }
       }
 
       return {
         ...d,
         timestamp: new Date(d.fecha).getTime(),
-        main_range: mainStart !== null && mainEnd !== null ? [mainStart, mainEnd] : null,
-        midpoint: mainStart !== null && mainEnd !== null ? (mainStart + mainEnd) / 2 : null,
-        nap_range: napStart !== null && napEnd !== null ? [napStart, napEnd] : null,
+        main_range,
+        main_range_split,
+        nap_range,
+        nap_range_split,
+        midpoint,
       };
     });
 
     if (minZoom === 38 && maxZoom === 14) {
-      minZoom = 22;
-      maxZoom = 30;
+      minZoom = 22; maxZoom = 30;
     }
 
     const finalMin = Math.max(14, Math.floor(minZoom) - 1); 
@@ -136,9 +168,8 @@ export const SuenoHorarioGrafica: React.FC<SuenoHorarioGraficaProps> = ({
           <span className="text-indigo-500">🛌</span> Horario y Regularidad
         </h2>
         
-        {/* USAMOS LAS PROPS RECIBIDAS */}
         <div className="flex items-center p-1 bg-slate-100 rounded-lg w-max">
-          {['7d', '14d', '1m', '3m'].map((r) => (
+          {['7d', '14d', '1m', '3m', '6m'].map((r) => (
             <button
               key={r}
               onClick={() => setRango(r as any)}
@@ -166,11 +197,9 @@ export const SuenoHorarioGrafica: React.FC<SuenoHorarioGraficaProps> = ({
 
       <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
-          {/* Hemos corregido el margin-left para que los valores Y tengan espacio */}
           <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             
-            {/* NUEVO: padding en el Eje X crea márgenes interiores para que las barras no se peguen a los bordes */}
             <XAxis 
               dataKey="timestamp" 
               type="number" 
@@ -192,7 +221,10 @@ export const SuenoHorarioGrafica: React.FC<SuenoHorarioGraficaProps> = ({
             <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
             
             <Bar dataKey="nap_range" fill="#fbbf24" radius={[6, 6, 6, 6]} barSize={16} name="Siesta" stackId="a" />
-            <Bar dataKey="main_range" fill="#6366f1" radius={[6, 6, 6, 6]} barSize={24} name="Sueño Nocturno" stackId="a" />
+            <Bar dataKey="nap_range_split" fill="#fbbf24" radius={[6, 6, 6, 6]} barSize={16} stackId="a" />
+            
+            <Bar dataKey="main_range" fill="#6366f1" radius={[6, 6, 6, 6]} barSize={24} name="Sueño Nocturno" stackId="b" />
+            <Bar dataKey="main_range_split" fill="#6366f1" radius={[6, 6, 6, 6]} barSize={24} stackId="b" />
             
             <Line 
               type="monotone" 

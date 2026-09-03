@@ -19,6 +19,19 @@ export const calcularDistanciaKm = (pasos: number, alturaCm: number, sexo: strin
   return (pasos * longitudZancadaCm) / 100000;
 };
 
+// Función auxiliar para obtener YYYY-MM-DD en hora local y evitar el bug de UTC
+const getLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// NUEVO: Función para saber los días que tiene el mes actual (Para el Widget)
+export const getDiasDelMes = (fecha: Date = new Date()): number => {
+  return new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+};
+
 // 2. LÓGICA DE AGRUPACIÓN PARA LA GRÁFICA
 export const procesarDatosGrafica = (
   pasos: PasoDB[], 
@@ -32,7 +45,7 @@ export const procesarDatosGrafica = (
   let endPeriod = new Date();
 
   if (viewMode === 'S') {
-    const day = d.getDay() === 0 ? 7 : d.getDay(); // Lunes=1, Domingo=7
+    const day = d.getDay() === 0 ? 7 : d.getDay(); 
     startPeriod = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day + 1);
     endPeriod = new Date(startPeriod);
     endPeriod.setDate(endPeriod.getDate() + 6);
@@ -41,9 +54,10 @@ export const procesarDatosGrafica = (
     for (let i = 0; i < 7; i++) {
       const curr = new Date(startPeriod);
       curr.setDate(curr.getDate() + i);
-      const iso = curr.toISOString().split('T')[0];
-      const record = pasos.find(p => p.fecha === iso);
-      data.push({ name: diasSemana[i], valor: record ? record.cantidad : 0, fullDate: iso });
+      
+      const localDateStr = getLocalDateString(curr); 
+      const record = pasos.find(p => p.fecha === localDateStr);
+      data.push({ name: diasSemana[i], valor: record ? record.cantidad : 0, fullDate: localDateStr });
     }
   } 
   else if (viewMode === 'M') {
@@ -53,9 +67,9 @@ export const procesarDatosGrafica = (
 
     for (let i = 1; i <= daysInMonth; i++) {
       const curr = new Date(d.getFullYear(), d.getMonth(), i);
-      const iso = curr.toISOString().split('T')[0];
-      const record = pasos.find(p => p.fecha === iso);
-      data.push({ name: i.toString(), valor: record ? record.cantidad : 0, fullDate: iso });
+      const localDateStr = getLocalDateString(curr); 
+      const record = pasos.find(p => p.fecha === localDateStr);
+      data.push({ name: i.toString(), valor: record ? record.cantidad : 0, fullDate: localDateStr });
     }
   } 
   else if (viewMode === 'A') {
@@ -68,7 +82,9 @@ export const procesarDatosGrafica = (
       const mesEnd = new Date(d.getFullYear(), i + 1, 0);
       
       const sumaMes = pasos.reduce((acc, p) => {
-        const pf = new Date(p.fecha);
+        const [yearStr, monthStr, dayStr] = p.fecha.split('-');
+        const pf = new Date(Number(yearStr), Number(monthStr) - 1, Number(dayStr)); 
+        
         if (pf >= mesStart && pf <= mesEnd) return acc + p.cantidad;
         return acc;
       }, 0);

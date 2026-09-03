@@ -8,29 +8,24 @@ interface PesoGraficaProps {
 }
 
 export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
-  // 1. Preparar datos y calcular dominios inteligentes
   const { chartData, yMin, yMax } = useMemo(() => {
     if (!data || data.length === 0) return { chartData: [], yMin: 0, yMax: 0 };
 
-    // Damos la vuelta a los datos para que el tiempo avance hacia la derecha
     const cronologico = [...data].reverse().map(d => ({
       ...d,
       timestamp: new Date(d.fecha).getTime(),
     }));
 
-    // Sacamos todos los valores numéricos para encontrar el más alto y el más bajo
     const allValues = cronologico.flatMap(d => [d.peso, d.promedio]).filter(v => v !== undefined && v !== null) as number[];
     const dataMin = Math.min(...allValues);
     const dataMax = Math.max(...allValues);
 
-    // Rango dinámico inteligente de +- 5kg (Sin forzar valores extremos)
     const minCalc = Math.floor(dataMin - 1);
     const maxCalc = Math.ceil(dataMax + 1);
 
     return { chartData: cronologico, yMin: minCalc, yMax: maxCalc };
   }, [data, altura]);
 
-  // Diccionario de líneas de IMC
   const limites = [
     { label: 'Bajo peso', imc: 18.5, color: '#3b82f6' },
     { label: 'Sobrepeso', imc: 25, color: '#056200' },
@@ -44,7 +39,6 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 h-[450px]">
       <h2 className="text-lg font-bold text-slate-700 mb-4">Evolución (kg)</h2>
       <ResponsiveContainer width="100%" height="100%">
-        {/* El margin derecho evita que el eje X se salga del contenedor */}
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: -20, bottom: 25 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
           <XAxis 
@@ -59,11 +53,9 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
           />
           <YAxis domain={[yMin, yMax]} stroke="#94a3b8" fontSize={12} />
           
-          {/* Tooltip nativo: al pasar el ratón muestra los datos superpuestos */}
           <Tooltip 
             labelFormatter={(unix: any) => new Date(unix).toLocaleDateString()}
             formatter={(value: any, name: any) => {
-              // Convertimos a número de forma segura para satisfacer a TypeScript
               const valorNumerico = Number(value);
               return [
                 `${valorNumerico.toFixed(1)} kg`, 
@@ -72,7 +64,6 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
             }}
           />
           
-          {/* Dibujado condicional de las líneas de IMC (Solo si entran en el rango +-5kg) */}
           {limites.map(limite => {
             const weight = calcularPesoParaIMC(limite.imc, altura);
             if (weight >= yMin && weight <= yMax) {
@@ -89,25 +80,25 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
             return null;
           })}
           
-          {/* LÍNEA 1: Peso Real (Grisácea, punteada, en segundo plano) */}
+          {/* LÍNEA 1: Peso Real (Sin puntos, solo visible al hover) */}
           <Line 
             type="monotone" 
             dataKey="peso" 
             stroke="#cbd5e1" 
             strokeWidth={2}
             strokeDasharray="4 4"
-            dot={{ r: 3, fill: '#cbd5e1', strokeWidth: 0 }}
+            dot={false}
             activeDot={{ r: 5 }}
             name="peso"
           />
 
-          {/* LÍNEA 2: Promedio (Señal principal: verde, sólida, destaca más) */}
+          {/* LÍNEA 2: Promedio (Sin puntos, solo visible al hover) */}
           <Line 
             type="monotone" 
             dataKey="promedio" 
             stroke="#10b981" 
             strokeWidth={3}
-            dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: 'white' }}
+            dot={false}
             activeDot={{ r: 7 }}
             name="promedio"
           />

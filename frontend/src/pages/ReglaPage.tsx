@@ -233,7 +233,7 @@ export const ReglaPage: React.FC = () => {
                 value={yearAnual}
                 onChange={(val) => setYearAnual(Number(val))}
                 options={
-                  Array.from({ length: Math.max(1, currentYear - 2024 + 1) }, (_, i) => currentYear - i)
+                  Array.from({ length: Math.max(1, currentYear - 2024 + 2) }, (_, i) => currentYear - i + 1)
                         .map(year => ({ value: year, label: year.toString() }))
                 }
                 colorTheme={{

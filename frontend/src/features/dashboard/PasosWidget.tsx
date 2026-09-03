@@ -3,14 +3,13 @@ import { Link } from 'react-router-dom';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Activity, Smile, Meh, Frown, ChevronRight } from 'lucide-react';
 import { formatearFechaRelativa } from '../../utils/formatters';
-import { calcularDistanciaKm } from '../../utils/pasosCalculations';
+import { calcularDistanciaKm, getDiasDelMes } from '../../utils/pasosCalculations';
+import { useAjustes } from '../../context/AjustesContext';
 
 interface PasosWidgetProps {
   data: {
     hoy: number;
-    meta: number;
     totalMes: number;
-    metaMensual: number;
     ultimaFecha: string | null;
   }
 }
@@ -23,12 +22,10 @@ const CustomTooltipPasos = ({ active, payload, altura, sexo }: any) => {
     return (
       <div className="bg-white p-4 rounded-3xl shadow-xl border border-slate-100 text-center min-w-[160px] animate-in zoom-in-95 duration-200">
         <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Reto Mensual</p>
-        
         <div className="bg-orange-50/80 rounded-2xl p-3 mb-2 border border-orange-100/50">
           <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-0.5">Total Pasos</p>
           <p className="text-3xl font-black text-orange-600 leading-none">{pasos.toLocaleString('es-ES')}</p>
         </div>
-        
         <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Distancia</p>
           <p className="text-sm font-black text-slate-700 leading-none">{distancia.toFixed(2)} km</p>
@@ -42,6 +39,11 @@ const CustomTooltipPasos = ({ active, payload, altura, sexo }: any) => {
 export const PasosWidget = ({ data }: PasosWidgetProps) => {
   const [altura, setAltura] = useState<number>(170);
   const [sexo, setSexo] = useState<string>('Masculino');
+  
+  // Obtenemos la meta desde la BBDD a través del Contexto
+  const { ajustes } = useAjustes();
+  const metaDiaria = Number(ajustes['objetivo_pasos_diarios']) || 8000;
+  const metaMensual = metaDiaria * getDiasDelMes();
 
   useEffect(() => {
     fetch('/api/usuario')
@@ -54,24 +56,24 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
       }).catch(console.error);
   }, []);
 
-  const porcPasos = Math.min(100, (data.hoy / data.meta) * 100);
+  const porcPasos = Math.min(100, (data.hoy / metaDiaria) * 100);
   
   const dataRosco = [
     { value: porcPasos, fill: '#f97316' }, 
     { value: 100 - porcPasos, fill: '#ffedd5' }
   ];
   
-  const barraVisualMes = Math.min(data.totalMes, data.metaMensual);
+  const barraVisualMes = Math.min(data.totalMes, metaMensual);
   const dataRango = [{ name: 'Mes', valor: barraVisualMes }];
   
-  const porcMes = (data.totalMes / data.metaMensual) * 100;
+  const porcMes = (data.totalMes / metaMensual) * 100;
   const pinPercent = Math.min(100, porcMes);
 
-  const IconoEstado = data.hoy >= data.meta 
-    ? <Smile className="w-10 h-10 text-green-500" />
-    : data.hoy >= 6000 
+  const IconoEstado = data.hoy >= metaDiaria 
+    ? <Smile className="w-10 h-10 text-emerald-500" />
+    : data.hoy >= (metaDiaria * 0.75) 
       ? <Meh className="w-10 h-10 text-amber-400" />
-      : <Frown className="w-10 h-10 text-red-500" />;
+      : <Frown className="w-10 h-10 text-rose-500" />;
 
   const { sufijo } = formatearFechaRelativa(data.ultimaFecha);
 
@@ -115,7 +117,7 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
           </div>
           <div>
             <p className="text-lg font-bold text-slate-800">Progreso diario</p>
-            <p className="text-sm text-slate-500 mt-1">Tu meta es de<br/>{data.meta.toLocaleString()} pasos.</p>
+            <p className="text-sm text-slate-500 mt-1">Tu meta es de<br/><span className="font-bold text-orange-500">{metaDiaria.toLocaleString()}</span> pasos.</p>
           </div>
         </div>
 
@@ -128,17 +130,9 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
           <div className="h-8 relative">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart layout="vertical" data={dataRango} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <XAxis type="number" domain={[0, data.metaMensual]} hide />
+                <XAxis type="number" domain={[0, metaMensual]} hide />
                 <YAxis type="category" dataKey="name" hide />
-                
-                {/* CORRECCIÓN: allowEscapeViewBox insertado para dejar que se salga del lienzo */}
-                <Tooltip 
-                  cursor={{fill: 'transparent'}} 
-                  allowEscapeViewBox={{ x: true, y: true }}
-                  wrapperStyle={{ zIndex: 1000, outline: 'none' }}
-                  content={<CustomTooltipPasos altura={altura} sexo={sexo} />}
-                />
-                
+                <Tooltip cursor={{fill: 'transparent'}} allowEscapeViewBox={{ x: true, y: true }} wrapperStyle={{ zIndex: 1000, outline: 'none' }} content={<CustomTooltipPasos altura={altura} sexo={sexo} />} />
                 <Bar dataKey="valor" fill="#fdba74" radius={12} background={{ fill: '#f1f5f9' }} />
               </BarChart>
             </ResponsiveContainer>
@@ -146,13 +140,10 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
           
           <div className="relative mt-3 h-6 text-[11px] font-medium w-full">
             <span className="absolute left-0 top-0 text-slate-400">0</span>
-            <span 
-              className="absolute top-0 -translate-x-1/2 text-orange-600 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md transition-all duration-500"
-              style={{ left: `${pinPercent}%` }}
-            >
+            <span className="absolute top-0 -translate-x-1/2 text-orange-600 font-bold bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md transition-all duration-500" style={{ left: `${pinPercent}%` }}>
               {data.totalMes.toLocaleString('es-ES')}
             </span>
-            <span className="absolute right-0 top-0 text-slate-400">{data.metaMensual.toLocaleString('es-ES')}</span>
+            <span className="absolute right-0 top-0 text-slate-400">{metaMensual.toLocaleString('es-ES')}</span>
           </div>
         </div>
 

@@ -3,7 +3,8 @@ import { useAjustes } from '../context/AjustesContext';
 import { AjustesParametrosRegla } from '../features/ajustes/AjustesParametrosRegla';
 import { AjusteVisibilidadRegla } from '../features/ajustes/AjusteVisibilidadRegla';
 import { AjusteObjetivoSueno } from '../features/ajustes/AjusteObjetivoSueno';
-import { AjusteUnidadesDosis } from '../features/ajustes/AjusteUnidadesDosis'; // <-- IMPORTADO
+import { AjusteObjetivoPasos } from '../features/ajustes/AjusteObjetivoPasos';
+import { AjusteUnidadesDosis } from '../features/ajustes/AjusteUnidadesDosis';
 
 export const AjustesPage: React.FC = () => {
   const { ajustes } = useAjustes();
@@ -11,21 +12,18 @@ export const AjustesPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-8 pb-24">
-      
-      {/* HEADER DE LA PÁGINA */}
       <div className="flex items-center gap-3 border-b-2 border-slate-200 pb-4">
         <span className="text-4xl">⚙️</span>
         <h1 className="text-3xl font-bold text-slate-800">Ajustes Generales</h1>
       </div>
 
-      {/* CONTENEDOR DE AJUSTES A ANCHO COMPLETO */}
       <div className="space-y-6 w-full">
         <AjusteVisibilidadRegla />
         <AjustesParametrosRegla isVisible={mostrarRegla} />
-        <AjusteObjetivoSueno/>
+        <AjusteObjetivoSueno />
+        <AjusteObjetivoPasos />
         <AjusteUnidadesDosis />
       </div>
-      
     </div>
   );
 };

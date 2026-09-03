@@ -9,10 +9,12 @@ interface MedidasGraficaProps {
 }
 
 export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, sexo }) => {
-  const chartData = useMemo(() => {
-    if (!data || data.length === 0) return [];
+  // 1. Preparar datos y calcular dominios dinámicos inteligentes
+  const { chartData, yMin, yMax } = useMemo(() => {
+    if (!data || data.length === 0) return { chartData: [], yMin: 0.3, yMax: 1.2 };
     
-    return [...data].reverse().map(d => {
+    // Damos la vuelta a los datos para que el tiempo avance hacia la derecha
+    const procesado = [...data].reverse().map(d => {
       const punto: any = { timestamp: new Date(d.fecha).getTime() };
       if (d.cm_cintura) {
         punto.ice = calcularICE(d.cm_cintura, altura);
@@ -22,9 +24,29 @@ export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, se
       }
       return punto;
     }).filter(p => p.ice !== undefined); // Solo dibujamos días donde al menos haya ICE
+
+    // Sacamos todos los valores numéricos para encontrar el más alto y el más bajo
+    const allValues = procesado.flatMap(d => [d.ice, d.icc]).filter(v => v !== undefined && v !== null) as number[];
+    
+    if (allValues.length === 0) return { chartData: procesado, yMin: 0.3, yMax: 1 };
+
+    const dataMin = Math.min(...allValues);
+    const dataMax = Math.max(...allValues);
+
+    // Rango dinámico inteligente de +- 0.02
+    const minCalc = Math.max(0, dataMin - 0.02);
+    const maxCalc = dataMax + 0.02;
+
+    // Redondeamos a 2 decimales para evitar bugs de coma flotante de Javascript
+    return { 
+      chartData: procesado, 
+      yMin: parseFloat(minCalc.toFixed(2)), 
+      yMax: parseFloat(maxCalc.toFixed(2)) 
+    };
   }, [data, altura]);
 
   const limiteICC = sexo === 'Masculino' ? 0.90 : 0.85;
+  const limiteICE = 0.5;
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-rose-100 h-[400px]">
@@ -42,8 +64,9 @@ export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, se
             tickFormatter={(unix) => new Date(unix).toLocaleDateString(undefined, { year: '2-digit', month: 'short', day: 'numeric' })}
             stroke="#94a3b8" fontSize={12} minTickGap={20}
           />
-          {/* Fijo la escala Y para los ratios de 0.3 a 1.2 */}
-          <YAxis domain={[0.3, 1.2]} stroke="#94a3b8" fontSize={12} />
+          
+          {/* Eje Y dinámico calculado con el useMemo */}
+          <YAxis domain={[yMin, yMax]} stroke="#94a3b8" fontSize={12} />
           
           <Tooltip 
             labelFormatter={(unix: any) => new Date(unix).toLocaleDateString()}
@@ -51,7 +74,7 @@ export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, se
           />
           
           {/* Líneas de peligro */}
-          <ReferenceLine y={0.50} stroke="#ef4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Riesgo ICE', fill: '#ef4444', fontSize: 10 }} />
+          <ReferenceLine y={limiteICE} stroke="#ef4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Riesgo ICE', fill: '#ef4444', fontSize: 10 }} />
           <ReferenceLine y={limiteICC} stroke="#e11d48" strokeDasharray="3 3" label={{ position: 'insideBottomLeft', value: 'Riesgo ICC', fill: '#e11d48', fontSize: 10 }} />
           
           <Line type="monotone" dataKey="ice" stroke="#0ea5e9" strokeWidth={3} name="ICE" dot={{ r: 4 }} activeDot={{ r: 6 }} />

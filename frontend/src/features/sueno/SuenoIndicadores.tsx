@@ -4,7 +4,7 @@ import { useAjustes } from '../../context/AjustesContext';
 
 interface SuenoIndicadoresProps {
   data: SuenoDB[];
-  rango: '7d' | '14d' | '1m' | '3m' | 'custom';
+  rango: '7d' | '14d' | '1m' | '3m' | '6m' | 'custom';
   customDias: number | '';
 }
 
@@ -20,6 +20,7 @@ export const SuenoIndicadores: React.FC<SuenoIndicadoresProps> = ({ data, rango,
     if (rango === '14d') return '14 Días';
     if (rango === '1m') return '1 Mes';
     if (rango === '3m') return '3 Meses';
+    if (rango === '6m') return '6 Meses';
     if (rango === 'custom') return `${customDias || 7} Días`;
     return '';
   }, [rango, customDias]);
@@ -70,6 +71,7 @@ export const SuenoIndicadores: React.FC<SuenoIndicadoresProps> = ({ data, rango,
     if (rango === '14d') diasFiltro = 14;
     else if (rango === '1m') diasFiltro = 30;
     else if (rango === '3m') diasFiltro = 90;
+    else if (rango === '6m') diasFiltro = 180;
     else if (rango === 'custom') diasFiltro = Number(customDias) || 7;
 
     const fechaFiltro = new Date();

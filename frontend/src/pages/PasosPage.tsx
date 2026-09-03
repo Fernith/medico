@@ -4,15 +4,18 @@ import { type PasoDB, procesarDatosGrafica, calcularIndicadores } from '../utils
 import { PasosGrafica } from '../features/pasos/PasosGrafica';
 import { PasosIndicadores } from '../features/pasos/PasosIndicadores';
 import { PasosTabla } from '../features/pasos/PasosTabla';
+import { useAjustes } from '../context/AjustesContext';
 
 export const PasosPage: React.FC = () => {
   const [pasos, setPasos] = useState<PasoDB[]>([]);
   const [usuario, setUsuario] = useState({ altura: 170, sexo: 'Masculino' });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados de Gráfica/Filtro
   const [viewMode, setViewMode] = useState<'S' | 'M' | 'A'>('M'); 
   const [refDate, setRefDate] = useState(new Date());
+
+  const { ajustes } = useAjustes();
+  const objetivoDiario = Number(ajustes['objetivo_pasos_diarios']) || 8000;
 
   const fetchData = async () => {
     try {
@@ -63,6 +66,7 @@ export const PasosPage: React.FC = () => {
             endPeriod={endPeriod}
             alturaCm={usuario.altura}
             sexo={usuario.sexo}
+            objetivoDiario={objetivoDiario}
           />
 
           <PasosIndicadores 

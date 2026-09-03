@@ -33,7 +33,8 @@ export const DashboardPage = () => {
   const mediaCiclo = Number(ajustes['duracion_media_ciclo']) || 28;
   const mediaPeriodo = Number(ajustes['duracion_media_periodo']) || 6;
 
-  const [datosPasos, setDatosPasos] = useState<{ hoy: number, meta: number, totalMes: number, metaMensual: number, ultimaFecha: string | null } | null>(null);
+  // Pasos ya no necesita calcular la meta, lo hará el Widget internamente
+  const [datosPasos, setDatosPasos] = useState<{ hoy: number, totalMes: number, ultimaFecha: string | null } | null>(null);
   const [datosSueno, setDatosSueno] = useState<{ hoyMinutos: number, ultimos7DiasMin: number, ultimos7DiasMax: number, media7Dias: number, ultimaFecha: string | null } | null>(null);
   const [ultimoCiclo, setUltimoCiclo] = useState<CicloDB | null>(null);
 
@@ -46,15 +47,9 @@ export const DashboardPage = () => {
         const pasosJson: PasosDB = await resPasos.json();
 
         if (pasosJson && pasosJson.hoy !== undefined) {
-          const metaDiaria = 8000;
-          const fechaActual = new Date();
-          const diasDelMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
-          
           setDatosPasos({
             hoy: pasosJson.hoy,
-            meta: metaDiaria,
             totalMes: pasosJson.total_mes,
-            metaMensual: metaDiaria * diasDelMes,
             ultimaFecha: pasosJson.ultima_fecha || null,
           });
         }
@@ -110,9 +105,7 @@ export const DashboardPage = () => {
           </button>
         </header>
         
-        {/* CUADRÍCULA DINÁMICA: 4 columnas si hay regla, 3 si no */}
         <div className={`grid grid-cols-1 gap-4 ${mostrarRegla ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-
             <PesoWidget />
 
             {mostrarRegla && (
@@ -123,14 +116,12 @@ export const DashboardPage = () => {
               />
             )}
 
-            {/* NUEVO WIDGET DE MEDICAMENTOS */}
             <MedicamentosWidget />
 
             <Link to="/sintomas" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
               <div className="p-4 bg-orange-50 text-orange-500 rounded-2xl group-hover:scale-110 transition-transform"><Stethoscope className="w-8 h-8" /></div>
               <span className="font-bold text-slate-700">Síntomas</span>
             </Link>
-
         </div>
 
         {datosSueno && <SuenoWidget data={datosSueno} />}
