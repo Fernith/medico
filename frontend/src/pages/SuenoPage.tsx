@@ -4,7 +4,7 @@ import { SuenoHorarioGrafica } from '../features/sueno/SuenoHorarioGrafica';
 import { SuenoIndicadores } from '../features/sueno/SuenoIndicadores';
 import { SuenoVariabilidadTabla } from '../features/sueno/SuenoVariabilidadTabla';
 
-export type RangoTiempoSueno = '7d' | '14d' | '1m' | '3m' | 'custom';
+export type RangoTiempoSueno = '7d' | '14d' | '1m' | '3m' | '6m' | 'custom';
 
 export const SuenoPage: React.FC = () => {
   const [suenos, setSuenos] = useState<SuenoDB[]>([]);
