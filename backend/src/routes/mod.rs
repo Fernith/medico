@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento, recordatorio};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -25,6 +25,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // RUTAS DE AUTENTICACIÓN (Google Fit)
         .route("/api/auth/google/login", get(google_fit::login_google))
         .route("/api/auth/google/callback", get(google_fit::oauth_callback))
+        .route("/api/auth/google/sync", post(google_fit::sync_manual))
         
         // AJUSTES
         .route("/api/ajustes", get(ajustes::listar_ajustes).post(ajustes::guardar_ajuste))
@@ -64,6 +65,8 @@ pub fn construir_router(pool: PgPool) -> Router {
         // NUEVO: delete = borrado físico, patch = cambio de estado
         .route("/api/rutinas/:id", put(rutina::update_rutina).delete(rutina::delete_rutina_fisico))
         .route("/api/rutinas/:id/estado", patch(rutina::cambiar_estado_rutina))
+        // RACHA RUTINA
+        .route("/api/rutinas/racha", get(rutina::get_racha_entrenamientos))
         
         // Planificacion
         .route("/api/rutinas/:id/realizaciones", get(rutina::get_rutina_realizaciones))
@@ -101,6 +104,10 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/historial-medicacion/:id", put(medicamento::update_historial_medicacion).delete(medicamento::delete_historial_medicacion))
         .route("/api/historial-medicacion/:id/tomado", patch(medicamento::marcar_historial_tomado))
         .route("/api/historial-medicacion/:id/pendiente", patch(medicamento::marcar_historial_pendiente))
+
+        // RECORDATORIOS
+        .route("/api/recordatorios", get(recordatorio::get_recordatorios).post(recordatorio::create_recordatorio))
+        .route("/api/recordatorios/:clave", put(recordatorio::update_recordatorio).delete(recordatorio::delete_recordatorio))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)

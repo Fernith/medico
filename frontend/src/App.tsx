@@ -12,6 +12,7 @@ import { SintomasPage } from './pages/SintomasPage';
 import { GlobalAddButton } from './components/layout/GlobalAddButton';
 import { EntrenamientoPage } from './pages/EntrenamientoPage';
 import { PasosPage } from './pages/PasosPage';
+import { RecordatoriosGlobales } from './features/recordatorios/RecordatoriosGlobales'; // <-- IMPORTADO
 
 function App() {
   return (
@@ -20,7 +21,10 @@ function App() {
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-purple-200 selection:text-purple-900">
           <Navbar />
           {/* El pt-28 da el espacio exacto para que la Navbar fija no tape el contenido */}
-          <main className="max-w-6xl mx-auto px-4 md:px-6 pt-28 pb-12">
+          <main className="max-w-6xl mx-auto px-4 md:px-6 pt-28 pb-12 relative">
+            
+            <RecordatoriosGlobales />
+
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/peso" element={<PesoPage />} />

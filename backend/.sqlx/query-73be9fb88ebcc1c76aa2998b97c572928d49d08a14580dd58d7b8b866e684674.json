@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT MAX(fecha) as f FROM pasos",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "f",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "73be9fb88ebcc1c76aa2998b97c572928d49d08a14580dd58d7b8b866e684674"
+}

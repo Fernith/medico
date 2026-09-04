@@ -9,3 +9,4 @@ pub mod usuario;
 pub mod ejercicio;
 pub mod rutina;
 pub mod medicamento;
+pub mod recordatorio;

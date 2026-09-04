@@ -14,6 +14,7 @@ interface PasosGraficaProps {
   alturaCm: number;
   sexo: string;
   objetivoDiario: number;
+  avgPasos: number;
 }
 
 const CustomTooltip = ({ active, payload, alturaCm, sexo }: any) => {
@@ -45,21 +46,19 @@ const CustomTooltip = ({ active, payload, alturaCm, sexo }: any) => {
   return null;
 };
 
-// NUEVO: Etiqueta personalizada para incrustar el valor de la meta en el Eje Y
-const MetaYAxisLabel = (props: any) => {
-  const { viewBox, value } = props;
-  // Ajustamos la posición X para que se alinee con los ticks normales del eje Y
+// Componente genérico para incrustar valores en el Eje Y tapando las marcas por defecto
+const CustomYAxisLabel = ({ viewBox, value, color }: any) => {
+  if (!viewBox || value === undefined) return null; // Prevenimos posibles renderizados en vacío
+
   const x = viewBox.x - 8; 
   const y = viewBox.y;
   
-  // Formateo compacto para que no ocupe mucho (ej. 8000 -> 8k, 240000 -> 240k)
   const formatVal = value >= 1000 ? `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k` : value;
 
   return (
     <g>
-      {/* Fondo blanco sutilmente redondeado para tapar cualquier tick gris estándar que coincida en la misma altura */}
       <rect x={x - 42} y={y - 11} width={46} height={22} fill="#ffffff" rx={4} />
-      <text x={x} y={y} fill="#f97316" fontSize={12} fontWeight="900" textAnchor="end" dominantBaseline="central">
+      <text x={x} y={y} fill={color} fontSize={12} fontWeight="900" textAnchor="end" dominantBaseline="central">
         {formatVal}
       </text>
     </g>
@@ -67,7 +66,7 @@ const MetaYAxisLabel = (props: any) => {
 };
 
 export const PasosGrafica: React.FC<PasosGraficaProps> = ({ 
-  data, viewMode, setViewMode, refDate, setRefDate, startPeriod, endPeriod, alturaCm, sexo, objetivoDiario 
+  data, viewMode, setViewMode, refDate, setRefDate, startPeriod, endPeriod, alturaCm, sexo, objetivoDiario, avgPasos 
 }) => {
   const hoy = new Date();
   const currentYear = hoy.getFullYear();
@@ -98,25 +97,22 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   const startYear = 2024;
   const yearsAvailable = Array.from({ length: currentYear - startYear + 1 }, (_, i) => startYear + i);
 
-  // LÓGICA DE META: Si es año, calculamos la media mensual. Si es S/M, es la diaria.
   const metaLine = viewMode === 'A' ? Math.round(objetivoDiario * 30.416) : objetivoDiario;
   
-  // LÓGICA DE YAXIS: Redondeo inteligente del límite superior de la gráfica
   const yMax = useMemo(() => {
     const defaultMax = viewMode === 'A' ? Math.ceil((metaLine + 10000) / 10000) * 10000 : Math.ceil((metaLine + 500) / 500) * 500;
     if (!data || data.length === 0) return defaultMax;
     
     const maxDataVal = Math.max(...data.map(d => d.valor));
-    const maxVal = Math.max(maxDataVal, metaLine);
+    // Nos aseguramos de que el eje crezca si la media o la meta son mayores que los datos
+    const maxVal = Math.max(maxDataVal, metaLine, avgPasos);
     
     if (viewMode === 'A') {
-      // Redondeo de 10.000 en 10.000 para la vista mensual, ya que son números muy altos
       return Math.ceil((maxVal + 10000) / 10000) * 10000;
     } else {
-      // Redondeo de 500 en 500 para la vista diaria
       return Math.ceil((maxVal + 500) / 500) * 500;
     }
-  }, [data, metaLine, viewMode]);
+  }, [data, metaLine, viewMode, avgPasos]);
 
   const renderSelectorFechas = () => {
     if (viewMode === 'S') {
@@ -185,12 +181,10 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
 
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          {/* Hemos añadido padding para asegurar que la etiqueta Y (left: 10) se vea entera si el número crece */}
           <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} dy={10} />
             
-            {/* Eje Y estándar de Recharts */}
             <YAxis domain={[0, yMax]} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} />
             
             <Tooltip 
@@ -199,17 +193,28 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
               content={<CustomTooltip alturaCm={alturaCm} sexo={sexo} />}
             />
 
-            {/* LÍNEA DE META CON DOBLE ETIQUETA */}
+            {/* LÍNEA DE MEDIA: ¡Ahora sí le pasamos el value={avgPasos}! */}
+            {avgPasos > 0 && (
+              <ReferenceLine 
+                y={avgPasos} 
+                stroke="#94a3b8" 
+                strokeDasharray="3 3" 
+                strokeWidth={2}
+              >
+                <Label position="insideTopRight" value="Media" fill="#94a3b8" fontSize={11} fontWeight="bold" />
+                <Label content={<CustomYAxisLabel color="#94a3b8" value={avgPasos} />} />
+              </ReferenceLine>
+            )}
+
+            {/* LÍNEA DE META: ¡Ahora sí le pasamos el value={metaLine}! */}
             <ReferenceLine 
               y={metaLine} 
               stroke="#f97316" 
               strokeDasharray="4 4" 
               strokeWidth={2}
             >
-              {/* Etiqueta interna en la barra */}
               <Label position="insideTopLeft" value={viewMode === 'A' ? 'Meta Mensual' : 'Meta'} fill="#f97316" fontSize={11} fontWeight="bold" />
-              {/* Etiqueta externa inyectada como tick del Eje Y */}
-              <Label content={<MetaYAxisLabel value={metaLine} />} />
+              <Label content={<CustomYAxisLabel color="#f97316" value={metaLine} />} />
             </ReferenceLine>
 
             <Bar dataKey="valor" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={50} />

@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT MAX(DATE(fecha_fin)) as f FROM historial_rutinas",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "f",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "259f494fee52401ae2be930efa83b58009c624797b80d1cbe408368fd17409f5"
+}

@@ -67,6 +67,7 @@ export const PasosPage: React.FC = () => {
             alturaCm={usuario.altura}
             sexo={usuario.sexo}
             objetivoDiario={objetivoDiario}
+            avgPasos={metrics.avgPasos}
           />
 
           <PasosIndicadores 

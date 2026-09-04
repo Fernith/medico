@@ -2,11 +2,11 @@ use axum::{
     extract::{Query, State},
     http::StatusCode,
     response::Redirect,
+    Json
 };
-use sqlx::PgPool;
 use std::env;
-
-// Importamos el modelo y el servicio que hemos separado
+use serde_json::{json, Value};
+use sqlx::PgPool;
 use crate::models::google_fit::TokenCallbackQuery;
 use crate::services;
 
@@ -40,4 +40,15 @@ pub async fn oauth_callback(
 
     // 3. Volvemos al frontend
     Ok(Redirect::temporary("http://localhost:5173/"))
+}
+
+pub async fn sync_manual(State(pool): State<PgPool>) -> Result<Json<Value>, String> {
+    // Ejecutamos tu lógica de sincronización
+    services::google_fit::sync_data(&pool).await?;
+    
+    // Devolvemos OK al frontend para que quite el estado de "Cargando..."
+    Ok(Json(json!({
+        "status": "success",
+        "message": "Sincronización de Google Fit completada"
+    })))
 }

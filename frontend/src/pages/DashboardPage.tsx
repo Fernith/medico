@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { PasosWidget } from '../features/dashboard/PasosWidget';
 import { SuenoWidget } from '../features/dashboard/SuenoWidget';
 import { ReglaWidget } from '../features/dashboard/ReglaWidget';
-import { Link } from 'react-router-dom';
-import { Dumbbell, Stethoscope } from 'lucide-react';
+import { Dumbbell} from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 import { PesoWidget } from '../features/dashboard/PesoWidget';
 import { EntrenamientoActivo } from '../features/entrenamiento/activo/EntrenamientoActivo';
 import { MedicamentosWidget } from '../features/dashboard/MedicamentosWidget';
+import { RachaWidget } from '../features/dashboard/RachaWidget';
 
 interface PasosDB { 
   hoy: number; 
@@ -118,10 +118,7 @@ export const DashboardPage = () => {
 
             <MedicamentosWidget />
 
-            <Link to="/sintomas" className="bg-white p-6 rounded-[2rem] shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-md transition-all flex flex-col items-center justify-center gap-3 group">
-              <div className="p-4 bg-orange-50 text-orange-500 rounded-2xl group-hover:scale-110 transition-transform"><Stethoscope className="w-8 h-8" /></div>
-              <span className="font-bold text-slate-700">Síntomas</span>
-            </Link>
+            <RachaWidget />
         </div>
 
         {datosSueno && <SuenoWidget data={datosSueno} />}

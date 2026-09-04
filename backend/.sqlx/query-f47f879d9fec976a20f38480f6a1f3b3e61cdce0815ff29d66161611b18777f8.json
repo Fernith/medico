@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT valor FROM ajustes_usuario WHERE clave = 'racha_entrenamiento'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "valor",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f47f879d9fec976a20f38480f6a1f3b3e61cdce0815ff29d66161611b18777f8"
+}

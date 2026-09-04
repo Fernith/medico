@@ -5,6 +5,8 @@ import { AjusteVisibilidadRegla } from '../features/ajustes/AjusteVisibilidadReg
 import { AjusteObjetivoSueno } from '../features/ajustes/AjusteObjetivoSueno';
 import { AjusteObjetivoPasos } from '../features/ajustes/AjusteObjetivoPasos';
 import { AjusteUnidadesDosis } from '../features/ajustes/AjusteUnidadesDosis';
+import { AjusteRachaEntrenamiento } from '../features/ajustes/AjusteRachaEntrenamiento';
+import { RecordatoriosTabla } from '../features/ajustes/RecordatoriosTabla';
 
 export const AjustesPage: React.FC = () => {
   const { ajustes } = useAjustes();
@@ -22,6 +24,8 @@ export const AjustesPage: React.FC = () => {
         <AjustesParametrosRegla isVisible={mostrarRegla} />
         <AjusteObjetivoSueno />
         <AjusteObjetivoPasos />
+        <AjusteRachaEntrenamiento />
+        <RecordatoriosTabla />
         <AjusteUnidadesDosis />
       </div>
     </div>

@@ -9,6 +9,9 @@ use crate::models::rutina::{
     Rutina, RutinaPayload, RutinaRealizacionDetalle, RutinaRealizacionPayload, HistorialRutinaPayload,
     EstadisticaSerieRow
 };
+use chrono::{Datelike, Local, NaiveDate};
+use std::collections::HashSet;
+use serde_json::json;
 
 
 // ==========================================
@@ -186,4 +189,80 @@ pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Js
     ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
 
     Ok(Json(stats))
+}
+
+pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json<serde_json::Value>, String> {
+    let meta_dias = sqlx::query!("SELECT valor FROM ajustes_usuario WHERE clave = 'racha_entrenamiento'")
+        .fetch_optional(&pool).await.unwrap_or(None)
+        .and_then(|r| r.valor.parse::<i32>().ok()).unwrap_or(4);
+
+    let rows = sqlx::query!("SELECT DISTINCT DATE(fecha_fin) as fecha FROM historial_rutinas ORDER BY fecha DESC")
+        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+
+    let mut trained_dates: HashSet<NaiveDate> = HashSet::new();
+    for r in rows { if let Some(d) = r.fecha { trained_dates.insert(d); } }
+
+    let today = Local::now().date_naive();
+    let current_week_start = today - chrono::Duration::days(today.weekday().num_days_from_monday() as i64);
+
+    let mut racha_count = 0;
+    let mut racha_start = today;
+    let mut check_week_start = current_week_start;
+
+    let mut current_week_trained = 0;
+    for i in 0..7 {
+        let d = current_week_start + chrono::Duration::days(i);
+        if trained_dates.contains(&d) { current_week_trained += 1; }
+    }
+
+    let days_left_in_week = 7 - (today.weekday().num_days_from_monday() as i32 + 1);
+    let current_week_valid = (current_week_trained + days_left_in_week) >= meta_dias;
+
+    // Si la semana actual está matemáticamente rota, solo contamos los días consecutivos desde hoy hacia atrás.
+    if !current_week_valid {
+        let mut curr = today;
+        while trained_dates.contains(&curr) {
+            racha_count += 1;
+            racha_start = curr;
+            curr -= chrono::Duration::days(1);
+        }
+        return Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })));
+    }
+
+    // La semana actual es válida. Contamos los días entrenados esta semana hasta hoy.
+    let mut curr = today;
+    while curr >= check_week_start {
+        if trained_dates.contains(&curr) { racha_count += 1; racha_start = curr; }
+        curr -= chrono::Duration::days(1);
+    }
+
+    check_week_start -= chrono::Duration::days(7);
+    let mut valid_weeks_chain = true;
+
+    while valid_weeks_chain {
+        let mut week_trained = 0;
+        for i in 0..7 {
+            let d = check_week_start + chrono::Duration::days(i);
+            if trained_dates.contains(&d) { week_trained += 1; }
+        }
+
+        if week_trained >= meta_dias {
+            for i in (0..7).rev() {
+                let d = check_week_start + chrono::Duration::days(i);
+                if trained_dates.contains(&d) { racha_count += 1; racha_start = d; }
+            }
+            check_week_start -= chrono::Duration::days(7);
+        } else {
+            // Cadena de semanas rota. Sumamos los días consecutivos que enganchen con la última semana válida
+            valid_weeks_chain = false;
+            let mut d = check_week_start + chrono::Duration::days(6);
+            while trained_dates.contains(&d) {
+                racha_count += 1;
+                racha_start = d;
+                d -= chrono::Duration::days(1);
+            }
+        }
+    }
+
+    Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })))
 }

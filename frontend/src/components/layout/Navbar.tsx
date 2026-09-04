@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Moon, Scale, Droplet, Menu, X, User, Settings, Pill, Stethoscope, Dumbbell, ChevronDown, HeartPulse, Footprints } from 'lucide-react';
+import { Activity, Moon, Scale, Droplet, Menu, X, User, Settings, Pill, Stethoscope, Dumbbell, ChevronDown, HeartPulse, Footprints, RefreshCw } from 'lucide-react';
 import { useAjustes } from '../../context/AjustesContext';
 
 export const Navbar = () => {
@@ -9,6 +9,9 @@ export const Navbar = () => {
   
   const [isSaludDropdownOpen, setIsSaludDropdownOpen] = useState(false);
   const [isEjercicioDropdownOpen, setIsEjercicioDropdownOpen] = useState(false);
+  
+  // ESTADO PARA LA SINCRONIZACIÓN
+  const [isSyncing, setIsSyncing] = useState(false);
   
   const saludRef = useRef<HTMLDivElement>(null);
   const ejercicioRef = useRef<HTMLDivElement>(null);
@@ -24,6 +27,27 @@ export const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // LÓGICA DEL BOTÓN DE SINCRONIZAR
+  const handleSync = async () => {
+    if (isSyncing) return; // Evita doble clic
+    setIsSyncing(true);
+    
+    try {
+      const res = await fetch('/api/auth/google/sync', { method: 'POST' });
+      if (res.ok) {
+        // Lanzamos los eventos para actualizar el estado global de la app
+        window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'pasos' }));
+        window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'sueno' }));
+        // Recargamos sutilmente la página para garantizar que todos los datos y gráficas se redibujen
+        window.location.reload(); 
+      }
+    } catch (e) {
+      console.error("Error al sincronizar con Google Fit:", e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const navItems = [
     { path: '/', icon: Activity, label: 'Resumen', activeColor: 'text-purple-600 bg-purple-50' },
@@ -76,7 +100,7 @@ export const Navbar = () => {
               <Activity className="w-5 h-5" strokeWidth={location.pathname === '/' ? 2.5 : 2} /><span className="text-sm">Resumen</span>
             </Link>
 
-            {/* DROPDOWN EJERCICIO (Ahora con icono de Pesa y color Azul Índigo) */}
+            {/* DROPDOWN EJERCICIO */}
             <div className="relative" ref={ejercicioRef}>
               <button onClick={() => { setIsEjercicioDropdownOpen(!isEjercicioDropdownOpen); setIsSaludDropdownOpen(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 ${isEjercicioActive || isEjercicioDropdownOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}>
                 <Dumbbell className="w-5 h-5" strokeWidth={isEjercicioActive ? 2.5 : 2} />
@@ -124,6 +148,16 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center justify-end gap-1 md:gap-2 w-1/3 md:w-auto">
+          {/* BOTÓN DE SINCRONIZAR */}
+          <button 
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="p-2 md:p-2.5 rounded-xl text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+            title="Sincronizar con Google Fit"
+          >
+            <RefreshCw className={`w-6 h-6 md:w-5 md:h-5 ${isSyncing ? 'animate-spin text-indigo-500' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+          </button>
+          
           <Link to="/ajustes" className="p-2 md:p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"><Settings className="w-6 h-6 md:w-5 md:h-5" /></Link>
           <Link to="/usuario" className="p-2 md:p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"><User className="w-6 h-6 md:w-5 md:h-5" /></Link>
         </div>

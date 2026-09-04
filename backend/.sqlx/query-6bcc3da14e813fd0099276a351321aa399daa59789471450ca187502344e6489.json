@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT MAX(fecha) as f FROM pesos",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "f",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "6bcc3da14e813fd0099276a351321aa399daa59789471450ca187502344e6489"
+}

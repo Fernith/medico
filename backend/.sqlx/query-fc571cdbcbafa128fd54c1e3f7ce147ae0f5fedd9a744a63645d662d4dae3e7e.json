@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT DISTINCT DATE(fecha_fin) as fecha FROM historial_rutinas ORDER BY fecha DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "fecha",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "fc571cdbcbafa128fd54c1e3f7ce147ae0f5fedd9a744a63645d662d4dae3e7e"
+}

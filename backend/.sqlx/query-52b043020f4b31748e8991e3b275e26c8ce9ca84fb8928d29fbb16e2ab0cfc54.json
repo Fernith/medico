@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT MAX(fecha) as f FROM medicion",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "f",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "52b043020f4b31748e8991e3b275e26c8ce9ca84fb8928d29fbb16e2ab0cfc54"
+}
