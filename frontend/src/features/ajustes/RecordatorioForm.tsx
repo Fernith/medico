@@ -9,6 +9,7 @@ export interface Recordatorio {
   descripcion?: string;
   dias: number;
   entidad: string;
+  proxima_fecha?: string | null;
 }
 
 interface RecordatorioFormProps {
@@ -17,13 +18,24 @@ interface RecordatorioFormProps {
   onCancel: () => void;
 }
 
+// Función auxiliar para obtener YYYY-MM-DD en hora local segura
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const isEditing = !!initialData;
   const [formData, setFormData] = useState<Recordatorio>({
-    clave: '', nombre: '', descripcion: '', dias: 7, entidad: 'peso'
+    clave: '', nombre: '', descripcion: '', dias: 7, entidad: 'fecha', proxima_fecha: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Límite mínimo: Hoy (Así bloqueamos fechas anteriores siempre)
+  const hoyStr = getLocalDateString(new Date());
 
   useEffect(() => {
     if (initialData) setFormData(initialData);
@@ -34,6 +46,20 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
     setIsSubmitting(true);
     setError(null);
 
+    // Validación estricta tanto al crear como al editar
+    if (formData.entidad === 'fecha') {
+      if (!formData.proxima_fecha) {
+        setError("Debes seleccionar una fecha de inicio.");
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.proxima_fecha < hoyStr) {
+        setError("La fecha no puede ser anterior al día de hoy.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const url = isEditing ? `/api/recordatorios/${formData.clave}` : '/api/recordatorios';
     const method = isEditing ? 'PUT' : 'POST';
 
@@ -43,7 +69,8 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          dias: Number(formData.dias)
+          dias: Number(formData.dias),
+          proxima_fecha: formData.entidad === 'fecha' ? formData.proxima_fecha : null
         })
       });
 
@@ -59,6 +86,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
   };
 
   const entidadesOpciones = [
+    { value: 'fecha', label: 'Seleccionar fecha (Manual)' },
     { value: 'peso', label: 'Báscula (Peso)' },
     { value: 'medicion', label: 'Cinta Métrica (Medidas)' },
     { value: 'pasos', label: 'Actividad (Pasos)' },
@@ -74,7 +102,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
         <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><BellRing className="w-6 h-6" /></div>
         <div>
           <h2 className="text-xl font-bold text-slate-800">{isEditing ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}</h2>
-          <p className="text-sm text-slate-500 font-medium">Configura cada cuántos días quieres que te avise.</p>
+          <p className="text-sm text-slate-500 font-medium">Configura tus alertas dinámicas.</p>
         </div>
       </div>
 
@@ -83,9 +111,9 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
           label="Clave (ID Interno)" 
           value={formData.clave} 
           onChange={e => setFormData({ ...formData, clave: e.target.value })} 
-          placeholder="ej: rec_peso" 
+          placeholder="ej: rec_agua" 
           required 
-          disabled={isEditing} // BLOQUEADO AL EDITAR
+          disabled={isEditing} 
           colorTheme={inputTheme}
         />
         <div className="space-y-1">
@@ -93,7 +121,8 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
           <Select 
             value={formData.entidad} 
             onChange={(val) => setFormData({ ...formData, entidad: val as string })} 
-            options={entidadesOpciones} 
+            options={entidadesOpciones}
+            disabled={isEditing} // BLOQUEADO AL EDITAR
           />
         </div>
       </div>
@@ -104,14 +133,14 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
             label="Nombre Público" 
             value={formData.nombre} 
             onChange={e => setFormData({ ...formData, nombre: e.target.value })} 
-            placeholder="ej: Toca pesarse" 
+            placeholder="ej: Revisión médica" 
             required 
             colorTheme={inputTheme}
           />
         </div>
         <Input 
           type="number" 
-          label="Avisar a los (Días)" 
+          label="Avisar cada (Días)" 
           value={formData.dias} 
           onChange={e => setFormData({ ...formData, dias: Number(e.target.value) })} 
           min="1" 
@@ -119,6 +148,21 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
           colorTheme={inputTheme}
         />
       </div>
+
+      {/* RENDER CONDICIONAL SI ES POR FECHA */}
+      {formData.entidad === 'fecha' && (
+        <div className="w-full sm:w-1/2">
+          <Input 
+            type="date"
+            label="Próximo Aviso" 
+            value={formData.proxima_fecha || ''} 
+            onChange={e => setFormData({ ...formData, proxima_fecha: e.target.value })} 
+            min={hoyStr} // BLOQUEA FECHAS ANTERIORES SIEMPRE (CREAR Y EDITAR)
+            required 
+            colorTheme={inputTheme}
+          />
+        </div>
+      )}
 
       <div className="space-y-1">
         <label className="block text-sm font-bold text-slate-700">Descripción / Mensaje</label>

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT clave, nombre, descripcion, dias, entidad FROM recordatorios",
+  "query": "SELECT clave, nombre, descripcion, dias, entidad, proxima_fecha FROM recordatorios",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "entidad",
         "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "proxima_fecha",
+        "type_info": "Date"
       }
     ],
     "parameters": {
@@ -37,8 +42,9 @@
       false,
       true,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "25b9c7bf8c1c15093e0597657eb91a89866547edbda06912c57d8f4be5bfa026"
+  "hash": "88d8475c94901badd7d8c0b1039ee07dda76f7b53f123783aa4ded04f3ea59f6"
 }

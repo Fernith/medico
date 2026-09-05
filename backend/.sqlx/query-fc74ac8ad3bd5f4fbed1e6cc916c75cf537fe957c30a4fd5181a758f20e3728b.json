@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO recordatorios (clave, nombre, descripcion, dias, entidad, proxima_fecha) VALUES ($1, $2, $3, $4, $5, $6)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Int4",
+        "Varchar",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fc74ac8ad3bd5f4fbed1e6cc916c75cf537fe957c30a4fd5181a758f20e3728b"
+}

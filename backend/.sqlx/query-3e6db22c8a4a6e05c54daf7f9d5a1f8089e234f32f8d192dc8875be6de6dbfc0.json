@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE recordatorios SET nombre = $1, descripcion = $2, dias = $3, entidad = $4 WHERE clave = $5",
+  "query": "UPDATE recordatorios SET nombre = $1, descripcion = $2, dias = $3, entidad = $4, proxima_fecha = $5 WHERE clave = $6",
   "describe": {
     "columns": [],
     "parameters": {
@@ -9,10 +9,11 @@
         "Text",
         "Int4",
         "Varchar",
+        "Date",
         "Text"
       ]
     },
     "nullable": []
   },
-  "hash": "3a0801d34cd79c15f67e243834a3fed5541433abda22b140ca4d41b848fac161"
+  "hash": "3e6db22c8a4a6e05c54daf7f9d5a1f8089e234f32f8d192dc8875be6de6dbfc0"
 }

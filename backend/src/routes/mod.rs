@@ -108,6 +108,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // RECORDATORIOS
         .route("/api/recordatorios", get(recordatorio::get_recordatorios).post(recordatorio::create_recordatorio))
         .route("/api/recordatorios/:clave", put(recordatorio::update_recordatorio).delete(recordatorio::delete_recordatorio))
+        .route("/api/recordatorios/:clave/posponer", patch(recordatorio::posponer_recordatorio))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)

@@ -34,6 +34,14 @@ export const RecordatoriosTabla: React.FC = () => {
 
   const modalTheme = { titleColor: 'text-indigo-900', headerBorder: 'border-indigo-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-indigo-600', modalBorder: 'border-indigo-400' };
 
+  const getEntidadLabel = (r: Recordatorio) => {
+    if (r.entidad === 'fecha' && r.proxima_fecha) {
+      return new Date(r.proxima_fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    const map: any = { 'peso': 'BÁSCULA', 'medicion': 'MEDIDAS', 'pasos': 'PASOS', 'sueno': 'SUEÑO', 'entrenamiento': 'ENTRENAMIENTO' };
+    return map[r.entidad] || r.entidad.toUpperCase();
+  };
+
   return (
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col mt-6">
@@ -52,8 +60,8 @@ export const RecordatoriosTabla: React.FC = () => {
               <tr>
                 <th className="px-6 py-3 font-semibold">Clave</th>
                 <th className="px-6 py-3 font-semibold">Nombre & Descripción</th>
-                <th className="px-6 py-3 font-semibold text-center">Límite Días</th>
-                <th className="px-6 py-3 font-semibold text-center">Sección BBDD</th>
+                <th className="px-6 py-3 font-semibold text-center">Frecuencia</th>
+                <th className="px-6 py-3 font-semibold text-center">Referencia</th>
                 <th className="px-6 py-3 font-semibold text-right">Acciones</th>
               </tr>
             </thead>
@@ -66,10 +74,12 @@ export const RecordatoriosTabla: React.FC = () => {
                     {r.descripcion && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{r.descripcion}</p>}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">{r.dias}</span>
+                    <span className="font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">Cada {r.dias} d</span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{r.entidad}</span>
+                    <span className={`text-xs font-bold tracking-widest ${r.entidad === 'fecha' ? 'text-blue-500' : 'text-slate-500'}`}>
+                      {getEntidadLabel(r)}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-3">
                     <button onClick={() => setEditItem(r)} className="text-slate-400 hover:text-indigo-500 transition-colors"><Edit2 className="w-5 h-5 inline" /></button>

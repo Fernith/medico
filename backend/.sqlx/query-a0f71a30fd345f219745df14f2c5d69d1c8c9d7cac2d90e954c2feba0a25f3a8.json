@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE recordatorios SET proxima_fecha = $1 WHERE clave = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a0f71a30fd345f219745df14f2c5d69d1c8c9d7cac2d90e954c2feba0a25f3a8"
+}

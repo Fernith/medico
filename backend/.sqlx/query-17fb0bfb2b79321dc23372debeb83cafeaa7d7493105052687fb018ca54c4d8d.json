@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT dias FROM recordatorios WHERE clave = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "dias",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "17fb0bfb2b79321dc23372debeb83cafeaa7d7493105052687fb018ca54c4d8d"
+}
