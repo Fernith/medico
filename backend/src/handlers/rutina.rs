@@ -209,33 +209,51 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
     let mut racha_start = today;
     let mut check_week_start = current_week_start;
 
-    let mut current_week_trained = 0;
+    // 1. Verificar si la semana actual AÚN puede ser válida matemáticamente
+    let mut max_possible_this_week = 0;
     for i in 0..7 {
         let d = current_week_start + chrono::Duration::days(i);
-        if trained_dates.contains(&d) { current_week_trained += 1; }
+        // Un día suma como "posible" si ya hemos entrenado OR si es hoy/futuro
+        if trained_dates.contains(&d) || d >= today {
+            max_possible_this_week += 1;
+        }
     }
+    
+    let current_week_valid = max_possible_this_week >= meta_dias;
 
-    let days_left_in_week = 7 - (today.weekday().num_days_from_monday() as i32 + 1);
-    let current_week_valid = (current_week_trained + days_left_in_week) >= meta_dias;
-
-    // Si la semana actual está matemáticamente rota, solo contamos los días consecutivos desde hoy hacia atrás.
+    // 2. Si la semana actual está matemáticamente rota, solo contamos los días consecutivos hacia atrás.
     if !current_week_valid {
         let mut curr = today;
+        // Si hoy no se ha entrenado, evaluamos desde ayer para no truncar la racha visible
+        if !trained_dates.contains(&curr) {
+            curr -= chrono::Duration::days(1);
+        }
+        
         while trained_dates.contains(&curr) {
             racha_count += 1;
             racha_start = curr;
             curr -= chrono::Duration::days(1);
         }
+        
+        // Si no hay racha en absoluto, reseteamos la fecha a hoy
+        if racha_count == 0 {
+            racha_start = today; 
+        }
+        
         return Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })));
     }
 
-    // La semana actual es válida. Contamos los días entrenados esta semana hasta hoy.
+    // 3. La semana actual es válida. Contamos los días entrenados esta semana hasta hoy.
     let mut curr = today;
     while curr >= check_week_start {
-        if trained_dates.contains(&curr) { racha_count += 1; racha_start = curr; }
+        if trained_dates.contains(&curr) { 
+            racha_count += 1; 
+            racha_start = curr; 
+        }
         curr -= chrono::Duration::days(1);
     }
 
+    // 4. Analizamos semanas anteriores
     check_week_start -= chrono::Duration::days(7);
     let mut valid_weeks_chain = true;
 
@@ -247,9 +265,13 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
         }
 
         if week_trained >= meta_dias {
+            // Semana válida: Sumamos todos los días entrenados de esa semana
             for i in (0..7).rev() {
                 let d = check_week_start + chrono::Duration::days(i);
-                if trained_dates.contains(&d) { racha_count += 1; racha_start = d; }
+                if trained_dates.contains(&d) { 
+                    racha_count += 1; 
+                    racha_start = d; 
+                }
             }
             check_week_start -= chrono::Duration::days(7);
         } else {
