@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, ReferenceLine, Label } from 'recharts';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { type ChartDataPoint, calcularDistanciaKm } from '../../utils/pasosCalculations';
@@ -17,29 +17,44 @@ interface PasosGraficaProps {
   avgPasos: number;
 }
 
-const CustomTooltip = ({ active, payload, alturaCm, sexo }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const pasos = data.valor;
-    const distancia = calcularDistanciaKm(pasos, alturaCm, sexo);
-    
-    const dateText = data.isMonth 
-      ? `Mes: ${data.name}` 
-      : (data.fullDate ? new Date(data.fullDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : data.name);
+// 1. Tarjeta Visual Compartida
+const PasosInfoCard = ({ data, alturaCm, sexo, isTooltip = false }: any) => {
+  const pasos = data.valor;
+  const distancia = calcularDistanciaKm(pasos, alturaCm, sexo);
+  
+  const dateText = data.isMonth 
+    ? `Mes: ${data.name}` 
+    : (data.fullDate ? new Date(data.fullDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }) : data.name);
 
+  return (
+    <div className={isTooltip ? "bg-white p-4 rounded-3xl shadow-xl border border-slate-100 text-center min-w-[160px]" : "w-full animate-in fade-in slide-in-from-bottom-2 duration-300 text-center"}>
+      <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">{dateText}</p>
+      
+      <div className="bg-orange-50/80 rounded-2xl p-3 mb-2 border border-orange-100/50">
+        <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-0.5">Pasos</p>
+        <p className="text-3xl font-black text-orange-600 leading-none">{pasos.toLocaleString('es-ES')}</p>
+      </div>
+      
+      <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Distancia</p>
+        <p className="text-sm font-black text-slate-700 leading-none">{distancia.toFixed(2)} km</p>
+      </div>
+    </div>
+  );
+};
+
+// 2. El "Caballo de Troya" (SyncTooltip)
+const SyncTooltip = ({ active, payload, onUpdate, alturaCm, sexo }: any) => {
+  useEffect(() => {
+    if (active && payload && payload.length) {
+      onUpdate(payload[0].payload);
+    }
+  }, [active, payload, onUpdate]);
+
+  if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-4 rounded-3xl shadow-xl border border-slate-100 text-center min-w-[160px] animate-in zoom-in-95 duration-200">
-        <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">{dateText}</p>
-        
-        <div className="bg-orange-50/80 rounded-2xl p-3 mb-2 border border-orange-100/50">
-          <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-0.5">Pasos</p>
-          <p className="text-3xl font-black text-orange-600 leading-none">{pasos.toLocaleString('es-ES')}</p>
-        </div>
-        
-        <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Distancia</p>
-          <p className="text-sm font-black text-slate-700 leading-none">{distancia.toFixed(2)} km</p>
-        </div>
+      <div className="hidden sm:block">
+        <PasosInfoCard data={payload[0].payload} alturaCm={alturaCm} sexo={sexo} isTooltip={true} />
       </div>
     );
   }
@@ -48,7 +63,7 @@ const CustomTooltip = ({ active, payload, alturaCm, sexo }: any) => {
 
 // Componente genérico para incrustar valores en el Eje Y tapando las marcas por defecto
 const CustomYAxisLabel = ({ viewBox, value, color }: any) => {
-  if (!viewBox || value === undefined) return null; // Prevenimos posibles renderizados en vacío
+  if (!viewBox || value === undefined) return null;
 
   const x = viewBox.x - 8; 
   const y = viewBox.y;
@@ -68,6 +83,23 @@ const CustomYAxisLabel = ({ viewBox, value, color }: any) => {
 export const PasosGrafica: React.FC<PasosGraficaProps> = ({ 
   data, viewMode, setViewMode, refDate, setRefDate, startPeriod, endPeriod, alturaCm, sexo, objetivoDiario, avgPasos 
 }) => {
+  
+  const [selectedData, setSelectedData] = useState<ChartDataPoint | null>(null);
+
+  // Seleccionar automáticamente el último dato visible al cargar
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setSelectedData(data[data.length - 1]);
+    }
+  }, [data]);
+
+  const handleUpdate = useCallback((newData: ChartDataPoint) => {
+    setSelectedData((prev) => {
+      if (!prev || prev.name !== newData.name) return newData;
+      return prev;
+    });
+  }, []);
+
   const hoy = new Date();
   const currentYear = hoy.getFullYear();
   const currentMonth = hoy.getMonth();
@@ -104,7 +136,6 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
     if (!data || data.length === 0) return defaultMax;
     
     const maxDataVal = Math.max(...data.map(d => d.valor));
-    // Nos aseguramos de que el eje crezca si la media o la meta son mayores que los datos
     const maxVal = Math.max(maxDataVal, metaLine, avgPasos);
     
     if (viewMode === 'A') {
@@ -160,8 +191,8 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-orange-100">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-orange-100 flex flex-col h-auto sm:h-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 shrink-0">
         <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-max border border-slate-200 shrink-0">
           {['S', 'M', 'A'].map(mode => (
             <button key={mode} onClick={() => setViewMode(mode as any)} className={`flex-1 sm:flex-none sm:px-8 py-2 font-black text-sm rounded-lg transition-all ${viewMode === mode ? 'bg-white text-orange-600 shadow-sm border border-slate-200/60' : 'text-slate-500 hover:text-slate-800'}`}>
@@ -179,7 +210,7 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
         </div>
       </div>
 
-      <div className="h-64 w-full">
+      <div className="h-[250px] sm:h-64 w-full shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -190,29 +221,17 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
             <Tooltip 
               cursor={{fill: '#fff7ed'}} 
               wrapperStyle={{ zIndex: 1000, outline: 'none' }}
-              content={<CustomTooltip alturaCm={alturaCm} sexo={sexo} />}
+              content={<SyncTooltip onUpdate={handleUpdate} alturaCm={alturaCm} sexo={sexo} />}
             />
 
-            {/* LÍNEA DE MEDIA: ¡Ahora sí le pasamos el value={avgPasos}! */}
             {avgPasos > 0 && (
-              <ReferenceLine 
-                y={avgPasos} 
-                stroke="#94a3b8" 
-                strokeDasharray="3 3" 
-                strokeWidth={2}
-              >
+              <ReferenceLine y={avgPasos} stroke="#94a3b8" strokeDasharray="3 3" strokeWidth={2}>
                 <Label position="insideTopRight" value="Media" fill="#94a3b8" fontSize={11} fontWeight="bold" />
                 <Label content={<CustomYAxisLabel color="#94a3b8" value={avgPasos} />} />
               </ReferenceLine>
             )}
 
-            {/* LÍNEA DE META: ¡Ahora sí le pasamos el value={metaLine}! */}
-            <ReferenceLine 
-              y={metaLine} 
-              stroke="#f97316" 
-              strokeDasharray="4 4" 
-              strokeWidth={2}
-            >
+            <ReferenceLine y={metaLine} stroke="#f97316" strokeDasharray="4 4" strokeWidth={2}>
               <Label position="insideTopLeft" value={viewMode === 'A' ? 'Meta Mensual' : 'Meta'} fill="#f97316" fontSize={11} fontWeight="bold" />
               <Label content={<CustomYAxisLabel color="#f97316" value={metaLine} />} />
             </ReferenceLine>
@@ -220,6 +239,15 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
             <Bar dataKey="valor" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={50} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Panel Inferior Fijo en Móvil */}
+      <div className="sm:hidden mt-4 pt-4 border-t border-slate-100 flex-1">
+        {selectedData ? (
+          <PasosInfoCard data={selectedData} alturaCm={alturaCm} sexo={sexo} isTooltip={false} />
+        ) : (
+          <p className="text-center text-slate-400 text-sm font-medium py-4">Toca un día para ver detalles</p>
+        )}
       </div>
     </div>
   );

@@ -101,3 +101,8 @@ pub struct EstadisticaSerieRow {
     pub carga_completada: Option<f64>,
     pub unidad_carga: Option<String>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct DuplicarPayload {
+    pub nombre: String,
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo)\n         SELECT $1, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo\n         FROM realizacion_ejercicio WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ea0dc1062a6da3ceda2ee56bd33e5e476486e9065b899234dcc81cb27bcc5420"
+}

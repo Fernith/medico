@@ -159,6 +159,7 @@ pub async fn get_realizaciones(State(pool): State<PgPool>) -> Result<Json<Vec<Re
         r#"
         SELECT 
             r.id, 
+            r.nombre,
             r.ejercicio_id, 
             e.nombre as "ejercicio_nombre", 
             e.imagen as "ejercicio_imagen?", 
@@ -185,16 +186,17 @@ pub async fn get_realizaciones(State(pool): State<PgPool>) -> Result<Json<Vec<Re
 pub async fn create_realizacion(State(pool): State<PgPool>, Json(payload): Json<RealizacionPayload>) -> Result<Json<RealizacionEjercicio>, String> {
     let registro = sqlx::query!(
         r#"
-        INSERT INTO realizacion_ejercicio (ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING id
         "#,
-        payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga, 
+        payload.nombre, payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga, 
         payload.series, payload.reps_min, payload.reps_max, payload.unidad_objetivo, payload.descanso
     ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
 
     Ok(Json(RealizacionEjercicio {
         id: registro.id, 
+        nombre: payload.nombre,
         ejercicio_id: payload.ejercicio_id, 
         ejercicio_nombre: "".to_string(),
         ejercicio_imagen: None, 
@@ -216,10 +218,10 @@ pub async fn update_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>
     sqlx::query!(
         r#"
         UPDATE realizacion_ejercicio 
-        SET ejercicio_id=$1, equipamiento_id=$2, carga_actual=$3, unidad_carga=$4, series=$5, reps_min=$6, reps_max=$7, unidad_objetivo=$8, descanso=$9
-        WHERE id=$10
+        SET nombre=$1, ejercicio_id=$2, equipamiento_id=$3, carga_actual=$4, unidad_carga=$5, series=$6, reps_min=$7, reps_max=$8, unidad_objetivo=$9, descanso=$10
+        WHERE id=$11
         "#,
-        payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga,
+        payload.nombre, payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga,
         payload.series, payload.reps_min, payload.reps_max, payload.unidad_objetivo, payload.descanso, id
     ).execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
@@ -249,6 +251,16 @@ pub async fn cambiar_estado_realizacion(
 ) -> Result<Json<()>, String> {
     sqlx::query!("UPDATE realizacion_ejercicio SET activo = $1 WHERE id=$2", payload.activo, id)
         .execute(&pool).await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}
+
+pub async fn duplicar_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<crate::models::ejercicio::DuplicarPayload>) -> Result<Json<()>, String> {
+    sqlx::query!(
+        "INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo)
+         SELECT $1, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo
+         FROM realizacion_ejercicio WHERE id = $2",
+        payload.nombre, id
+    ).execute(&pool).await.map_err(|e| e.to_string())?;
     Ok(Json(()))
 }
 

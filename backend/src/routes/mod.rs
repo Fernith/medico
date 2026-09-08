@@ -56,15 +56,15 @@ pub fn construir_router(pool: PgPool) -> Router {
         
         // REALIZACIONES
         .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
-        // NUEVO: delete = borrado físico, patch = cambio de estado
         .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion_fisica))
         .route("/api/realizaciones/:id/estado", patch(ejercicio::cambiar_estado_realizacion))
+        .route("/api/realizaciones/:id/duplicar", post(ejercicio::duplicar_realizacion))
         
         // --- RUTINAS Y PLANIFICACIÓN ---
         .route("/api/rutinas", get(rutina::get_rutinas).post(rutina::create_rutina))
-        // NUEVO: delete = borrado físico, patch = cambio de estado
         .route("/api/rutinas/:id", put(rutina::update_rutina).delete(rutina::delete_rutina_fisico))
         .route("/api/rutinas/:id/estado", patch(rutina::cambiar_estado_rutina))
+        .route("/api/rutinas/:id/duplicar", post(rutina::duplicar_rutina))
         // RACHA RUTINA
         .route("/api/rutinas/racha", get(rutina::get_racha_entrenamientos))
         

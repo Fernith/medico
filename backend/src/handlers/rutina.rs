@@ -288,3 +288,24 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
 
     Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })))
 }
+
+pub async fn duplicar_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<crate::models::rutina::DuplicarPayload>) -> Result<Json<()>, String> {
+    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+    
+    // 1. Copiamos la rutina maestra
+    let nueva_rutina = sqlx::query!(
+        "INSERT INTO rutinas (nombre, descripcion, color, activo)
+         SELECT $1, descripcion, color, activo FROM rutinas WHERE id = $2 RETURNING id",
+        payload.nombre, id
+    ).fetch_one(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    // 2. Copiamos todos los ejercicios asociados (apuntando a la nueva rutina)
+    sqlx::query!(
+        "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior)
+         SELECT $1, realizacion_id, fase, orden, descanso_posterior FROM rutina_realizacion WHERE rutina_id = $2",
+        nueva_rutina.id, id
+    ).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+
+    tx.commit().await.map_err(|e| e.to_string())?;
+    Ok(Json(()))
+}

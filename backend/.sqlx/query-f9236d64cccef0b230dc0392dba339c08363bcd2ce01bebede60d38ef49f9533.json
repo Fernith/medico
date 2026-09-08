@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO realizacion_ejercicio (ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n        RETURNING id\n        ",
+  "query": "\n        INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)\n        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n        RETURNING id\n        ",
   "describe": {
     "columns": [
       {
@@ -11,6 +11,7 @@
     ],
     "parameters": {
       "Left": [
+        "Text",
         "Uuid",
         "Uuid",
         "Float8",
@@ -26,5 +27,5 @@
       false
     ]
   },
-  "hash": "37fa6d1ba86ed6f4bbb5b83e6d2c84804217024975d178f528a4fe1c865b3009"
+  "hash": "f9236d64cccef0b230dc0392dba339c08363bcd2ce01bebede60d38ef49f9533"
 }

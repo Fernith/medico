@@ -3,7 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
 import { RutinaForm, type Rutina, type RutinaRealizacionDetalle } from './RutinaForm';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical, ChevronLeft, ChevronRight, Search, Filter, RefreshCw, Archive } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical, ChevronLeft, ChevronRight, Search, Filter, RefreshCw, Archive, Copy } from 'lucide-react';
+import { DuplicarForm } from './DuplicarForm';
 
 export const RutinasTabla: React.FC = () => {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
@@ -24,6 +25,8 @@ export const RutinasTabla: React.FC = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [duplicateItem, setDuplicateItem] = useState<Rutina | null>(null);
 
   const fetchRutinas = async () => {
     try {
@@ -88,6 +91,18 @@ export const RutinasTabla: React.FC = () => {
       } catch (e) { console.error("Error cargando detalle", e); }
     }
   };
+
+  const handleDuplicate = async (nuevoNombre: string) => {
+  if (!duplicateItem) return;
+  const res = await fetch(`/api/rutinas/${duplicateItem.id}/duplicar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre: nuevoNombre })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
+  setDuplicateItem(null);
+};
 
   const toggleFase = (rutinaId: string, fase: string) => setCollapsedFases(prev => ({ ...prev, [`${rutinaId}_${fase}`]: !prev[`${rutinaId}_${fase}`] }));
 
@@ -174,7 +189,7 @@ export const RutinasTabla: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
                         <button onClick={() => setEditItem(rutina)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
-                        
+                        <button onClick={() => setDuplicateItem(rutina)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Duplicar"><Copy className="w-5 h-5 inline" /></button>
                         {/* INACTIVAR / RESTAURAR */}
                         {isActivo ? (
                           <button onClick={() => setArchiveId(rutina.id)} className="text-slate-400 hover:text-amber-500 transition-colors" title="Archivar/Inactivar"><Archive className="w-5 h-5 inline" /></button>
@@ -368,6 +383,16 @@ export const RutinasTabla: React.FC = () => {
         description="⚠️ ATENCIÓN: Esta acción eliminará la rutina por completo de la base de datos. Todo el historial de entrenamientos asociado a ella quedará desvinculado (borrado físico). Solo haz esto si creaste la rutina por error." 
         variant="danger" confirmText="Borrar para siempre"
       />
+
+      <Modal isOpen={!!duplicateItem} onClose={() => setDuplicateItem(null)} title="Duplicar Rutina Completa" size="md" colorTheme={modalTheme}>
+        {duplicateItem && (
+          <DuplicarForm 
+            initialName={duplicateItem.nombre} 
+            onConfirm={handleDuplicate} 
+            onCancel={() => setDuplicateItem(null)} 
+          />
+        )}
+      </Modal>
     </>
   );
 };

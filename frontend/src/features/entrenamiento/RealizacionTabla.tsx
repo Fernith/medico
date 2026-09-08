@@ -3,7 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RealizacionForm, type RealizacionEjercicio } from './RealizacionForm';
 import { Select } from '../../components/ui/Select';
-import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, Filter, Search, ChevronLeft, ChevronRight, Archive, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, Filter, Search, ChevronLeft, ChevronRight, Archive, RefreshCw, Copy } from 'lucide-react';
+import { DuplicarForm } from './DuplicarForm';
 
 export const RealizacionTabla: React.FC = () => {
   const [realizaciones, setRealizaciones] = useState<RealizacionEjercicio[]>([]);
@@ -23,6 +24,8 @@ export const RealizacionTabla: React.FC = () => {
   
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [duplicateItem, setDuplicateItem] = useState<RealizacionEjercicio | null>(null);
 
   const fetchRealizaciones = async () => {
     try {
@@ -77,6 +80,18 @@ export const RealizacionTabla: React.FC = () => {
     }
     setReactivateId(r.id);
   };
+
+  const handleDuplicate = async (nuevoNombre: string) => {
+  if (!duplicateItem) return;
+  const res = await fetch(`/api/realizaciones/${duplicateItem.id}/duplicar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre: nuevoNombre })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
+  setDuplicateItem(null);
+};
 
   const modalTheme = { titleColor: 'text-indigo-900', headerBorder: 'border-indigo-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-indigo-600', modalBorder: 'border-indigo-400' };
   const selectTheme = { borderNormal: 'border-slate-200', borderActive: 'border-indigo-400 ring-4 ring-indigo-50', textSelected: 'text-indigo-900', iconColor: 'text-indigo-500', optionSelectedBg: 'bg-indigo-50', optionSelectedText: 'text-indigo-700', optionHoverBg: 'hover:bg-indigo-50/50', optionHoverText: 'hover:text-indigo-900', checkIcon: 'text-indigo-500' };
@@ -154,8 +169,12 @@ export const RealizacionTabla: React.FC = () => {
                         </button>
                       ) : (<div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><ImageIcon className="w-6 h-6" /></div>)}
                     </td>
-                    <td className={`px-4 py-3 font-bold whitespace-nowrap ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
-                      {r.ejercicio_nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className={`font-bold text-base ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
+                        {r.nombre || r.ejercicio_nombre} 
+                        {!isActivo && <span className="ml-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
+                      </div>
+                      {r.nombre && <div className="text-xs font-semibold text-slate-400 mt-0.5">{r.ejercicio_nombre}</div>}
                     </td>
                     <td className="px-4 py-3 text-center text-slate-700 font-bold">
                       {r.series ? `${r.series} x ` : ''}
@@ -181,7 +200,7 @@ export const RealizacionTabla: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
                       <button onClick={() => setEditItem(r)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
-                      
+                      <button onClick={() => setDuplicateItem(r)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Duplicar"><Copy className="w-5 h-5 inline" /></button>
                       {/* BOTÓN ARCHIVAR / RESTAURAR */}
                       {isActivo ? (
                         <button onClick={() => setArchiveId(r.id)} className="text-slate-400 hover:text-amber-500 transition-colors" title="Archivar/Inactivar"><Archive className="w-5 h-5 inline" /></button>
@@ -278,6 +297,15 @@ export const RealizacionTabla: React.FC = () => {
         description={`No puedes restaurar esta configuración porque el ejercicio principal ("${blockedReactivateItem?.ejercicio_nombre}") está inactivo en el Diccionario de Ejercicios. Por favor, restaura primero el ejercicio maestro.`} 
         variant="danger" confirmText="Entendido" cancelText="Cerrar" hideCancel
       />
+      <Modal isOpen={!!duplicateItem} onClose={() => setDuplicateItem(null)} title="Duplicar Configuración" size="md" colorTheme={modalTheme}>
+        {duplicateItem && (
+          <DuplicarForm 
+            initialName={duplicateItem.nombre || duplicateItem.ejercicio_nombre} 
+            onConfirm={handleDuplicate} 
+            onCancel={() => setDuplicateItem(null)} 
+          />
+        )}
+      </Modal>
     </>
   );
 };

@@ -77,6 +77,7 @@ pub struct ReactivateEjercicioPayload {
 #[derive(Debug, Serialize, FromRow)]
 pub struct RealizacionEjercicio {
     pub id: Uuid,
+    pub nombre: Option<String>,
     pub ejercicio_id: Uuid,
     pub ejercicio_nombre: String,
     pub ejercicio_imagen: Option<String>,
@@ -96,6 +97,7 @@ pub struct RealizacionEjercicio {
 #[derive(Debug, Deserialize)]
 pub struct RealizacionPayload {
     pub ejercicio_id: Uuid,
+    pub nombre: Option<String>,
     pub equipamiento_id: Option<Uuid>,
     pub carga_actual: Option<f64>,
     pub unidad_carga: Option<String>,
@@ -109,4 +111,9 @@ pub struct RealizacionPayload {
 #[derive(Debug, Deserialize)]
 pub struct EstadoPayload {
     pub activo: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DuplicarPayload {
+    pub nombre: String,
 }

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior)\n         SELECT $1, realizacion_id, fase, orden, descanso_posterior FROM rutina_realizacion WHERE rutina_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e6bcf4b0854ac2bf3025cb28941e79a97e4794d8fb176a464e9696150868d68d"
+}

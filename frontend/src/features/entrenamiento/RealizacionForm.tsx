@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { Hash, Scale, Clock, Activity, Target, Dumbbell } from 'lucide-react';
+import { Hash, Scale, Clock, Activity, Target, Dumbbell, Type } from 'lucide-react'; // <-- Añadido Type
 import { type Ejercicio } from './EjercicioForm';
 
 export interface RealizacionEjercicio {
   id: string;
+  nombre?: string | null; // <-- NUEVO
   ejercicio_id: string;
   ejercicio_nombre: string;
   ejercicio_imagen: string;
@@ -34,6 +35,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
   const [equipamientos, setEquipamientos] = useState<{id: string, nombre: string}[]>([]);
 
   const [formData, setFormData] = useState({
+    nombre: initialData?.nombre || '', // <-- NUEVO
     ejercicio_id: initialData?.ejercicio_id || '',
     equipamiento_id: initialData?.equipamiento_id || '',
     carga_actual: initialData?.carga_actual?.toString() || '',
@@ -49,7 +51,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
     const fetchData = async () => {
       const [resEj, resEq] = await Promise.all([
         fetch('/api/ejercicios'),
-        fetch('/api/equipamiento') // Asegúrate de que esta es tu ruta en routes/mod.rs
+        fetch('/api/equipamiento') 
       ]);
       if (resEj.ok) setEjercicios(await resEj.json());
       if (resEq.ok) setEquipamientos(await resEq.json());
@@ -58,16 +60,28 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
   }, []);
 
   const handleChange = (campo: string, valor: any) => {
-    setFormData(prev => ({ ...prev, [campo]: valor }));
+    setFormData(prev => {
+      const newState = { ...prev, [campo]: valor };
+      // AUTORELLENADO DE NOMBRE:
+      if (campo === 'ejercicio_id') {
+        const ej = ejercicios.find(e => e.id === valor);
+        if (ej && (!prev.nombre || prev.nombre === (ejercicios.find(e => e.id === prev.ejercicio_id)?.nombre))) {
+          newState.nombre = ej.nombre;
+        }
+      }
+      return newState;
+    });
   };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!formData.ejercicio_id) { alert("Debes seleccionar un ejercicio"); return; }
+    if (!formData.nombre) { alert("Debes asignarle un nombre a esta configuración"); return; }
     
     setIsSubmitting(true);
     try {
       const payload = {
+        nombre: formData.nombre, // <-- NUEVO
         ejercicio_id: formData.ejercicio_id,
         equipamiento_id: formData.equipamiento_id || null,
         carga_actual: formData.carga_actual ? parseFloat(formData.carga_actual) : null,
@@ -102,10 +116,22 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
       <div className="space-y-4">
         
+        {/* NUEVO CAMPO NOMBRE OBLIGATORIO */}
+        <Input 
+          type="text" 
+          label="Nombre de esta Configuración" 
+          placeholder="Ej: Press Banca Fuerza 5x5" 
+          value={formData.nombre} 
+          onChange={(e) => handleChange('nombre', e.target.value)} 
+          required
+          colorTheme={inputTheme} 
+          icon={<Type className="w-5 h-5" />} 
+        />
+
         {/* FILA DE EJERCICIO Y EQUIPAMIENTO */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="block text-sm font-bold text-slate-700 ml-1">Ejercicio</label>
+            <label className="block text-sm font-bold text-slate-700 ml-1">Ejercicio Base</label>
             <Select 
               searchable
               value={formData.ejercicio_id}
@@ -186,7 +212,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
 
       <div className="flex gap-4 pt-4 border-t border-slate-100">
         <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
-        <button type="submit" disabled={isSubmitting || !formData.ejercicio_id} className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+        <button type="submit" disabled={isSubmitting || !formData.ejercicio_id || !formData.nombre} className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm">
           {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
         </button>
       </div>
