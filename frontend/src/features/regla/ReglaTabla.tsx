@@ -7,6 +7,23 @@ interface ReglaTablaProps {
   onDelete: (id: string) => void;
 }
 
+const CARAS = {
+  1: { emoji: '😫', color: 'bg-rose-400 border-rose-600' },
+  2: { emoji: '😔', color: 'bg-orange-400 border-orange-600' },
+  3: { emoji: '😐', color: 'bg-yellow-300 border-yellow-400' },
+  4: { emoji: '😊', color: 'bg-lime-400 border-lime-600' },
+  5: { emoji: '🤩', color: 'bg-emerald-600 border-emerald-700' },
+};
+
+// Formatea la fecha a "12 Sept 26"
+const formatFechaMola = (isoDate: string) => {
+  const d = new Date(isoDate);
+  const dia = d.getDate();
+  const mes = d.toLocaleDateString('es-ES', { month: 'short' });
+  const año = d.getFullYear().toString().slice(-2);
+  return `${dia} ${mes.charAt(0).toUpperCase() + mes.slice(1)} ${año}`;
+};
+
 export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-pink-100 flex flex-col max-h-[382px]">
@@ -14,41 +31,64 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
         <table className="w-full text-sm text-left relative">
           <thead className="text-xs text-purple-800 uppercase bg-pink-50 sticky top-0 z-20 shadow-sm">
             <tr>
-              <th scope="col" className="px-6 py-3">Inicio del periodo</th>
-              <th scope="col" className="px-6 py-3">Fin del periodo</th>
+              <th scope="col" className="px-6 py-3 text-center w-16">Ánimo</th>
+              <th scope="col" className="px-6 py-3 whitespace-nowrap">Periodo</th>
+              <th scope="col" className="px-6 py-3 w-full">Sensaciones</th>
               <th scope="col" className="px-6 py-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {ciclos.map((ciclo) => (
-              <tr key={ciclo.id} className="border-b border-pink-50 hover:bg-pink-50/50 transition-colors">
-                <td className="px-6 py-4 font-medium text-gray-900">
-                  {new Date(ciclo.fecha_inicio).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-gray-600">
-                  {ciclo.fecha_fin ? new Date(ciclo.fecha_fin).toLocaleDateString() : (
-                    <span className="text-pink-500 font-semibold text-xs bg-pink-100 px-2 py-1 rounded-full">
-                      En curso
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 flex justify-end gap-3">
-                  <button onClick={() => onEdit(ciclo)} className="text-purple-500 hover:text-purple-700">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button onClick={() => onDelete(ciclo.id)} className="text-red-400 hover:text-red-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {ciclos.map((ciclo) => {
+              const cara = ciclo.estado_animo ? CARAS[ciclo.estado_animo as keyof typeof CARAS] : null;
+              
+              return (
+                <tr key={ciclo.id} className="border-b border-pink-50 hover:bg-pink-50/50 transition-colors">
+                  <td className="px-6 py-4 text-center">
+                    {cara ? (
+                      <div className={`w-10 h-10 mx-auto flex items-center justify-center text-2xl rounded-full border shadow-sm ${cara.color}`}>
+                        {cara.emoji}
+                      </div>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </td>
+                  
+                  <td className="px-6 py-4 font-bold text-gray-800 whitespace-nowrap">
+                    {formatFechaMola(ciclo.fecha_inicio)} 
+                    <span className="mx-2 text-pink-300">➔</span> 
+                    {ciclo.fecha_fin ? (
+                      formatFechaMola(ciclo.fecha_fin)
+                    ) : (
+                      <span className="text-pink-500 font-black text-xs bg-pink-100 px-2 py-1 rounded-md uppercase tracking-wider">
+                        En curso
+                      </span>
+                    )}
+                  </td>
+                  
+                  <td className="px-6 py-4 text-gray-600 w-full">
+                    {ciclo.sensacion ? (
+                      <p className="text-xs font-medium bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed w-full" title={ciclo.sensacion}>
+                        {ciclo.sensacion}
+                      </p>
+                    ) : (
+                      <span className="text-gray-300">-</span>
+                    )}
+                  </td>
+                  
+                  <td className="px-6 py-4 flex justify-end gap-3 items-center h-full pt-6">
+                    <button onClick={() => onEdit(ciclo)} className="text-purple-500 hover:text-purple-700 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <button onClick={() => onDelete(ciclo.id)} className="text-red-400 hover:text-red-600 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
             {ciclos.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
                   No hay registros de ciclos menstruales aún.
                 </td>
               </tr>

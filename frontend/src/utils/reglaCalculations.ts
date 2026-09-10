@@ -1,7 +1,9 @@
 export interface Ciclo {
   id: string;
-  fecha_inicio: string; // Formato YYYY-MM-DD
+  fecha_inicio: string;
   fecha_fin: string | null;
+  estado_animo?: number | null;
+  sensacion?: string | null;
 }
 
 export type DiaEstado = 'periodo_real' | 'periodo_predicho' | 'ovulacion' | 'nada';

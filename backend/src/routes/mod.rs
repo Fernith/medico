@@ -33,6 +33,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // REGLA
         .route("/api/ciclos", get(regla::get_ciclos).post(regla::create_ciclo))
         .route("/api/ciclos/:id", put(regla::update_ciclo).delete(regla::delete_ciclo))
+        .route("/api/ciclos/actual", get(regla::get_ciclo_actual))
         
         // MEDICION
         .route("/api/mediciones", get(medicion::listar_mediciones).post(medicion::crear_medicion))

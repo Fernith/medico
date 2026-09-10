@@ -7,6 +7,8 @@ pub struct CicloMenstrual {
     pub id: Uuid,
     pub fecha_inicio: NaiveDate,
     pub fecha_fin: Option<NaiveDate>,
+    pub estado_animo: Option<i16>,
+    pub sensacion: Option<String>,
     pub creado_en: chrono::DateTime<chrono::Utc>,
 }
 
@@ -14,10 +16,14 @@ pub struct CicloMenstrual {
 pub struct CreateCicloMenstrual {
     pub fecha_inicio: NaiveDate,
     pub fecha_fin: Option<NaiveDate>,
+    pub estado_animo: Option<i16>,
+    pub sensacion: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateCicloMenstrual {
     pub fecha_inicio: NaiveDate,
     pub fecha_fin: Option<NaiveDate>,
+    pub estado_animo: Option<i16>,
+    pub sensacion: Option<String>,
 }

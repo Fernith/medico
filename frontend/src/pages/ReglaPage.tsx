@@ -5,8 +5,9 @@ import { CalendarioMes } from '../features/regla/CalendarioMes';
 import { type Ciclo, generarMapaEstados } from '../utils/reglaCalculations';
 import { useAjustes } from '../context/AjustesContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { ReglaFormModal } from '../features/regla/ReglaFormModal';
 import { Select } from '../components/ui/Select';
+import { Modal } from '../components/ui/Modal';
+import { ReglaForm } from '../features/regla/ReglaForm';
 
 export const ReglaPage: React.FC = () => {
   const [vista, setVista] = useState<'mensual' | 'anual'>('mensual');
@@ -123,38 +124,6 @@ export const ReglaPage: React.FC = () => {
     setFormModalOpen(true);
   };
 
-  const handleSaveCiclo = async (datos: { fecha_inicio: string; fecha_fin: string | null }) => {
-    if (cicloToEdit) {
-      const response = await fetch(`/api/ciclos/${cicloToEdit.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos)
-      });
-      
-      if (!response.ok) throw new Error('Error al actualizar');
-      const updatedCiclo = await response.json();
-
-      setCiclos(prev => {
-        const nuevaLista = prev.map(c => c.id === updatedCiclo.id ? updatedCiclo : c);
-        return nuevaLista.sort((a, b) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
-      });
-    } else {
-      const response = await fetch(`/api/ciclos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos)
-      });
-      
-      if (!response.ok) throw new Error('Error al crear');
-      const newCiclo = await response.json();
-      
-      setCiclos(prev => {
-        const nuevaLista = [...prev, newCiclo];
-        return nuevaLista.sort((a, b) => new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime());
-      });
-    }
-  };
-
   const hoy = new Date();
   const currentMonth = hoy.getMonth();
   const currentYear = hoy.getFullYear();
@@ -190,7 +159,7 @@ export const ReglaPage: React.FC = () => {
       {error && <p className="text-red-500 bg-red-50 p-3 rounded-lg border border-red-200">{error}</p>}
 
       {!isLoading && !error && vista === 'mensual' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <div className="flex flex-col space-y-4">
             <h2 className="text-xl font-semibold text-pink-700">Duración del ciclo</h2>
             <ReglaBarras ciclos={ciclos} mediaCiclo={mediaCiclo} />
@@ -285,12 +254,19 @@ export const ReglaPage: React.FC = () => {
         isConfirming={isDeleting}
       />
 
-      <ReglaFormModal
-        isOpen={formModalOpen}
-        onClose={() => setFormModalOpen(false)}
-        onSave={handleSaveCiclo}
-        cicloAEditar={cicloToEdit}
-      />
+      <Modal 
+        isOpen={formModalOpen} 
+        onClose={() => setFormModalOpen(false)} 
+        title={cicloToEdit ? "Editar Ciclo" : "Añadir Ciclo"} 
+        size="lg" 
+        preventClose={true}
+      >
+        <ReglaForm 
+          initialData={cicloToEdit} 
+          onSuccess={() => setFormModalOpen(false)} 
+          onCancel={() => setFormModalOpen(false)} 
+        />
+      </Modal>
     </div>
   );
 };
