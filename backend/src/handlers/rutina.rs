@@ -164,6 +164,7 @@ pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Js
         SELECT 
             hr.id as "historial_rutina_id!",
             hr.nombre as "rutina_nombre!",
+            r.color as "rutina_color?",
             hr.fecha_inicio as "fecha_inicio!",
             hs.ejercicio_id as "ejercicio_id!",
             hs.ejercicio_nombre as "ejercicio_nombre!",
@@ -176,12 +177,13 @@ pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Js
             hs.unidad_carga as "unidad_carga?"
         FROM historial_series hs
         JOIN historial_rutinas hr ON hs.historial_rutina_id = hr.id
+        LEFT JOIN rutinas r ON hr.rutina_id = r.id /* <-- NUEVO */
         JOIN ejercicios e ON hs.ejercicio_id = e.id
         LEFT JOIN tipos_entrenamiento te ON e.tipo_entrenamiento_id = te.id
         LEFT JOIN ejercicio_grupos egm ON e.id = egm.ejercicio_id
         LEFT JOIN grupos_musculares gm ON egm.grupo_id = gm.id
         GROUP BY 
-            hr.id, hs.historial_rutina_id, hs.ejercicio_id, hs.ejercicio_nombre, 
+            hr.id, r.color, hs.historial_rutina_id, hs.ejercicio_id, hs.ejercicio_nombre,
             hs.fase, hs.orden_ejercicio, hs.serie_numero, hs.reps_completadas, 
             hs.unidad_objetivo, hs.carga_completada, hs.unidad_carga, te.id
         ORDER BY hr.fecha_inicio DESC, hs.orden_ejercicio ASC, hs.serie_numero ASC

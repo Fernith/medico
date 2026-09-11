@@ -90,6 +90,7 @@ pub struct HistorialRutinaPayload {
 pub struct EstadisticaSerieRow {
     pub historial_rutina_id: Uuid,
     pub rutina_nombre: String,
+    pub rutina_color: Option<String>,
     pub fecha_inicio: DateTime<Utc>,
     pub ejercicio_id: Uuid,
     pub ejercicio_nombre: String,

@@ -18,8 +18,12 @@ export const IMCWidget: React.FC<IMCWidgetProps> = ({ pesoActual, altura }) => {
         <div>
           <p className="text-sm font-bold uppercase tracking-widest opacity-80">Índice de Masa Corporal</p>
           <p className="text-4xl font-black mt-1">{imcActual}</p>
+          {/* NUEVO: Datos de origen integrados de forma sutil */}
+          <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-1.5">
+            Peso: {pesoActual.toFixed(1)} kg <span className="mx-1 opacity-50">|</span> Altura: {(altura / 100).toFixed(2)} m
+          </p>
         </div>
-        <div className="text-right">
+        <div className="text-right ml-4">
           <p className="text-2xl font-bold">{infoIMC.texto}</p>
         </div>
       </div>

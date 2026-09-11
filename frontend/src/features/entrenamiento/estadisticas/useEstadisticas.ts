@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 export interface EstadisticaSerieRow {
   historial_rutina_id: string;
   rutina_nombre: string;
+  rutina_color: string | null;
   fecha_inicio: string;
   ejercicio_id: string;
   ejercicio_nombre: string;
@@ -164,5 +165,24 @@ export const useEstadisticas = () => {
     return resultados.sort((a, b) => a.ejercicio_nombre.localeCompare(b.ejercicio_nombre));
   }, [data]);
 
-  return { isLoading, pieDays, setPieDays, pieChartsData, entrenosPorMes, diasSemanaStats, progresionEjercicios };
+  // 6. DATOS PARA EL CALENDARIO (Agrupados por fecha en formato YYYY-MM-DD)
+  const calendarioRutinas = useMemo(() => {
+    const mapa: Record<string, { rutina_nombre: string; color: string | null }[]> = {};
+    
+    sesionesUnicas.forEach(s => {
+      const date = new Date(s.fecha_inicio);
+      const strFecha = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0')
+      ].join('-');
+
+      if (!mapa[strFecha]) mapa[strFecha] = [];
+      mapa[strFecha].push({ rutina_nombre: s.rutina_nombre, color: s.rutina_color });
+    });
+    
+    return mapa;
+  }, [sesionesUnicas]);
+
+  return { isLoading, pieDays, setPieDays, pieChartsData, entrenosPorMes, diasSemanaStats, progresionEjercicios, calendarioRutinas };
 };

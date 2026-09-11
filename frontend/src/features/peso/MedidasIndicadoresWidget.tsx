@@ -35,8 +35,14 @@ export const MedidasIndicadoresWidget: React.FC<MedidasIndicadoresWidgetProps> =
         <div className="flex-1 mb-4">
           <p className="text-xs font-bold uppercase tracking-widest opacity-80">Índice Cintura-Estatura</p>
           <div className="flex items-end justify-between mt-2">
-            <p className="text-3xl font-black">{ice}</p>
-            <p className="text-lg font-bold">{infoICE.texto}</p>
+            <div>
+              <p className="text-3xl font-black">{ice}</p>
+              {/* NUEVO: Datos de origen integrados */}
+              <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-1.5 whitespace-nowrap">
+                Cint: {cintura} cm <span className="mx-1 opacity-50">|</span> Alt: {(altura / 100).toFixed(2)} m
+              </p>
+            </div>
+            <p className="text-lg font-bold text-right ml-4">{infoICE.texto}</p>
           </div>
         </div>
         
@@ -62,8 +68,14 @@ export const MedidasIndicadoresWidget: React.FC<MedidasIndicadoresWidgetProps> =
           <div className="flex-1 mb-4">
             <p className="text-xs font-bold uppercase tracking-widest opacity-80">Índice Cintura-Cadera</p>
             <div className="flex items-end justify-between mt-2">
-              <p className="text-3xl font-black">{icc}</p>
-              <p className="text-lg font-bold">{infoICC.texto}</p>
+              <div>
+                <p className="text-3xl font-black">{icc}</p>
+                {/* NUEVO: Datos de origen integrados */}
+                <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-1.5 whitespace-nowrap">
+                  Cint: {cintura} cm <span className="mx-1 opacity-50">|</span> Cad: {cadera} cm
+                </p>
+              </div>
+              <p className="text-lg font-bold text-right ml-4">{infoICC.texto}</p>
             </div>
           </div>
           
@@ -71,7 +83,7 @@ export const MedidasIndicadoresWidget: React.FC<MedidasIndicadoresWidgetProps> =
             <div>
               <p className="font-black uppercase tracking-wider text-[10px] opacity-60 mb-0.5">¿Qué mide el ICC?</p>
               <p className="text-xs font-medium opacity-90 leading-relaxed">
-                Indica cómo se distribuye la grasa en tu cuerpo. Acumular grasa en el abdomen ("forma de manzana") supone mayor riesgo metabólico que hacerlo en las caderas ("forma de pera").
+                Indica cómo se distribuye la grasa en tu cuerpo. Acumular grasa en el abdomen ("forma de manzana") supone mayor riesgo metabólico que hacerlo en las caderas.
               </p>
             </div>
             <div>
