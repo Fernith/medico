@@ -8,14 +8,13 @@ import { CalendarioSelector } from './CalendarioSelector'; // <-- NUEVO
 
 export const EstadisticasDashboard: React.FC = () => {
   const { 
-    isLoading, 
     pieDays, 
     setPieDays, 
     pieChartsData, 
     entrenosPorMes, 
     diasSemanaStats, 
     progresionEjercicios,
-    calendarioRutinas // <-- NUEVO EXTRAÍDO DEL HOOK
+    calendarioRutinas
   } = useEstadisticas();
 
   // ... (El bloque de isLoading se queda igual) ...
