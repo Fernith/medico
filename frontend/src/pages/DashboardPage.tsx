@@ -106,19 +106,21 @@ export const DashboardPage = () => {
         </header>
         
         <div className={`grid grid-cols-1 gap-4 ${mostrarRegla ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-            <PesoWidget />
 
-            {mostrarRegla && (
-              <ReglaWidget 
-                ultimoCiclo={ultimoCiclo} 
-                mediaCiclo={mediaCiclo} 
-                mediaPeriodo={mediaPeriodo} 
-              />
-            )}
+          <RachaWidget />
+          
+          <PesoWidget />
 
-            <MedicamentosWidget />
+          {mostrarRegla && (
+            <ReglaWidget 
+              ultimoCiclo={ultimoCiclo} 
+              mediaCiclo={mediaCiclo} 
+              mediaPeriodo={mediaPeriodo} 
+            />
+          )}
 
-            <RachaWidget />
+          <MedicamentosWidget />
+
         </div>
 
         {datosSueno && <SuenoWidget data={datosSueno} />}

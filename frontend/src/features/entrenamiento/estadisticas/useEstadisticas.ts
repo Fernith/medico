@@ -15,10 +15,15 @@ export interface EstadisticaSerieRow {
   unidad_carga: string | null;
 }
 
+export type RangoPie = 7 | 14 | 28 | 35 | 'custom';
+
 export const useEstadisticas = () => {
   const [data, setData] = useState<EstadisticaSerieRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [pieDays, setPieDays] = useState<number>(35); // Selector dinámico (por defecto 35)
+  
+  // ESTADOS PARA EL PIE CHART
+  const [rangoPie, setRangoPie] = useState<RangoPie>('custom');
+  const [customPieDias, setCustomPieDias] = useState<number | ''>('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,16 +41,24 @@ export const useEstadisticas = () => {
     fetchData();
   }, []);
 
-  // 1. DATOS PARA PIE CHARTS (Con filtro de días móvil)
+  // 1. DATOS PARA PIE CHARTS (Con filtro interactivo)
   const pieChartsData = useMemo(() => {
+    // Si está en 'custom' y vacío (''), calculamos por defecto sobre 35 días para que no se quede la gráfica vacía.
+    let diasActivos = 35; 
+    if (rangoPie !== 'custom') {
+      diasActivos = rangoPie;
+    } else if (typeof customPieDias === 'number' && customPieDias > 0) {
+      diasActivos = customPieDias;
+    }
+
     const limitDate = new Date();
-    limitDate.setDate(limitDate.getDate() - pieDays);
+    limitDate.setDate(limitDate.getDate() - diasActivos);
 
     const filteredSeries = data.filter(d => new Date(d.fecha_inicio) >= limitDate);
 
     // Agrupar Tipos
     const tiposMap: Record<string, number> = {};
-    // Agrupar Músculos (Sumamos +1 por cada músculo implicado en cada serie)
+    // Agrupar Músculos
     const musculosMap: Record<string, number> = {};
 
     filteredSeries.forEach(s => {
@@ -68,7 +81,7 @@ export const useEstadisticas = () => {
       tipos: formatData(tiposMap),
       musculos: formatData(musculosMap)
     };
-  }, [data, pieDays]);
+  }, [data, rangoPie, customPieDias]);
 
   // 2. SESIONES ÚNICAS (Para gráficas de Mes y Días de la semana)
   const sesionesUnicas = useMemo(() => {
@@ -116,7 +129,7 @@ export const useEstadisticas = () => {
     };
   }, [sesionesUnicas]);
 
-  // 5. PROGRESIÓN POR EJERCICIO (Tabla Option A)
+  // 5. PROGRESIÓN POR EJERCICIO
   const progresionEjercicios = useMemo(() => {
     // Agrupamos filas por Ejercicio ID
     const porEjercicio: Record<string, EstadisticaSerieRow[]> = {};
@@ -184,5 +197,16 @@ export const useEstadisticas = () => {
     return mapa;
   }, [sesionesUnicas]);
 
-  return { isLoading, pieDays, setPieDays, pieChartsData, entrenosPorMes, diasSemanaStats, progresionEjercicios, calendarioRutinas };
+  return { 
+    isLoading, 
+    rangoPie, 
+    setRangoPie, 
+    customPieDias, 
+    setCustomPieDias, 
+    pieChartsData, 
+    entrenosPorMes, 
+    diasSemanaStats, 
+    progresionEjercicios, 
+    calendarioRutinas 
+  };
 };

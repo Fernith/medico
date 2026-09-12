@@ -4,12 +4,12 @@ import { EstadisticasPieCharts } from './EstadisticasPieCharts';
 import { EstadisticasFrecuencia } from './EstadisticasFrecuencia';
 import { EstadisticasMeses } from './EstadisticasMeses';
 import { EstadisticasProgresion } from './EstadisticasProgresion';
-import { CalendarioSelector } from './CalendarioSelector'; // <-- NUEVO
+import { CalendarioSelector } from './CalendarioSelector';
 
 export const EstadisticasDashboard: React.FC = () => {
   const { 
-    pieDays, 
-    setPieDays, 
+    isLoading,
+    rangoPie, setRangoPie, customPieDias, setCustomPieDias,
     pieChartsData, 
     entrenosPorMes, 
     diasSemanaStats, 
@@ -17,21 +17,35 @@ export const EstadisticasDashboard: React.FC = () => {
     calendarioRutinas
   } = useEstadisticas();
 
-  // ... (El bloque de isLoading se queda igual) ...
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden"> 
       
       {/* SECCIÓN 1: PIE CHARTS Y DÍAS DE LA SEMANA */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <EstadisticasPieCharts data={pieChartsData} pieDays={pieDays} setPieDays={setPieDays} />
+        <EstadisticasPieCharts 
+          data={pieChartsData} 
+          rangoPie={rangoPie} 
+          setRangoPie={setRangoPie} 
+          customPieDias={customPieDias}
+          setCustomPieDias={setCustomPieDias}
+        />
         <div className="xl:col-span-1">
           <EstadisticasFrecuencia stats={diasSemanaStats} />
         </div>
       </div>
 
-      {/* SECCIÓN 2: CALENDARIO INTERACTIVO (NUEVO) */}
-      <CalendarioSelector calendarioRutinas={calendarioRutinas} />
+      {/* SECCIÓN 2: CALENDARIO INTERACTIVO */}
+      <div className="w-full">
+        <CalendarioSelector calendarioRutinas={calendarioRutinas} />
+      </div>
 
       {/* SECCIÓN 3: GRÁFICA MESES */}
       <EstadisticasMeses data={entrenosPorMes} />

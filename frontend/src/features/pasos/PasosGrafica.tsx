@@ -85,6 +85,13 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
 }) => {
   
   const [selectedData, setSelectedData] = useState<ChartDataPoint | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Seleccionar automáticamente el último dato visible al cargar
   useEffect(() => {
@@ -104,6 +111,20 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   const currentYear = hoy.getFullYear();
   const currentMonth = hoy.getMonth();
 
+  // Comprueba de forma inteligente si la vista actual (semana, mes o año) incluye el día de hoy
+  const isAtToday = useMemo(() => {
+    if (viewMode === 'A') return refDate.getFullYear() === currentYear;
+    if (viewMode === 'M') return refDate.getFullYear() === currentYear && refDate.getMonth() === currentMonth;
+    if (viewMode === 'S') {
+      const start = new Date(startPeriod);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endPeriod);
+      end.setHours(23, 59, 59, 999);
+      return hoy.getTime() >= start.getTime() && hoy.getTime() <= end.getTime();
+    }
+    return false;
+  }, [viewMode, refDate, currentYear, currentMonth, startPeriod, endPeriod, hoy]);
+
   const handlePrev = () => {
     const d = new Date(refDate);
     if (viewMode === 'S') d.setDate(d.getDate() - 7);
@@ -122,9 +143,12 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
     else setRefDate(d);
   };
 
-  const mesesFull = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const mesesStr = isMobile 
+    ? ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    : ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
   const maxMesPermitido = refDate.getFullYear() === currentYear ? currentMonth : 11;
-  const mesesDisponibles = mesesFull.slice(0, maxMesPermitido + 1);
+  const mesesDisponibles = mesesStr.slice(0, maxMesPermitido + 1);
 
   const startYear = 2024;
   const yearsAvailable = Array.from({ length: currentYear - startYear + 1 }, (_, i) => startYear + i);
@@ -152,11 +176,11 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
     
     if (viewMode === 'M') {
       return (
-        <div className="flex items-center gap-1 px-2">
+        <div className="flex items-center gap-1 px-1 sm:px-2">
           <select 
             value={refDate.getMonth()} 
             onChange={(e) => { const d = new Date(refDate); d.setMonth(Number(e.target.value)); setRefDate(d); }}
-            className="bg-slate-100 hover:bg-orange-50 focus:bg-orange-50 font-bold text-slate-500 hover:text-orange-600 focus:ring-2 focus:ring-orange-200 outline-none cursor-pointer rounded-lg px-2 py-1 transition-all"
+            className={`bg-slate-100 hover:bg-orange-50 focus:bg-orange-50 font-bold text-slate-500 hover:text-orange-600 focus:ring-2 focus:ring-orange-200 outline-none cursor-pointer rounded-lg py-1 transition-all ${isMobile ? 'px-1 text-center' : 'px-2'}`}
           >
             {mesesDisponibles.map((m, i) => <option key={i} value={i} className="text-slate-700">{m}</option>)}
           </select>
@@ -169,7 +193,7 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
               if (y === currentYear && d.getMonth() > currentMonth) d.setMonth(currentMonth);
               setRefDate(d); 
             }}
-            className="bg-slate-100 hover:bg-orange-50 focus:bg-orange-50 font-bold text-slate-500 hover:text-orange-600 focus:ring-2 focus:ring-orange-200 outline-none cursor-pointer rounded-lg px-2 py-1 transition-all"
+            className={`bg-slate-100 hover:bg-orange-50 focus:bg-orange-50 font-bold text-slate-500 hover:text-orange-600 focus:ring-2 focus:ring-orange-200 outline-none cursor-pointer rounded-lg py-1 transition-all ${isMobile ? 'px-1 text-center' : 'px-2'}`}
           >
             {yearsAvailable.map(y => <option key={y} value={y} className="text-slate-700">{y}</option>)}
           </select>
@@ -203,10 +227,19 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
 
         <div className="flex items-center justify-between sm:justify-center gap-1 bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-auto">
           <button onClick={handlePrev} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronLeft className="w-5 h-5 text-slate-500" /></button>
-          <div className="relative flex items-center min-w-[130px] justify-center">{renderSelectorFechas()}</div>
+          <div className="relative flex items-center min-w-[110px] justify-center">{renderSelectorFechas()}</div>
           <button onClick={handleNext} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronRight className="w-5 h-5 text-slate-500" /></button>
           <div className="w-px h-6 bg-slate-200 mx-1"></div>
-          <button onClick={() => setRefDate(new Date())} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-orange-500" title="Ir a hoy"><CalendarIcon className="w-5 h-5" /></button>
+          
+          {/* BOTÓN CALENDARIO (Ir a hoy) - AHORA CON ESTADO DISABLED */}
+          <button 
+            onClick={() => setRefDate(new Date())} 
+            disabled={isAtToday}
+            className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-orange-500 disabled:text-slate-400 disabled:opacity-50 disabled:hover:bg-transparent" 
+            title="Ir a fecha actual"
+          >
+            <CalendarIcon className="w-5 h-5" />
+          </button>
         </div>
       </div>
 

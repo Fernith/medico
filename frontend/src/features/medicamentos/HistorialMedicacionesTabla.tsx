@@ -5,18 +5,13 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
 import { HistorialMedicacionForm, type HistorialMedicacion } from './HistorialMedicacionForm';
-
-interface Toast {
-  id: string;
-  medNombre: string;
-  historialId: string;
-}
+import { MedicacionToast, type ToastData } from '../medicamentos/MedicacionToast';
 
 export const HistorialMedicacionesTabla: React.FC = () => {
   const [historial, setHistorial] = useState<HistorialMedicacion[]>([]);
   const [editingItem, setEditingItem] = useState<HistorialMedicacion | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<ToastData[]>([]);
   
   const [filtroEstado, setFiltroEstado] = useState<'todos' | 'pendientes' | 'tomados'>('todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,11 +49,10 @@ export const HistorialMedicacionesTabla: React.FC = () => {
       await fetch(`/api/historial-medicacion/${med.id}/tomado`, { method: 'PATCH' });
       const toastId = Date.now().toString();
       setToasts(prev => [...prev, { id: toastId, medNombre: med.medicamento_nombre, historialId: med.id }]);
-      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== toastId)), 5000);
     } catch (err) { console.error(err); fetchHistorial(); }
   };
 
-  const handleDeshacer = async (toast: Toast) => {
+  const handleDeshacer = async (toast: ToastData) => {
     setToasts(prev => prev.filter(t => t.id !== toast.id));
     setHistorial(prev => prev.map(h => h.id === toast.historialId ? { ...h, pendiente: true } : h));
     try {
@@ -202,14 +196,12 @@ export const HistorialMedicacionesTabla: React.FC = () => {
       {typeof document !== 'undefined' && createPortal(
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none">
           {toasts.map(toast => (
-            <div key={toast.id} className="bg-white border border-teal-100 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex items-center gap-4 animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto">
-              <p className="text-sm font-medium text-slate-600">
-                Has marcado <span className="font-bold text-teal-600">{toast.medNombre}</span> como tomado.
-              </p>
-              <button onClick={() => handleDeshacer(toast)} className="text-sm font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-100 transition-colors uppercase tracking-wider bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100/50">
-                Deshacer
-              </button>
-            </div>
+            <MedicacionToast 
+              key={toast.id} 
+              toast={toast} 
+              onDeshacer={handleDeshacer} 
+              onClose={(id) => setToasts(prev => prev.filter(t => t.id !== id))} 
+            />
           ))}
         </div>,
         document.body

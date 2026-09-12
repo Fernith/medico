@@ -3,16 +3,11 @@ import { Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { type HistorialMedicacion } from '../medicamentos/HistorialMedicacionForm';
-
-interface Toast {
-  id: string;
-  medNombre: string;
-  historialId: string;
-}
+import { MedicacionToast, type ToastData } from '../medicamentos/MedicacionToast';
 
 export const MedicamentosWidget: React.FC = () => {
   const [pendientes, setPendientes] = useState<HistorialMedicacion[]>([]);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const fetchPendientesHoy = useCallback(async () => {
     // Calculamos el inicio y fin de HOY en la zona horaria del usuario
@@ -44,10 +39,6 @@ export const MedicamentosWidget: React.FC = () => {
       const toastId = Date.now().toString();
       setToasts(prev => [...prev, { id: toastId, medNombre: med.medicamento_nombre, historialId: med.id }]);
       
-      // Autodestrucción del Toast a los 5 segundos
-      setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== toastId));
-      }, 5000);
       
     } catch (err) {
       console.error(err);
@@ -55,7 +46,7 @@ export const MedicamentosWidget: React.FC = () => {
     }
   };
 
-  const handleDeshacer = async (toast: Toast) => {
+  const handleDeshacer = async (toast: ToastData) => {
     // Quitamos el Toast inmediatamente
     setToasts(prev => prev.filter(t => t.id !== toast.id));
     
@@ -113,20 +104,12 @@ export const MedicamentosWidget: React.FC = () => {
       {typeof document !== 'undefined' && createPortal(
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none">
           {toasts.map(toast => (
-            <div 
+            <MedicacionToast 
               key={toast.id} 
-              className="bg-white border border-teal-100 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex items-center gap-4 animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto"
-            >
-              <p className="text-sm font-medium text-slate-600">
-                Has marcado <span className="font-bold text-teal-600">{toast.medNombre}</span> como tomado.
-              </p>
-              <button 
-                onClick={() => handleDeshacer(toast)}
-                className="text-sm font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-100 transition-colors uppercase tracking-wider bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100/50"
-              >
-                Deshacer
-              </button>
-            </div>
+              toast={toast} 
+              onDeshacer={handleDeshacer} 
+              onClose={(id) => setToasts(prev => prev.filter(t => t.id !== id))} 
+            />
           ))}
         </div>,
         document.body

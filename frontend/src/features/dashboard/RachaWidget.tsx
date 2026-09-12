@@ -55,10 +55,11 @@ export const RachaWidget = () => {
             {racha.dias} <span className="text-2xl">días</span>
           </span>
         </div>
-
-        <span className="text-xs text-indigo-500 font-medium text-center mt-2 px-2">
-          Desde el {dateStr}
-        </span>
+        {racha.dias > 1 && (
+          <span className="text-xs text-indigo-500 font-medium text-center mt-2 px-2">
+            Desde el {dateStr}
+          </span>
+        )}
       </div>
     );
   };
