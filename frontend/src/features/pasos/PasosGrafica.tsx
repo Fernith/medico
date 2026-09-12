@@ -93,7 +93,6 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Seleccionar automáticamente el último dato visible al cargar
   useEffect(() => {
     if (data && data.length > 0) {
       setSelectedData(data[data.length - 1]);
@@ -110,11 +109,12 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   const hoy = new Date();
   const currentYear = hoy.getFullYear();
   const currentMonth = hoy.getMonth();
+  const minYear = 2024; // LÍMITE INFERIOR
 
-  // Comprueba de forma inteligente si la vista actual (semana, mes o año) incluye el día de hoy
+  // LÍMITES INTELIGENTES:
   const isAtToday = useMemo(() => {
-    if (viewMode === 'A') return refDate.getFullYear() === currentYear;
-    if (viewMode === 'M') return refDate.getFullYear() === currentYear && refDate.getMonth() === currentMonth;
+    if (viewMode === 'A') return refDate.getFullYear() >= currentYear;
+    if (viewMode === 'M') return refDate.getFullYear() === currentYear && refDate.getMonth() >= currentMonth;
     if (viewMode === 'S') {
       const start = new Date(startPeriod);
       start.setHours(0, 0, 0, 0);
@@ -125,7 +125,19 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
     return false;
   }, [viewMode, refDate, currentYear, currentMonth, startPeriod, endPeriod, hoy]);
 
+  const isAtMinLimit = useMemo(() => {
+    if (viewMode === 'A') return refDate.getFullYear() <= minYear;
+    if (viewMode === 'M') return refDate.getFullYear() <= minYear && refDate.getMonth() === 0;
+    if (viewMode === 'S') {
+      const prevWeek = new Date(refDate);
+      prevWeek.setDate(prevWeek.getDate() - 7);
+      return prevWeek.getFullYear() < minYear;
+    }
+    return false;
+  }, [viewMode, refDate, minYear]);
+
   const handlePrev = () => {
+    if (isAtMinLimit) return; // Protegido contra la lógica anterior
     const d = new Date(refDate);
     if (viewMode === 'S') d.setDate(d.getDate() - 7);
     else if (viewMode === 'M') d.setMonth(d.getMonth() - 1);
@@ -134,6 +146,7 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   };
 
   const handleNext = () => {
+    if (isAtToday) return; // Protegido contra avanzar al futuro
     const d = new Date(refDate);
     if (viewMode === 'S') d.setDate(d.getDate() + 7);
     else if (viewMode === 'M') d.setMonth(d.getMonth() + 1);
@@ -150,8 +163,7 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
   const maxMesPermitido = refDate.getFullYear() === currentYear ? currentMonth : 11;
   const mesesDisponibles = mesesStr.slice(0, maxMesPermitido + 1);
 
-  const startYear = 2024;
-  const yearsAvailable = Array.from({ length: currentYear - startYear + 1 }, (_, i) => startYear + i);
+  const yearsAvailable = Array.from({ length: currentYear - minYear + 1 }, (_, i) => minYear + i).reverse();
 
   const metaLine = viewMode === 'A' ? Math.round(objetivoDiario * 30.416) : objetivoDiario;
   
@@ -226,12 +238,28 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
         </div>
 
         <div className="flex items-center justify-between sm:justify-center gap-1 bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-sm w-full sm:w-auto">
-          <button onClick={handlePrev} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronLeft className="w-5 h-5 text-slate-500" /></button>
+          {/* FLECHA IZQUIERDA LIMITADA */}
+          <button 
+            onClick={handlePrev} 
+            disabled={isAtMinLimit} 
+            className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-500" />
+          </button>
+          
           <div className="relative flex items-center min-w-[110px] justify-center">{renderSelectorFechas()}</div>
-          <button onClick={handleNext} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronRight className="w-5 h-5 text-slate-500" /></button>
+          
+          {/* FLECHA DERECHA LIMITADA */}
+          <button 
+            onClick={handleNext} 
+            disabled={isAtToday} 
+            className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-500" />
+          </button>
+          
           <div className="w-px h-6 bg-slate-200 mx-1"></div>
           
-          {/* BOTÓN CALENDARIO (Ir a hoy) - AHORA CON ESTADO DISABLED */}
           <button 
             onClick={() => setRefDate(new Date())} 
             disabled={isAtToday}
@@ -274,7 +302,6 @@ export const PasosGrafica: React.FC<PasosGraficaProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Panel Inferior Fijo en Móvil */}
       <div className="sm:hidden mt-4 pt-4 border-t border-slate-100 flex-1">
         {selectedData ? (
           <PasosInfoCard data={selectedData} alturaCm={alturaCm} sexo={sexo} isTooltip={false} />

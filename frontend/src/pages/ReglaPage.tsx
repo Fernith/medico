@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { ReglaBarras } from '../features/regla/ReglaBarras';
 import { ReglaTabla } from '../features/regla/ReglaTabla';
 import { CalendarioMes } from '../features/regla/CalendarioMes';
 import { type Ciclo, generarMapaEstados } from '../utils/reglaCalculations';
 import { useAjustes } from '../context/AjustesContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { ReglaForm } from '../features/regla/ReglaForm';
 
@@ -85,7 +85,6 @@ export const ReglaPage: React.FC = () => {
   useEffect(() => {
     fetchCiclos();
     
-    // Escuchador del evento global para actualizarse solo
     const handleRegistro = (e: any) => {
       if (e.detail === 'regla') fetchCiclos();
     };
@@ -94,7 +93,6 @@ export const ReglaPage: React.FC = () => {
     return () => window.removeEventListener('registroAgregado', handleRegistro);
   }, []);
 
-  // ---- MANEJADORES DE BORRADO ----
   const handleDeleteClick = (id: string) => {
     setCicloIdToDelete(id);
     setDeleteModalOpen(true);
@@ -118,7 +116,6 @@ export const ReglaPage: React.FC = () => {
     }
   };
 
-  // ---- MANEJADORES DE FORMULARIO (AÑADIR / EDITAR) ----
   const handleEditClick = (ciclo: Ciclo) => {
     setCicloToEdit(ciclo);
     setFormModalOpen(true);
@@ -182,47 +179,50 @@ export const ReglaPage: React.FC = () => {
         <div className="mt-8 pt-8 border-t border-pink-100">
           {vista === 'mensual' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-              <CalendarioMes 
-                year={currentYear} 
-                month={currentMonth} 
-                mapaEstados={mapaEstados} 
-                isLarge={true} 
-              />
-              <CalendarioMes 
-                year={currentMonth === 11 ? currentYear + 1 : currentYear} 
-                month={currentMonth === 11 ? 0 : currentMonth + 1} 
-                mapaEstados={mapaEstados} 
-                isLarge={true} 
-              />
+              <CalendarioMes year={currentYear} month={currentMonth} mapaEstados={mapaEstados} isLarge={true} />
+              <CalendarioMes year={currentMonth === 11 ? currentYear + 1 : currentYear} month={currentMonth === 11 ? 0 : currentMonth + 1} mapaEstados={mapaEstados} isLarge={true} />
             </div>
           ) : (
             <div className="flex flex-col items-center w-full">
-              <Select 
-                className="w-48 mb-8"
-                value={yearAnual}
-                onChange={(val) => setYearAnual(Number(val))}
-                options={
-                  Array.from({ length: Math.max(1, currentYear - 2024 + 2) }, (_, i) => currentYear - i + 1)
-                        .map(year => ({ value: year, label: year.toString() }))
-                }
-                colorTheme={{
-                  borderNormal: 'border-pink-200',
-                  borderActive: 'border-pink-400 ring-4 ring-pink-50',
-                  borderHover: 'hover:border-pink-300 hover:shadow-md',
-                  textSelected: 'text-purple-900',
-                  iconColor: 'text-pink-500',
-                  optionSelectedBg: 'bg-pink-50',
-                  optionSelectedText: 'text-pink-700',
-                  optionHoverBg: 'hover:bg-pink-50/50',
-                  optionHoverText: 'hover:text-purple-900',
-                  checkIcon: 'text-pink-500'
-                }}
-                icon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                }
-              />
+              
+              <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shadow-sm mb-8 w-max">
+                <button 
+                  onClick={() => setYearAnual(prev => prev - 1)}
+                  disabled={yearAnual <= 2024} // LÍMITE INFERIOR
+                  className="p-1.5 sm:p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                
+                <select 
+                  value={yearAnual} 
+                  onChange={(e) => setYearAnual(Number(e.target.value))}
+                  className="bg-slate-100 hover:bg-pink-50 focus:bg-pink-50 font-bold text-slate-500 hover:text-pink-600 focus:ring-2 focus:ring-pink-200 outline-none cursor-pointer rounded-lg py-1 px-2 sm:px-4 text-center transition-all min-w-[90px]"
+                >
+                  {Array.from({ length: Math.max(1, currentYear - 2024 + 2) }, (_, i) => 2024 + i).reverse().map(y => (
+                    <option key={y} value={y} className="text-slate-700">{y}</option>
+                  ))}
+                </select>
+
+                <button 
+                  onClick={() => setYearAnual(prev => prev + 1)}
+                  disabled={yearAnual >= currentYear + 1}
+                  className="p-1.5 sm:p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+
+                <div className="w-px h-6 bg-slate-200 mx-0.5 sm:mx-1 shrink-0"></div>
+                
+                <button 
+                  onClick={() => setYearAnual(currentYear)} 
+                  disabled={yearAnual === currentYear} 
+                  className="p-1.5 sm:p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all text-pink-500 disabled:text-slate-400 disabled:opacity-50 disabled:hover:bg-transparent shrink-0" 
+                  title="Ir al año actual"
+                >
+                  <CalendarIcon className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-2 w-full">
                 {Array.from({ length: 12 }, (_, mes) => (
@@ -260,6 +260,12 @@ export const ReglaPage: React.FC = () => {
         title={cicloToEdit ? "Editar Ciclo" : "Añadir Ciclo"} 
         size="lg" 
         preventClose={true}
+        colorTheme={{ 
+          titleColor: 'text-purple-900', 
+          headerBorder: 'border-pink-100', 
+          closeIconHover: 'hover:text-pink-500', 
+          modalBorder: 'border-pink-400' 
+        }}
       >
         <ReglaForm 
           initialData={cicloToEdit} 

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Pill, Settings2, BarChart3, Archive } from 'lucide-react';
+import { Pill, Settings2, History, Archive, BarChart3 } from 'lucide-react';
 import { type Medicamento } from '../features/medicamentos/MedicamentoForm';
 import { type MedicacionActiva } from '../features/medicamentos/MedicacionActivaForm';
 import { MedicamentosTabla } from '../features/medicamentos/MedicamentosTabla';
 import { CategoriasTabla } from '../features/medicamentos/CategoriasTabla';
 import { MedicacionesActivasTabla } from '../features/medicamentos/MedicacionesActivasTabla';
-import { HistorialMedicacionesTabla } from '../features/medicamentos/HistorialMedicacionesTabla'; // <-- IMPORTADO
+import { HistorialMedicacionesTabla } from '../features/medicamentos/HistorialMedicacionesTabla'; 
 
 export const MedicamentosPage: React.FC = () => {
-  const [vista, setVista] = useState<'estadisticas' | 'configuracion'>('estadisticas');
+  // POR DEFECTO A HISTORIAL, PERO MANTENIENDO LAS 3 OPCIONES
+  const [vista, setVista] = useState<'historial' | 'estadisticas' | 'configuracion'>('historial');
   
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [activas, setActivas] = useState<MedicacionActiva[]>([]);
@@ -43,8 +44,16 @@ export const MedicamentosPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-slate-800">Medicación y Suplementos</h1>
       </div>
 
-      {/* SELECTOR DE VISTAS */}
-      <div className="flex space-x-2 bg-teal-50 p-1 rounded-lg w-max">
+      {/* SELECTOR DE VISTAS (AHORA CON LAS 3 PESTAÑAS) */}
+      <div className="flex space-x-2 bg-teal-50 p-1 rounded-lg w-max flex-wrap">
+        <button
+          onClick={() => setVista('historial')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${
+            vista === 'historial' ? 'bg-teal-500 text-white shadow' : 'text-teal-700 hover:bg-teal-100'
+          }`}
+        >
+          <History className="w-4 h-4" /> Historial
+        </button>
         <button
           onClick={() => setVista('estadisticas')}
           className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${
@@ -66,10 +75,23 @@ export const MedicamentosPage: React.FC = () => {
       {!isLoading ? (
         <div className="mt-4">
           
-          {/* VISTA: ESTADÍSTICAS E HISTORIAL */}
-          {vista === 'estadisticas' && (
+          {/* VISTA: HISTORIAL */}
+          {vista === 'historial' && (
             <div className="w-full animate-in fade-in duration-300">
               <HistorialMedicacionesTabla />
+            </div>
+          )}
+
+          {/* VISTA: ESTADÍSTICAS (EN CONSTRUCCIÓN) */}
+          {vista === 'estadisticas' && (
+            <div className="w-full animate-in fade-in duration-300 flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm mt-8">
+              <div className="bg-teal-50 p-6 rounded-full mb-6">
+                <BarChart3 className="w-16 h-16 text-teal-400" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight">Estadísticas en Construcción</h3>
+              <p className="text-slate-500 mt-3 text-center max-w-md font-medium leading-relaxed">
+                Pronto podrás ver aquí el análisis detallado, la adherencia y la evolución histórica de tu medicación y suplementos.
+              </p>
             </div>
           )}
 
