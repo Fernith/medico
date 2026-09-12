@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Droplet } from 'lucide-react';
 import { useAjustes } from '../../context/AjustesContext';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
