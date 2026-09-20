@@ -6,7 +6,7 @@ use axum::{
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento, recordatorio};
+use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento, recordatorio, sintomas};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
@@ -110,6 +110,9 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route("/api/recordatorios", get(recordatorio::get_recordatorios).post(recordatorio::create_recordatorio))
         .route("/api/recordatorios/:clave", put(recordatorio::update_recordatorio).delete(recordatorio::delete_recordatorio))
         .route("/api/recordatorios/:clave/posponer", patch(recordatorio::posponer_recordatorio))
+
+        // SÍNTOMAS
+        .route("/api/sintomas/catalogo", get(sintomas::get_sintomas))
 
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)
