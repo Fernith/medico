@@ -4,6 +4,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { PesoForm } from './PesoForm';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface PesosTablaProps {
   pesos: PesoDB[];
@@ -19,7 +21,7 @@ export const PesosTabla: React.FC<PesosTablaProps> = ({ pesos }) => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/pesos/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/pesos/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'peso' }));
     } catch (e) {
       console.error(e);

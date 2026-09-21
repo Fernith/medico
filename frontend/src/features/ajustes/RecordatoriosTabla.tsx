@@ -3,6 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RecordatorioForm, type Recordatorio } from './RecordatorioForm';
 import { BellRing, Plus, Edit2, Trash2 } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 export const RecordatoriosTabla: React.FC = () => {
   const [recordatorios, setRecordatorios] = useState<Recordatorio[]>([]);
@@ -12,7 +14,7 @@ export const RecordatoriosTabla: React.FC = () => {
 
   const fetchRecordatorios = async () => {
     try {
-      const res = await fetch('/api/recordatorios');
+      const res = await apiFetch('/api/recordatorios');
       if (res.ok) setRecordatorios(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -27,7 +29,7 @@ export const RecordatoriosTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/recordatorios/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/recordatorios/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'recordatorio' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };

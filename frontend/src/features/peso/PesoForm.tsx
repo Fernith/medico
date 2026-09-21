@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import type { PesoDB } from '../../utils/pesoCalculations';
+import { apiFetch } from '../../api/client';
+
 
 // Centralizamos los colores, anidando la configuración específica del Input
 export interface FormColorTheme {
@@ -68,7 +70,7 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
       const url = initialData ? `/api/pesos/${initialData.id}` : '/api/pesos';
       const method = initialData ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Clock } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface RecordatorioAlerta {
   clave: string;
@@ -16,7 +18,7 @@ export const RecordatoriosGlobales: React.FC = () => {
 
   const checkRecordatorios = async () => {
     try {
-      const res = await fetch('/api/recordatorios');
+      const res = await apiFetch('/api/recordatorios');
       if (res.ok) {
         const data: RecordatorioAlerta[] = await res.json();
         const activas = data.filter(r => r.alerta);
@@ -36,7 +38,7 @@ export const RecordatoriosGlobales: React.FC = () => {
 
   const handlePosponer = async (clave: string) => {
     try {
-      await fetch(`/api/recordatorios/${clave}/posponer`, { method: 'PATCH' });
+      await apiFetch(`/api/recordatorios/${clave}/posponer`, { method: 'PATCH' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'recordatorio' }));
     } catch (err) {
       console.error("Error al posponer recordatorio", err);

@@ -3,6 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { TipoEntrenamientoForm } from './TipoEntrenamientoForm';
 import { Plus, Trash2 } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface TipoEntrenamiento { id: string; nombre: string; }
 
@@ -13,7 +15,7 @@ export const TipoEntrenamientoTabla: React.FC = () => {
 
   const fetchTipos = async () => {
     try {
-      const res = await fetch('/api/tipos-entrenamiento');
+      const res = await apiFetch('/api/tipos-entrenamiento');
       if (res.ok) setTipos(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -28,7 +30,7 @@ export const TipoEntrenamientoTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/tipos-entrenamiento/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/tipos-entrenamiento/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'tipo_entrenamiento' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'ejercicio' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }

@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Trash2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowDown, ArrowUp } from 'lucide-react';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { type PasoDB, calcularDistanciaKm } from '../../utils/pasosCalculations';
+import { apiFetch } from '../../api/client';
+
 
 interface PasosTablaProps {
   pasos: PasoDB[];
@@ -127,7 +129,7 @@ export const PasosTabla: React.FC<PasosTablaProps> = ({ pasos, alturaCm, sexo, o
         isOpen={!!deleteId} 
         onCancel={() => setDeleteId(null)} 
         onConfirm={async () => {
-          await fetch(`/api/pasos/historial/${deleteId}`, { method: 'DELETE' });
+          await apiFetch(`/api/pasos/historial/${deleteId}`, { method: 'DELETE' });
           setDeleteId(null); 
           onDataChanged();
         }} 

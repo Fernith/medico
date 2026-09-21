@@ -5,6 +5,8 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
 import { MedicacionActivaForm, type MedicacionActiva } from './MedicacionActivaForm';
 import { type Medicamento } from './MedicamentoForm';
+import { apiFetch } from '../../api/client';
+
 
 interface Props { activas: MedicacionActiva[]; medicamentos: Medicamento[]; }
 
@@ -23,14 +25,14 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/medicaciones-activas/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/medicaciones-activas/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicacion_activa' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
 
   const handleToggle = async (id: string) => {
     try {
-      await fetch(`/api/medicaciones-activas/${id}/toggle`, { method: 'PATCH' });
+      await apiFetch(`/api/medicaciones-activas/${id}/toggle`, { method: 'PATCH' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicacion_activa' }));
     } catch (err) { console.error(err); }
   };

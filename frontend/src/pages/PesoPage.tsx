@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
 import { PesosTabla } from '../features/peso/PesosTabla';
 import { MedidasTabla } from '../features/peso/MedidasTabla';
@@ -8,6 +9,8 @@ import { MedidasIndicadoresWidget } from '../features/peso/MedidasIndicadoresWid
 import { type PesoDB } from '../utils/pesoCalculations';
 import { type MedicionDB } from '../utils/medicionCalculations';
 import { Select } from '../components/ui/Select';
+import { apiFetch } from '../api/client';
+
 
 export const PesoPage: React.FC = () => {
   const [vista, setVista] = useState<'peso' | 'medidas'>('peso');
@@ -21,9 +24,9 @@ export const PesoPage: React.FC = () => {
   const fetchAllData = async () => {
     try {
       const [resUsu, resPes, resMed] = await Promise.all([
-        fetch('/api/usuario'),
-        fetch('/api/pesos'),
-        fetch('/api/mediciones')
+        apiFetch('/api/usuario'),
+        apiFetch('/api/pesos'),
+        apiFetch('/api/mediciones')
       ]);
 
       if (resUsu.ok) setUsuario(await resUsu.json());
@@ -133,7 +136,11 @@ export const PesoPage: React.FC = () => {
         </div>
       </div>
 
-      {!isLoading && (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="animate-spin h-10 w-10 text-emerald-500" />
+        </div>
+      ) : (
         <div className="grid grid-cols-1 gap-8">
           
           {/* SECCIÓN SUPERIOR DINÁMICA */}

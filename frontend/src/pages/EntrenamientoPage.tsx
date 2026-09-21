@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dumbbell, Settings2, BookOpen, Layers, BarChart3 } from 'lucide-react';
+import { Dumbbell, Settings2, BookOpen, Layers, BarChart3 , Loader2} from 'lucide-react';
 import { EjerciciosTabla } from '../features/entrenamiento/EjerciciosTabla';
 import { GruposTabla } from '../features/entrenamiento/GruposTabla';
 import { EquipamientoTabla } from '../features/entrenamiento/EquipamientoTabla';
@@ -8,6 +8,8 @@ import { RealizacionTabla } from '../features/entrenamiento/RealizacionTabla';
 import { RutinasTabla } from '../features/entrenamiento/RutinasTabla';
 import { type Ejercicio } from '../features/entrenamiento/EjercicioForm';
 import { EstadisticasDashboard } from '../features/entrenamiento/estadisticas/EstadisticasDashboard';
+import { apiFetch } from '../api/client';
+
 
 export const EntrenamientoPage: React.FC = () => {
   // Estado para controlar la vista actual (por defecto en estadísticas)
@@ -18,7 +20,7 @@ export const EntrenamientoPage: React.FC = () => {
 
   const fetchEjercicios = async () => {
     try {
-      const res = await fetch('/api/ejercicios');
+      const res = await apiFetch('/api/ejercicios');
       if (res.ok) setEjercicios(await res.json());
     } catch (err) { console.error(err); } finally { setIsLoading(false); }
   };
@@ -59,7 +61,11 @@ export const EntrenamientoPage: React.FC = () => {
         </button>
       </div>
 
-      {!isLoading ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="animate-spin h-10 w-10 text-indigo-500" />
+        </div>
+      ) : (
         <div className="mt-4">
           
           {/* VISTA: ESTADÍSTICAS */}
@@ -111,10 +117,6 @@ export const EntrenamientoPage: React.FC = () => {
 
             </div>
           )}
-        </div>
-      ) : (
-        <div className="flex justify-center items-center py-32">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
         </div>
       )}
     </div>

@@ -4,6 +4,8 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { EjercicioForm, type Ejercicio } from './EjercicioForm';
 import { Select } from '../../components/ui/Select';
 import { Plus, Edit2, Trash2, Image as ImageIcon, ZoomIn, X, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface EjerciciosTablaProps {
   ejercicios: Ejercicio[];
@@ -28,7 +30,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/ejercicios/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/ejercicios/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'ejercicio' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
@@ -37,7 +39,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
   const confirmReactivate = async () => {
     if (!reactivateId) return;
     try {
-      await fetch(`/api/ejercicios/${reactivateId}/reactivar`, { 
+      await apiFetch(`/api/ejercicios/${reactivateId}/reactivar`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reactivar_realizaciones: reactivateRealizaciones })

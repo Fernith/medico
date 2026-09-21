@@ -3,6 +3,8 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Pill, Scale, FileText, Tag, Droplet } from 'lucide-react';
 import { type CategoriaMedicamento } from './CategoriasTabla';
+import { apiFetch } from '../../api/client';
+
 
 export interface Medicamento {
   id: string; nombre: string; categoria_id?: string | null; categoria_nombre?: string | null;
@@ -28,10 +30,10 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
   });
 
   useEffect(() => {
-    fetch('/api/categorias-medicamentos').then(res => res.json()).then(setCategorias).catch(console.error);
+    apiFetch('/api/categorias-medicamentos').then(res => res.json()).then(setCategorias).catch(console.error);
     
     // Cargar diccionario dinámico de unidades
-    fetch('/api/unidades-dosis').then(res => res.json()).then(data => {
+    apiFetch('/api/unidades-dosis').then(res => res.json()).then(data => {
       setUnidadesDosis(data.map((u: any) => ({ value: u.abreviatura, label: `${u.nombre} (${u.abreviatura})` })));
     }).catch(console.error);
   }, []);
@@ -45,7 +47,7 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
     try {
       const payload = { ...formData, categoria_id: formData.categoria_id || null, dosis: parseFloat(formData.dosis) };
       const url = initialData ? `/api/medicamentos/${initialData.id}` : '/api/medicamentos';
-      const res = await fetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await apiFetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) {
         window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicamento' }));
         onSuccess();

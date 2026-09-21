@@ -3,6 +3,8 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Type, AlignLeft, Palette, Plus, Trash2, Clock, Activity } from 'lucide-react';
 import { type RealizacionEjercicio } from './RealizacionForm';
+import { apiFetch } from '../../api/client';
+
 
 export interface Rutina { id: string; nombre: string; descripcion: string; color: string; activo: boolean }
 
@@ -97,13 +99,13 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({ initialData, onSuccess, 
 
   useEffect(() => {
     const fetchData = async () => {
-      const resReal = await fetch('/api/realizaciones');
+      const resReal = await apiFetch('/api/realizaciones');
       if (resReal.ok) {
         const dataReal = await resReal.json();
         setRealizaciones(dataReal);
 
         if (initialData) {
-          const resRut = await fetch(`/api/rutinas/${initialData.id}/realizaciones`);
+          const resRut = await apiFetch(`/api/rutinas/${initialData.id}/realizaciones`);
           if (resRut.ok) {
             const detalles: RutinaRealizacionDetalle[] = await resRut.json();
             const nuevasFases: Record<string, ItemFase[]> = { Calentamiento: [], Principal: [], Postentreno: [] };
@@ -134,16 +136,16 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({ initialData, onSuccess, 
     try {
       let rutinaId = initialData?.id;
       if (!rutinaId) {
-        const res = await fetch('/api/rutinas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        const res = await apiFetch('/api/rutinas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
         if (!res.ok) throw new Error(await res.text());
         rutinaId = (await res.json()).id;
       } else {
-        const res = await fetch(`/api/rutinas/${rutinaId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+        const res = await apiFetch(`/api/rutinas/${rutinaId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
         if (!res.ok) throw new Error(await res.text());
         
-        const resAntiguos = await fetch(`/api/rutinas/${rutinaId}/realizaciones`);
+        const resAntiguos = await apiFetch(`/api/rutinas/${rutinaId}/realizaciones`);
         const antiguos: RutinaRealizacionDetalle[] = await resAntiguos.json();
-        await Promise.all(antiguos.map(a => fetch(`/api/rutina-realizacion/${a.id}`, { method: 'DELETE' })));
+        await Promise.all(antiguos.map(a => apiFetch(`/api/rutina-realizacion/${a.id}`, { method: 'DELETE' })));
       }
 
       const inserciones: { rutina_id: string; realizacion_id: string; fase: string; orden: number; descanso_posterior: number | null; }[] = [];
@@ -153,7 +155,7 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({ initialData, onSuccess, 
         });
       }
 
-      await Promise.all(inserciones.map(payload => fetch('/api/rutina-realizacion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })));
+      await Promise.all(inserciones.map(payload => apiFetch('/api/rutina-realizacion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
       onSuccess();
     } catch (err) { console.error(err); alert("Error al guardar la rutina"); } finally { setIsSubmitting(false); }

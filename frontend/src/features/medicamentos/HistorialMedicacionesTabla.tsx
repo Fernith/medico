@@ -6,6 +6,8 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
 import { HistorialMedicacionForm, type HistorialMedicacion } from './HistorialMedicacionForm';
 import { MedicacionToast, type ToastData } from '../medicamentos/MedicacionToast';
+import { apiFetch } from '../../api/client';
+
 
 export const HistorialMedicacionesTabla: React.FC = () => {
   const [historial, setHistorial] = useState<HistorialMedicacion[]>([]);
@@ -23,7 +25,7 @@ export const HistorialMedicacionesTabla: React.FC = () => {
 
   const fetchHistorial = async () => {
     try {
-      const res = await fetch('/api/historial-medicacion');
+      const res = await apiFetch('/api/historial-medicacion');
       if (res.ok) setHistorial(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -38,7 +40,7 @@ export const HistorialMedicacionesTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/historial-medicacion/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/historial-medicacion/${deleteId}`, { method: 'DELETE' });
       fetchHistorial();
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
@@ -46,7 +48,7 @@ export const HistorialMedicacionesTabla: React.FC = () => {
   const handleMarcarTomado = async (med: HistorialMedicacion) => {
     setHistorial(prev => prev.map(h => h.id === med.id ? { ...h, pendiente: false } : h));
     try {
-      await fetch(`/api/historial-medicacion/${med.id}/tomado`, { method: 'PATCH' });
+      await apiFetch(`/api/historial-medicacion/${med.id}/tomado`, { method: 'PATCH' });
       const toastId = Date.now().toString();
       setToasts(prev => [...prev, { id: toastId, medNombre: med.medicamento_nombre, historialId: med.id }]);
     } catch (err) { console.error(err); fetchHistorial(); }
@@ -56,7 +58,7 @@ export const HistorialMedicacionesTabla: React.FC = () => {
     setToasts(prev => prev.filter(t => t.id !== toast.id));
     setHistorial(prev => prev.map(h => h.id === toast.historialId ? { ...h, pendiente: true } : h));
     try {
-      await fetch(`/api/historial-medicacion/${toast.historialId}/pendiente`, { method: 'PATCH' });
+      await apiFetch(`/api/historial-medicacion/${toast.historialId}/pendiente`, { method: 'PATCH' });
     } catch (err) { console.error(err); fetchHistorial(); }
   };
 

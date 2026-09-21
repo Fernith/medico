@@ -5,6 +5,8 @@ import { Activity, Smile, Meh, Frown, ChevronRight } from 'lucide-react';
 import { formatearFechaRelativa } from '../../utils/formatters';
 import { calcularDistanciaKm, getDiasDelMes } from '../../utils/pasosCalculations';
 import { useAjustes } from '../../context/AjustesContext';
+import { apiFetch } from '../../api/client';
+
 
 interface PasosWidgetProps {
   data: {
@@ -46,7 +48,7 @@ export const PasosWidget = ({ data }: PasosWidgetProps) => {
   const metaMensual = metaDiaria * getDiasDelMes();
 
   useEffect(() => {
-    fetch('/api/usuario')
+    apiFetch('/api/usuario')
       .then(res => res.json())
       .then(userData => {
         if (userData) {

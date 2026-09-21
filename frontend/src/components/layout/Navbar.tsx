@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Activity, Moon, Scale, Droplet, Menu, X, User, Settings, Pill, Stethoscope, Dumbbell, ChevronDown, HeartPulse, Footprints, RefreshCw } from 'lucide-react';
 import { useAjustes } from '../../context/AjustesContext';
+import { apiFetch } from '../../api/client';
+
 
 export const Navbar = () => {
   const location = useLocation();
@@ -34,7 +36,7 @@ export const Navbar = () => {
     setIsSyncing(true);
     
     try {
-      const res = await fetch('/api/auth/google/sync', { method: 'POST' });
+      const res = await apiFetch('/api/auth/google/sync', { method: 'POST' });
       if (res.ok) {
         // Lanzamos los eventos para actualizar el estado global de la app
         window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'pasos' }));

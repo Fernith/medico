@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../../api/client';
+
 
 export const RachaWidget = () => {
   const [racha, setRacha] = useState<{ dias: number, inicio: string } | null>(null);
 
   useEffect(() => {
     const fetchRacha = () => {
-      fetch('/api/rutinas/racha')
+      apiFetch('/api/rutinas/racha')
         .then(res => res.json())
         .then(setRacha)
         .catch(console.error);

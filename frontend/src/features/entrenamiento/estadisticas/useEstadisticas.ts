@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import { apiFetch } from '../../../api/client';
+
 
 export interface EstadisticaSerieRow {
   historial_rutina_id: string;
@@ -28,7 +30,7 @@ export const useEstadisticas = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/estadisticas/historial');
+        const res = await apiFetch('/api/estadisticas/historial');
         if (res.ok) {
           setData(await res.json());
         }

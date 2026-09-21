@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Type, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
 import { Select } from '../../components/ui/Select';
+import { apiFetch } from '../../api/client';
+
 
 export interface FormColorTheme {
   submitBg: string;
@@ -72,7 +74,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
   useEffect(() => {
     const fetchGrupos = async () => {
       try {
-        const res = await fetch('/api/grupos-musculares');
+        const res = await apiFetch('/api/grupos-musculares');
         if (res.ok) setGruposDisponibles(await res.json());
       } catch (err) {
         console.error("Error cargando grupos musculares:", err);
@@ -81,7 +83,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
     fetchGrupos();
     const fetchTipos = async () => {
       try {
-        const res = await fetch('/api/tipos-entrenamiento');
+        const res = await apiFetch('/api/tipos-entrenamiento');
         if (res.ok) setTiposEntrenamiento(await res.json());
       } catch (err) { console.error("Error cargando tipos:", err); }
     };
@@ -145,7 +147,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
     
     setIsSubmitting(true);
     try {
-      const res = await fetch(initialData ? `/api/ejercicios/${initialData.id}` : '/api/ejercicios', {
+      const res = await apiFetch(initialData ? `/api/ejercicios/${initialData.id}` : '/api/ejercicios', {
         method: initialData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

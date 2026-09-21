@@ -5,6 +5,8 @@ import { RealizacionForm, type RealizacionEjercicio } from './RealizacionForm';
 import { Select } from '../../components/ui/Select';
 import { Plus, Edit2, Trash2, Clock, Image as ImageIcon, ZoomIn, X, Filter, Search, ChevronLeft, ChevronRight, Archive, RefreshCw, Copy } from 'lucide-react';
 import { DuplicarForm } from './DuplicarForm';
+import { apiFetch } from '../../api/client';
+
 
 export const RealizacionTabla: React.FC = () => {
   const [realizaciones, setRealizaciones] = useState<RealizacionEjercicio[]>([]);
@@ -29,7 +31,7 @@ export const RealizacionTabla: React.FC = () => {
 
   const fetchRealizaciones = async () => {
     try {
-      const res = await fetch('/api/realizaciones');
+      const res = await apiFetch('/api/realizaciones');
       if (res.ok) setRealizaciones(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -49,7 +51,7 @@ export const RealizacionTabla: React.FC = () => {
   const handleHardDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/realizaciones/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/realizaciones/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'realizacion' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
@@ -58,7 +60,7 @@ export const RealizacionTabla: React.FC = () => {
   // 2. Modificar Estado Lógico (Inactivar/Restaurar)
   const handleToggleState = async (id: string, activo: boolean) => {
     try {
-      await fetch(`/api/realizaciones/${id}/estado`, { 
+      await apiFetch(`/api/realizaciones/${id}/estado`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activo })
@@ -83,7 +85,7 @@ export const RealizacionTabla: React.FC = () => {
 
   const handleDuplicate = async (nuevoNombre: string) => {
   if (!duplicateItem) return;
-  const res = await fetch(`/api/realizaciones/${duplicateItem.id}/duplicar`, {
+  const res = await apiFetch(`/api/realizaciones/${duplicateItem.id}/duplicar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nombre: nuevoNombre })

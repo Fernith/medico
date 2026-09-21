@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PasosWidget } from '../features/dashboard/PasosWidget';
 import { SuenoWidget } from '../features/dashboard/SuenoWidget';
 import { ReglaWidget } from '../features/dashboard/ReglaWidget';
-import { Dumbbell} from 'lucide-react';
+import { Dumbbell, Loader2 } from 'lucide-react';
 import { useAjustes } from '../context/AjustesContext';
 import { PesoWidget } from '../features/dashboard/PesoWidget';
 import { EntrenamientoActivo } from '../features/entrenamiento/activo/EntrenamientoActivo';
 import { MedicamentosWidget } from '../features/dashboard/MedicamentosWidget';
 import { RachaWidget } from '../features/dashboard/RachaWidget';
+import { apiClient } from '../api/client';
 
 interface PasosDB { 
   hoy: number; 
@@ -33,60 +34,73 @@ export const DashboardPage = () => {
   const mediaCiclo = Number(ajustes['duracion_media_ciclo']) || 28;
   const mediaPeriodo = Number(ajustes['duracion_media_periodo']) || 6;
 
-  // Pasos ya no necesita calcular la meta, lo hará el Widget internamente
-  const [datosPasos, setDatosPasos] = useState<{ hoy: number, totalMes: number, ultimaFecha: string | null } | null>(null);
-  const [datosSueno, setDatosSueno] = useState<{ hoyMinutos: number, ultimos7DiasMin: number, ultimos7DiasMax: number, media7Dias: number, ultimaFecha: string | null } | null>(null);
-  const [ultimoCiclo, setUltimoCiclo] = useState<CicloDB | null>(null);
+  const [rawPasos, setRawPasos] = useState<PasosDB | null>(null);
+  const [rawSueno, setRawSueno] = useState<SuenoDB[] | null>(null);
+  const [rawCiclos, setRawCiclos] = useState<CicloDB[] | null>(null);
 
   const [isWorkoutActive, setIsWorkoutActive] = useState(false); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
-        const resPasos = await fetch('/api/pasos');
-        const pasosJson: PasosDB = await resPasos.json();
+        const [resPasos, resSueno, resCiclos] = await Promise.all([
+          apiClient.get<PasosDB>('/pasos').catch(() => null),
+          apiClient.get<SuenoDB[]>('/sueno').catch(() => null),
+          mostrarRegla ? apiClient.get<CicloDB[]>('/ciclos').catch(() => null) : Promise.resolve(null)
+        ]);
 
-        if (pasosJson && pasosJson.hoy !== undefined) {
-          setDatosPasos({
-            hoy: pasosJson.hoy,
-            totalMes: pasosJson.total_mes,
-            ultimaFecha: pasosJson.ultima_fecha || null,
-          });
-        }
-
-        const resSueno = await fetch('/api/sueno');
-        const suenoJson: SuenoDB[] = await resSueno.json();
-
-        if (suenoJson && suenoJson.length > 0) {
-          const valoresSueno = suenoJson.map((d: any) => d.minutos_sueno);
-          setDatosSueno({
-            hoyMinutos: suenoJson[0].minutos_sueno,
-            ultimos7DiasMin: Math.min(...valoresSueno),
-            ultimos7DiasMax: Math.max(...valoresSueno),
-            media7Dias: Math.round(valoresSueno.reduce((a: number, b: number) => a + b, 0) / valoresSueno.length),
-            ultimaFecha: suenoJson[0].fecha,
-          });
-        }
-
-        if (mostrarRegla) {
-          const resCiclos = await fetch('/api/ciclos');
-          if (resCiclos.ok) {
-            const ciclosJson: CicloDB[] = await resCiclos.json();
-            if (ciclosJson && ciclosJson.length > 0) {
-              const ciclosOrdenados = ciclosJson.sort((a, b) => 
-                new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime()
-              );
-              setUltimoCiclo(ciclosOrdenados[0]);
-            }
-          }
-        }
+        if (resPasos?.data) setRawPasos(resPasos.data);
+        if (resSueno?.data) setRawSueno(resSueno.data);
+        if (resCiclos?.data) setRawCiclos(resCiclos.data);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
     fetchData();
   }, [mostrarRegla]);
+
+  // OPTIMIZACIÃ“N RENDIMIENTO: Memoizamos los cÃ¡lculos para no recalcular en cada render
+  const datosPasos = useMemo(() => {
+    if (!rawPasos || rawPasos.hoy === undefined) return null;
+    return {
+      hoy: rawPasos.hoy,
+      totalMes: rawPasos.total_mes,
+      ultimaFecha: rawPasos.ultima_fecha || null,
+    };
+  }, [rawPasos]);
+
+  const datosSueno = useMemo(() => {
+    if (!rawSueno || rawSueno.length === 0) return null;
+    const valoresSueno = rawSueno.map(d => d.minutos_sueno);
+    return {
+      hoyMinutos: rawSueno[0].minutos_sueno,
+      ultimos7DiasMin: Math.min(...valoresSueno),
+      ultimos7DiasMax: Math.max(...valoresSueno),
+      media7Dias: Math.round(valoresSueno.reduce((a, b) => a + b, 0) / valoresSueno.length),
+      ultimaFecha: rawSueno[0].fecha,
+    };
+  }, [rawSueno]);
+
+  const ultimoCiclo = useMemo(() => {
+    if (!rawCiclos || rawCiclos.length === 0) return null;
+    return [...rawCiclos].sort((a, b) => 
+      new Date(b.fecha_inicio).getTime() - new Date(a.fecha_inicio).getTime()
+    )[0];
+  }, [rawCiclos]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[50vh]">
+        <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <>

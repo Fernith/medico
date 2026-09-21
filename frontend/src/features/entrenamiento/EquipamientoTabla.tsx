@@ -3,6 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { EquipamientoForm } from './EquipamientoForm';
 import { Plus, Trash2 } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface Equipamiento {
   id: string;
@@ -16,7 +18,7 @@ export const EquipamientoTabla: React.FC = () => {
 
   const fetchEquipos = async () => {
     try {
-      const res = await fetch('/api/equipamiento');
+      const res = await apiFetch('/api/equipamiento');
       if (res.ok) setEquipos(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -31,7 +33,7 @@ export const EquipamientoTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/equipamiento/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/equipamiento/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'equipamiento' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'ejercicio' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }

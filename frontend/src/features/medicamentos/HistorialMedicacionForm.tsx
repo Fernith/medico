@@ -4,6 +4,8 @@ import { Select } from '../../components/ui/Select';
 import { Pill, Hash } from 'lucide-react';
 import type { FormColorTheme } from '../peso/PesoForm';
 import { type Medicamento } from './MedicamentoForm';
+import { apiFetch } from '../../api/client';
+
 
 export interface HistorialMedicacion {
   id: string; medicamento_id: string; medicamento_nombre: string;
@@ -37,7 +39,7 @@ export const HistorialMedicacionForm: React.FC<Props> = ({ initialData, onSucces
     pendiente: initialData ? initialData.pendiente : false,
   });
 
-  useEffect(() => { fetch('/api/medicamentos').then(r => r.json()).then(setMedicamentos).catch(console.error); }, []);
+  useEffect(() => { apiFetch('/api/medicamentos').then(r => r.json()).then(setMedicamentos).catch(console.error); }, []);
 
   const handleChange = (campo: string, valor: any) => setFormData(prev => ({ ...prev, [campo]: valor }));
 
@@ -48,7 +50,7 @@ export const HistorialMedicacionForm: React.FC<Props> = ({ initialData, onSucces
     try {
       const payload = { ...formData, cantidad_tomada: parseFloat(formData.cantidad_tomada) || 1, fecha_hora: new Date(formData.fecha_hora).toISOString() };
       const url = initialData ? `/api/historial-medicacion/${initialData.id}` : '/api/historial-medicacion';
-      const res = await fetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await apiFetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) { window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'historial_medicacion' })); onSuccess(); }
     } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
   };

@@ -4,6 +4,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MedicionForm } from './MedicionForm';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface MedidasTablaProps {
   mediciones: MedicionDB[];
@@ -19,7 +21,7 @@ export const MedidasTabla: React.FC<MedidasTablaProps> = ({ mediciones }) => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/mediciones/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/mediciones/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicion' }));
     } catch (e) {
       console.error(e);

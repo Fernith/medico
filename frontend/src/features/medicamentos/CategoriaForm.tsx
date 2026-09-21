@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Tag } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface CategoriaFormProps {
   onSuccess: () => void;
@@ -19,7 +21,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({ onSuccess, onCance
     if (!nombre.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/categorias-medicamentos', {
+      const res = await apiFetch('/api/categorias-medicamentos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, color })

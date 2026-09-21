@@ -3,6 +3,8 @@ import { Trash2, Tag, Plus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { CategoriaForm } from './CategoriaForm';
+import { apiFetch } from '../../api/client';
+
 
 export interface CategoriaMedicamento { id: string; nombre: string; color: string; }
 
@@ -13,7 +15,7 @@ export const CategoriasTabla: React.FC = () => {
 
   const fetchCategorias = async () => {
     try {
-      const res = await fetch('/api/categorias-medicamentos');
+      const res = await apiFetch('/api/categorias-medicamentos');
       if (res.ok) setCategorias(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -28,7 +30,7 @@ export const CategoriasTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/categorias-medicamentos/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/categorias-medicamentos/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'categoria_medicamento' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicamento' }));
       fetchCategorias();

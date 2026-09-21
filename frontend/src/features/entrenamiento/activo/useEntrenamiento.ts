@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { type Rutina, type RutinaRealizacionDetalle } from '../RutinaForm';
+import { apiFetch } from '../../../api/client';
+
 
 export interface SetHistorial {
   rutina_realizacion_id: string;
@@ -30,13 +32,13 @@ export const useEntrenamiento = (onClose: () => void) => {
   const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
-    fetch('/api/rutinas').then(res => res.json()).then(setRutinas).catch(console.error);
+    apiFetch('/api/rutinas').then(res => res.json()).then(setRutinas).catch(console.error);
   }, []);
 
   const actions = {
     selectRutina: async (rutina: Rutina) => {
       try {
-        const res = await fetch(`/api/rutinas/${rutina.id}/realizaciones`);
+        const res = await apiFetch(`/api/rutinas/${rutina.id}/realizaciones`);
         const detalles: RutinaRealizacionDetalle[] = await res.json();
         
         const ejerciciosActivos = detalles.filter(d => d.realizacion_activa !== false);
@@ -150,7 +152,7 @@ export const useEntrenamiento = (onClose: () => void) => {
       };
 
       try {
-        const res = await fetch('/api/historial-rutinas', {
+        const res = await apiFetch('/api/historial-rutinas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

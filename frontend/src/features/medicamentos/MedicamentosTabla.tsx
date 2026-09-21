@@ -3,6 +3,8 @@ import { Edit2, Trash2, Pill, Plus, Search, ChevronLeft, ChevronRight } from 'lu
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MedicamentoForm, type Medicamento } from './MedicamentoForm';
+import { apiFetch } from '../../api/client';
+
 
 export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ medicamentos }) => {
   const [editingItem, setEditingItem] = useState<Medicamento | null>(null);
@@ -18,7 +20,7 @@ export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ m
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/medicamentos/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/medicamentos/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicamento' }));
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicacion_activa' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }

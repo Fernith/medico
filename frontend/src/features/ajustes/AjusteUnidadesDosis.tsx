@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input'; 
 import { Trash2, Beaker, Edit2, X } from 'lucide-react';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { apiFetch } from '../../api/client';
+
 
 interface UnidadDosis {
   id: string;
@@ -23,7 +25,7 @@ export const AjusteUnidadesDosis: React.FC = () => {
 
   const fetchUnidades = async () => {
     try {
-      const res = await fetch('/api/unidades-dosis');
+      const res = await apiFetch('/api/unidades-dosis');
       if (res.ok) setUnidades(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -51,7 +53,7 @@ export const AjusteUnidadesDosis: React.FC = () => {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `/api/unidades-dosis/${editingId}` : '/api/unidades-dosis';
       
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, abreviatura })
@@ -67,7 +69,7 @@ export const AjusteUnidadesDosis: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/unidades-dosis/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/unidades-dosis/${deleteId}`, { method: 'DELETE' });
       fetchUnidades();
       // Si estábamos editando justo el que borramos, reseteamos el form
       if (editingId === deleteId) resetForm();

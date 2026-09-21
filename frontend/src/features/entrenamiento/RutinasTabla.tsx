@@ -5,6 +5,8 @@ import { Select } from '../../components/ui/Select';
 import { RutinaForm, type Rutina, type RutinaRealizacionDetalle } from './RutinaForm';
 import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical, ChevronLeft, ChevronRight, Search, Filter, RefreshCw, Archive, Copy } from 'lucide-react';
 import { DuplicarForm } from './DuplicarForm';
+import { apiFetch } from '../../api/client';
+
 
 export const RutinasTabla: React.FC = () => {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
@@ -30,7 +32,7 @@ export const RutinasTabla: React.FC = () => {
 
   const fetchRutinas = async () => {
     try {
-      const res = await fetch('/api/rutinas');
+      const res = await apiFetch('/api/rutinas');
       if (res.ok) setRutinas(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -56,7 +58,7 @@ export const RutinasTabla: React.FC = () => {
   const handleHardDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/rutinas/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/rutinas/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'rutina' }));
     } catch (e) { console.error(e); } finally { setDeleteId(null); }
   };
@@ -64,7 +66,7 @@ export const RutinasTabla: React.FC = () => {
   // 2. Modificar Estado Lógico (Inactivar o Restaurar)
   const handleToggleState = async (id: string, activo: boolean) => {
     try {
-      await fetch(`/api/rutinas/${id}/estado`, { 
+      await apiFetch(`/api/rutinas/${id}/estado`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activo })
@@ -83,7 +85,7 @@ export const RutinasTabla: React.FC = () => {
     
     if (!rutinaDetalles[rutinaId]) {
       try {
-        const res = await fetch(`/api/rutinas/${rutinaId}/realizaciones`);
+        const res = await apiFetch(`/api/rutinas/${rutinaId}/realizaciones`);
         if (res.ok) {
           const data = await res.json(); 
           setRutinaDetalles(prev => ({ ...prev, [rutinaId]: data })); 
@@ -94,7 +96,7 @@ export const RutinasTabla: React.FC = () => {
 
   const handleDuplicate = async (nuevoNombre: string) => {
   if (!duplicateItem) return;
-  const res = await fetch(`/api/rutinas/${duplicateItem.id}/duplicar`, {
+  const res = await apiFetch(`/api/rutinas/${duplicateItem.id}/duplicar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nombre: nuevoNombre })

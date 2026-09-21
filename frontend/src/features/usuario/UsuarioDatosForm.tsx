@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { apiFetch } from '../../api/client';
+
 
 export interface Usuario {
   id: number;
@@ -48,7 +50,7 @@ export const UsuarioDatosForm: React.FC = () => {
   useEffect(() => {
     const fetchUsuario = async () => {
       try {
-        const res = await fetch('/api/usuario');
+        const res = await apiFetch('/api/usuario');
         if (res.ok) {
           const data = await res.json();
           setFormData(data);
@@ -73,7 +75,7 @@ export const UsuarioDatosForm: React.FC = () => {
     setMensaje(null);
     
     try {
-      const res = await fetch('/api/usuario', {
+      const res = await apiFetch('/api/usuario', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

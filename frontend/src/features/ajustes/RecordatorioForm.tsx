@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { BellRing } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 export interface Recordatorio {
   clave: string;
@@ -64,7 +66,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

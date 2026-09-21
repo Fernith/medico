@@ -1,5 +1,8 @@
+import { Calendar, Ruler } from 'lucide-react';
 import React, { useState } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
+import { apiFetch } from '../../api/client';
+
 
 export interface FormColorTheme {
   submitBg: string;
@@ -74,7 +77,7 @@ export const MedicionForm: React.FC<MedicionFormProps> = ({ initialData, onSucce
       const url = initialData ? `/api/mediciones/${initialData.id}` : '/api/mediciones';
       const method = initialData ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -108,9 +111,7 @@ export const MedicionForm: React.FC<MedicionFormProps> = ({ initialData, onSucce
                 required
                 colorTheme={theme.inputTheme}
                 icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
+                <Calendar className="w-5 h-5" />
                 }
             />
             
@@ -126,10 +127,7 @@ export const MedicionForm: React.FC<MedicionFormProps> = ({ initialData, onSucce
                   onClear={() => handleChange('cm_cintura', '')}
                   colorTheme={theme.inputTheme}
                   icon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {/* Icono de regla medidora */}
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-6-8v8m12-8v8"></path>
-                  </svg>
+                  <Ruler className="w-5 h-5" />
                   }
               />
 
@@ -144,9 +142,7 @@ export const MedicionForm: React.FC<MedicionFormProps> = ({ initialData, onSucce
                   onClear={() => handleChange('cm_cadera', '')}
                   colorTheme={theme.inputTheme}
                   icon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-6-8v8m12-8v8"></path>
-                  </svg>
+                  <Ruler className="w-5 h-5" />
                   }
               />
             </div>

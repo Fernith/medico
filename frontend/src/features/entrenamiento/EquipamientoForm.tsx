@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Type } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface EquipamientoFormProps {
   onSuccess: () => void;
@@ -17,7 +19,7 @@ export const EquipamientoForm: React.FC<EquipamientoFormProps> = ({ onSuccess, o
     
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/equipamiento', {
+      const res = await apiFetch('/api/equipamiento', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre })

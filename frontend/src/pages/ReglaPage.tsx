@@ -8,6 +8,8 @@ import { useAjustes } from '../context/AjustesContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Modal } from '../components/ui/Modal';
 import { ReglaForm } from '../features/regla/ReglaForm';
+import { apiFetch } from '../api/client';
+
 
 export const ReglaPage: React.FC = () => {
   const [vista, setVista] = useState<'mensual' | 'anual'>('mensual');
@@ -70,7 +72,7 @@ export const ReglaPage: React.FC = () => {
   const fetchCiclos = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/ciclos'); 
+      const response = await apiFetch('/api/ciclos'); 
       if (!response.ok) throw new Error('Error al cargar los ciclos');
       
       const data = await response.json();
@@ -102,7 +104,7 @@ export const ReglaPage: React.FC = () => {
     if (!cicloIdToDelete) return;
     setIsDeleting(true); 
     try {
-      const response = await fetch(`/api/ciclos/${cicloIdToDelete}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/ciclos/${cicloIdToDelete}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Error al borrar el registro');
       
       setCiclos(prev => prev.filter(c => c.id !== cicloIdToDelete));

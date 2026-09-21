@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Pill, Settings2, History, Archive, BarChart3 } from 'lucide-react';
+import { Pill, Settings2, History, Archive, BarChart3 , Loader2} from 'lucide-react';
 import { type Medicamento } from '../features/medicamentos/MedicamentoForm';
 import { type MedicacionActiva } from '../features/medicamentos/MedicacionActivaForm';
 import { MedicamentosTabla } from '../features/medicamentos/MedicamentosTabla';
 import { CategoriasTabla } from '../features/medicamentos/CategoriasTabla';
 import { MedicacionesActivasTabla } from '../features/medicamentos/MedicacionesActivasTabla';
-import { HistorialMedicacionesTabla } from '../features/medicamentos/HistorialMedicacionesTabla'; 
+import { HistorialMedicacionesTabla } from '../features/medicamentos/HistorialMedicacionesTabla';
+import { apiFetch } from '../api/client';
+ 
 
 export const MedicamentosPage: React.FC = () => {
   // POR DEFECTO A HISTORIAL, PERO MANTENIENDO LAS 3 OPCIONES
@@ -18,8 +20,8 @@ export const MedicamentosPage: React.FC = () => {
   const fetchData = async () => {
     try {
       const [resMed, resAct] = await Promise.all([
-        fetch('/api/medicamentos'),
-        fetch('/api/medicaciones-activas')
+        apiFetch('/api/medicamentos'),
+        apiFetch('/api/medicaciones-activas')
       ]);
       if (resMed.ok) setMedicamentos(await resMed.json());
       if (resAct.ok) setActivas(await resAct.json());
@@ -72,7 +74,11 @@ export const MedicamentosPage: React.FC = () => {
         </button>
       </div>
 
-      {!isLoading ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="animate-spin h-10 w-10 text-indigo-500" />
+        </div>
+      ) : (
         <div className="mt-4">
           
           {/* VISTA: HISTORIAL */}
@@ -120,10 +126,6 @@ export const MedicamentosPage: React.FC = () => {
 
             </div>
           )}
-        </div>
-      ) : (
-        <div className="flex justify-center items-center py-32">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-teal-600"></div>
         </div>
       )}
     </div>

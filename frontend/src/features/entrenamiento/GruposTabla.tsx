@@ -3,6 +3,8 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { GrupoMuscularForm, type GrupoMuscular } from './GrupoMuscularForm';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 export const GruposTabla: React.FC = () => {
   const [grupos, setGrupos] = useState<GrupoMuscular[]>([]);
@@ -12,7 +14,7 @@ export const GruposTabla: React.FC = () => {
 
   const fetchGrupos = async () => {
     try {
-      const res = await fetch('/api/grupos-musculares');
+      const res = await apiFetch('/api/grupos-musculares');
       if (res.ok) setGrupos(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -27,7 +29,7 @@ export const GruposTabla: React.FC = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetch(`/api/grupos-musculares/${deleteId}`, { method: 'DELETE' });
+      await apiFetch(`/api/grupos-musculares/${deleteId}`, { method: 'DELETE' });
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'grupo_muscular' }));
       // Disparamos también la actualización de ejercicios por si acaso ha afectado a alguno
       window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'ejercicio' }));

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Type } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 interface TipoEntrenamientoFormProps {
   onSuccess: () => void;
@@ -17,7 +19,7 @@ export const TipoEntrenamientoForm: React.FC<TipoEntrenamientoFormProps> = ({ on
     
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/tipos-entrenamiento', {
+      const res = await apiFetch('/api/tipos-entrenamiento', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre })

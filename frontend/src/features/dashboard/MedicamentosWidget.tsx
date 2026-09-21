@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { type HistorialMedicacion } from '../medicamentos/HistorialMedicacionForm';
 import { MedicacionToast, type ToastData } from '../medicamentos/MedicacionToast';
+import { apiFetch } from '../../api/client';
+
 
 export const MedicamentosWidget: React.FC = () => {
   const [pendientes, setPendientes] = useState<HistorialMedicacion[]>([]);
@@ -16,7 +18,7 @@ export const MedicamentosWidget: React.FC = () => {
     const end = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59);
 
     try {
-      const res = await fetch(`/api/historial-medicacion/pendientes?start=${start.toISOString()}&end=${end.toISOString()}`);
+      const res = await apiFetch(`/api/historial-medicacion/pendientes?start=${start.toISOString()}&end=${end.toISOString()}`);
       if (res.ok) setPendientes(await res.json());
     } catch (err) { console.error(err); }
   }, []);
@@ -33,7 +35,7 @@ export const MedicamentosWidget: React.FC = () => {
     setPendientes(prev => prev.filter(p => p.id !== med.id));
     
     try {
-      await fetch(`/api/historial-medicacion/${med.id}/tomado`, { method: 'PATCH' });
+      await apiFetch(`/api/historial-medicacion/${med.id}/tomado`, { method: 'PATCH' });
       
       // Añadimos el Toast
       const toastId = Date.now().toString();
@@ -51,7 +53,7 @@ export const MedicamentosWidget: React.FC = () => {
     setToasts(prev => prev.filter(t => t.id !== toast.id));
     
     try {
-      await fetch(`/api/historial-medicacion/${toast.historialId}/pendiente`, { method: 'PATCH' });
+      await apiFetch(`/api/historial-medicacion/${toast.historialId}/pendiente`, { method: 'PATCH' });
       fetchPendientesHoy(); // Recargamos para que vuelva a aparecer
     } catch (err) { console.error(err); }
   };

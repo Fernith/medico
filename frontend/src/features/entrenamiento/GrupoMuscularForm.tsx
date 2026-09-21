@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Type, Layers } from 'lucide-react';
+import { apiFetch } from '../../api/client';
+
 
 export interface GrupoMuscular {
   id: string;
@@ -35,7 +37,7 @@ export const GrupoMuscularForm: React.FC<GrupoMuscularFormProps> = ({ initialDat
       const url = initialData ? `/api/grupos-musculares/${initialData.id}` : '/api/grupos-musculares';
       const method = initialData ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

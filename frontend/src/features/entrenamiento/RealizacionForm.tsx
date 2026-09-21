@@ -3,6 +3,8 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Hash, Scale, Clock, Activity, Target, Dumbbell, Type } from 'lucide-react'; // <-- Añadido Type
 import { type Ejercicio } from './EjercicioForm';
+import { apiFetch } from '../../api/client';
+
 
 export interface RealizacionEjercicio {
   id: string;
@@ -50,8 +52,8 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
   useEffect(() => {
     const fetchData = async () => {
       const [resEj, resEq] = await Promise.all([
-        fetch('/api/ejercicios'),
-        fetch('/api/equipamiento') 
+        apiFetch('/api/ejercicios'),
+        apiFetch('/api/equipamiento') 
       ]);
       if (resEj.ok) setEjercicios(await resEj.json());
       if (resEq.ok) setEquipamientos(await resEq.json());
@@ -94,7 +96,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
       };
 
       const url = initialData ? `/api/realizaciones/${initialData.id}` : '/api/realizaciones';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: initialData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

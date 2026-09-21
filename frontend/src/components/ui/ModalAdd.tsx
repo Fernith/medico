@@ -5,6 +5,8 @@ import { ReglaForm } from '../../features/regla/ReglaForm';
 import { MedicionForm } from '../../features/peso/MedicionForm';
 import { HistorialMedicacionForm } from '../../features/medicamentos/HistorialMedicacionForm';
 import type { Ciclo } from '../../utils/reglaCalculations';
+import { apiFetch } from '../../api/client';
+
 
 interface ModalAddProps {
   isOpen: boolean;
@@ -28,7 +30,7 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   // NUEVO EFECTO: Si abrimos la pestaña Regla, preguntamos al backend si hay ciclo activo
   useEffect(() => {
     if (isOpen && activeTab === 'regla') {
-      fetch('/api/ciclos/actual')
+      apiFetch('/api/ciclos/actual')
         .then(res => {
           if (res.status === 200) return res.json();
           return null;

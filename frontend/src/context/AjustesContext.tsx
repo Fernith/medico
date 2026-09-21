@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../api/client';
+
 
 interface AjustesContextType {
   ajustes: Record<string, string>;
@@ -11,7 +13,7 @@ export const AjustesProvider = ({ children }: { children: React.ReactNode }) => 
   const [ajustes, setAjustes] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetch('/api/ajustes')
+    apiFetch('/api/ajustes')
       .then(res => res.json())
       .then(data => {
         // Aseguramos que data es un objeto Record<string, string>
@@ -24,7 +26,7 @@ export const AjustesProvider = ({ children }: { children: React.ReactNode }) => 
 
   const actualizarAjuste = async (clave: string, valor: string) => {
     setAjustes(prev => ({ ...prev, [clave]: valor }));
-    await fetch('/api/ajustes', {
+    await apiFetch('/api/ajustes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clave, valor })

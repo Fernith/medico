@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Footprints } from 'lucide-react';
+import { Footprints , Loader2} from 'lucide-react';
 import { type PasoDB, procesarDatosGrafica, calcularIndicadores } from '../utils/pasosCalculations';
 import { PasosGrafica } from '../features/pasos/PasosGrafica';
 import { PasosIndicadores } from '../features/pasos/PasosIndicadores';
 import { PasosTabla } from '../features/pasos/PasosTabla';
 import { useAjustes } from '../context/AjustesContext';
+import { apiFetch } from '../api/client';
+
 
 export const PasosPage: React.FC = () => {
   const [pasos, setPasos] = useState<PasoDB[]>([]);
@@ -20,8 +22,8 @@ export const PasosPage: React.FC = () => {
   const fetchData = async () => {
     try {
       const [resPasos, resUsu] = await Promise.all([
-        fetch('/api/pasos/historial'),
-        fetch('/api/usuario')
+        apiFetch('/api/pasos/historial'),
+        apiFetch('/api/usuario')
       ]);
       if (resPasos.ok) setPasos(await resPasos.json());
       if (resUsu.ok) setUsuario(await resUsu.json());
@@ -54,7 +56,11 @@ export const PasosPage: React.FC = () => {
         </div>
       </div>
 
-      {!isLoading && (
+      {isLoading ? (
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="animate-spin h-10 w-10 text-emerald-500" />
+        </div>
+      ) : (
         <div className="space-y-6">
           <PasosGrafica 
             data={chartData}

@@ -3,6 +3,8 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Activity, Clock, Hash, FileText } from 'lucide-react';
 import { type Medicamento } from './MedicamentoForm';
+import { apiFetch } from '../../api/client';
+
 
 export interface MedicacionActiva {
   id: string; medicamento_id: string; medicamento_nombre: string;
@@ -47,7 +49,7 @@ export const MedicacionActivaForm: React.FC<MedicacionActivaFormProps> = ({ init
         anotaciones: formData.anotaciones || null
       };
       const url = initialData ? `/api/medicaciones-activas/${initialData.id}` : '/api/medicaciones-activas';
-      const res = await fetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await apiFetch(url, { method: initialData ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) {
         window.dispatchEvent(new CustomEvent('registroAgregado', { detail: 'medicacion_activa' }));
         onSuccess();

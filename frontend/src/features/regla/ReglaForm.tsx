@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import type { Ciclo } from '../../utils/reglaCalculations';
+import { apiFetch } from '../../api/client';
+
 
 export interface FormColorTheme {
   submitBg: string;
@@ -74,7 +76,7 @@ export const ReglaForm: React.FC<ReglaFormProps> = ({ initialData, onSuccess, on
       const url = initialData ? `/api/ciclos/${initialData.id}` : '/api/ciclos';
       const method = initialData ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
