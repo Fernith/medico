@@ -11,7 +11,7 @@ pub struct AppConfig {
 impl AppConfig {
     pub async fn init() -> Self {
         dotenvy::dotenv().ok();
-        
+
         let database_url = env::var("DATABASE_URL")
             .expect("DATABASE_URL debe estar configurada en las variables de entorno");
 
@@ -26,6 +26,9 @@ impl AppConfig {
             .allow_methods(Any)
             .allow_headers(Any);
 
-        AppConfig { database_pool, cors_layer }
+        AppConfig {
+            database_pool,
+            cors_layer,
+        }
     }
 }

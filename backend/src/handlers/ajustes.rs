@@ -1,14 +1,15 @@
+use crate::error::AppError;
+use crate::models::ajustes::AjusteEntity;
 use axum::{extract::State, http::StatusCode, Json};
 use sqlx::PgPool;
 use std::collections::HashMap;
-use crate::models::ajustes::AjusteEntity;
 
 pub async fn listar_ajustes(
     State(pool): State<PgPool>,
-) -> Result<Json<HashMap<String, String>>, (StatusCode, String)> {
+) -> Result<Json<HashMap<String, String>>, AppError> {
     let registros = sqlx::query!("SELECT clave, valor FROM ajustes_usuario")
-        .fetch_all(&pool).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .fetch_all(&pool)
+        .await?;
 
     let mut ajustes = HashMap::new();
     for row in registros {
@@ -20,13 +21,13 @@ pub async fn listar_ajustes(
 pub async fn guardar_ajuste(
     State(pool): State<PgPool>,
     Json(payload): Json<AjusteEntity>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<StatusCode, AppError> {
     sqlx::query!(
         "INSERT INTO ajustes_usuario (clave, valor) VALUES ($1, $2) ON CONFLICT (clave) DO UPDATE SET valor = $2",
         payload.clave, payload.valor
     )
     .execute(&pool).await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    ?;
 
     Ok(StatusCode::OK)
 }

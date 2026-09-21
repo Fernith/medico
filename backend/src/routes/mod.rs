@@ -1,119 +1,245 @@
 use axum::{
     extract::DefaultBodyLimit,
-    routing::{get, put, post, delete, patch},
+    routing::{delete, get, patch, post, put},
     Router,
 };
 use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
-use crate::handlers::{pesos, sueno, pasos, google_fit, ajustes, regla, medicion, usuario, ejercicio, rutina, medicamento, recordatorio, sintomas};
+use crate::handlers::{
+    ajustes, ejercicio, google_fit, medicamento, medicion, pasos, pesos, recordatorio, regla,
+    rutina, sintomas, sueno, usuario,
+};
 
 pub fn construir_router(pool: PgPool) -> Router {
     Router::new()
         // PESO
-        .route("/api/pesos", get(pesos::listar_pesos).post(pesos::crear_peso))
-        .route("/api/pesos/:id", put(pesos::modificar_peso).delete(pesos::borrar_peso))
-        
+        .route(
+            "/api/pesos",
+            get(pesos::listar_pesos).post(pesos::crear_peso),
+        )
+        .route(
+            "/api/pesos/:id",
+            put(pesos::modificar_peso).delete(pesos::borrar_peso),
+        )
         // SUEÑO
         .route("/api/sueno", get(sueno::listar_sueno))
-        
         // PASOS
         .route("/api/pasos", get(pasos::listar_pasos))
-        .route("/api/pasos/historial", get(pasos::get_historial).post(pasos::create_paso))
-        .route("/api/pasos/historial/:id", put(pasos::update_paso).delete(pasos::delete_paso))
-        
+        .route(
+            "/api/pasos/historial",
+            get(pasos::get_historial).post(pasos::create_paso),
+        )
+        .route(
+            "/api/pasos/historial/:id",
+            put(pasos::update_paso).delete(pasos::delete_paso),
+        )
         // RUTAS DE AUTENTICACIÓN (Google Fit)
         .route("/api/auth/google/login", get(google_fit::login_google))
         .route("/api/auth/google/callback", get(google_fit::oauth_callback))
         .route("/api/auth/google/sync", post(google_fit::sync_manual))
-        
         // AJUSTES
-        .route("/api/ajustes", get(ajustes::listar_ajustes).post(ajustes::guardar_ajuste))
-        
+        .route(
+            "/api/ajustes",
+            get(ajustes::listar_ajustes).post(ajustes::guardar_ajuste),
+        )
         // REGLA
-        .route("/api/ciclos", get(regla::get_ciclos).post(regla::create_ciclo))
-        .route("/api/ciclos/:id", put(regla::update_ciclo).delete(regla::delete_ciclo))
+        .route(
+            "/api/ciclos",
+            get(regla::get_ciclos).post(regla::create_ciclo),
+        )
+        .route(
+            "/api/ciclos/:id",
+            put(regla::update_ciclo).delete(regla::delete_ciclo),
+        )
         .route("/api/ciclos/actual", get(regla::get_ciclo_actual))
-        
         // MEDICION
-        .route("/api/mediciones", get(medicion::listar_mediciones).post(medicion::crear_medicion))
-        .route("/api/mediciones/:id", put(medicion::modificar_medicion).delete(medicion::borrar_medicion))
-        
+        .route(
+            "/api/mediciones",
+            get(medicion::listar_mediciones).post(medicion::crear_medicion),
+        )
+        .route(
+            "/api/mediciones/:id",
+            put(medicion::modificar_medicion).delete(medicion::borrar_medicion),
+        )
         // USUARIO
-        .route("/api/usuario", get(usuario::obtener_usuario).put(usuario::modificar_usuario))
-        
+        .route(
+            "/api/usuario",
+            get(usuario::obtener_usuario).put(usuario::modificar_usuario),
+        )
         // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
-        .route("/api/ejercicios", get(ejercicio::get_ejercicios).post(ejercicio::create_ejercicio))
-        .route("/api/ejercicios/:id", put(ejercicio::update_ejercicio).delete(ejercicio::delete_ejercicio))
-        .route("/api/ejercicios/:id/reactivar", patch(ejercicio::reactivate_ejercicio))
-        
+        .route(
+            "/api/ejercicios",
+            get(ejercicio::get_ejercicios).post(ejercicio::create_ejercicio),
+        )
+        .route(
+            "/api/ejercicios/:id",
+            put(ejercicio::update_ejercicio).delete(ejercicio::delete_ejercicio),
+        )
+        .route(
+            "/api/ejercicios/:id/reactivar",
+            patch(ejercicio::reactivate_ejercicio),
+        )
         // GRUPO MUSCULAR
-        .route("/api/grupos-musculares", get(ejercicio::get_grupos_musculares).post(ejercicio::create_grupo_muscular))
-        .route("/api/grupos-musculares/:id", put(ejercicio::update_grupo_muscular).delete(ejercicio::delete_grupo_muscular))
-        
+        .route(
+            "/api/grupos-musculares",
+            get(ejercicio::get_grupos_musculares).post(ejercicio::create_grupo_muscular),
+        )
+        .route(
+            "/api/grupos-musculares/:id",
+            put(ejercicio::update_grupo_muscular).delete(ejercicio::delete_grupo_muscular),
+        )
         // EQUIPAMIENTO
-        .route("/api/equipamiento", get(ejercicio::get_equipamientos).post(ejercicio::create_equipamiento))
-        .route("/api/equipamiento/:id", delete(ejercicio::delete_equipamiento))
-        
+        .route(
+            "/api/equipamiento",
+            get(ejercicio::get_equipamientos).post(ejercicio::create_equipamiento),
+        )
+        .route(
+            "/api/equipamiento/:id",
+            delete(ejercicio::delete_equipamiento),
+        )
         // REALIZACIONES
-        .route("/api/realizaciones", get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion))
-        .route("/api/realizaciones/:id", put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion_fisica))
-        .route("/api/realizaciones/:id/estado", patch(ejercicio::cambiar_estado_realizacion))
-        .route("/api/realizaciones/:id/duplicar", post(ejercicio::duplicar_realizacion))
-        
+        .route(
+            "/api/realizaciones",
+            get(ejercicio::get_realizaciones).post(ejercicio::create_realizacion),
+        )
+        .route(
+            "/api/realizaciones/:id",
+            put(ejercicio::update_realizacion).delete(ejercicio::delete_realizacion_fisica),
+        )
+        .route(
+            "/api/realizaciones/:id/estado",
+            patch(ejercicio::cambiar_estado_realizacion),
+        )
+        .route(
+            "/api/realizaciones/:id/duplicar",
+            post(ejercicio::duplicar_realizacion),
+        )
         // --- RUTINAS Y PLANIFICACIÓN ---
-        .route("/api/rutinas", get(rutina::get_rutinas).post(rutina::create_rutina))
-        .route("/api/rutinas/:id", put(rutina::update_rutina).delete(rutina::delete_rutina_fisico))
-        .route("/api/rutinas/:id/estado", patch(rutina::cambiar_estado_rutina))
+        .route(
+            "/api/rutinas",
+            get(rutina::get_rutinas).post(rutina::create_rutina),
+        )
+        .route(
+            "/api/rutinas/:id",
+            put(rutina::update_rutina).delete(rutina::delete_rutina_fisico),
+        )
+        .route(
+            "/api/rutinas/:id/estado",
+            patch(rutina::cambiar_estado_rutina),
+        )
         .route("/api/rutinas/:id/duplicar", post(rutina::duplicar_rutina))
         // RACHA RUTINA
         .route("/api/rutinas/racha", get(rutina::get_racha_entrenamientos))
-        
         // Planificacion
-        .route("/api/rutinas/:id/realizaciones", get(rutina::get_rutina_realizaciones))
-        .route("/api/rutina-realizacion", post(rutina::add_realizacion_rutina))
-        .route("/api/rutina-realizacion/:id", put(rutina::update_realizacion_rutina).delete(rutina::delete_realizacion_rutina))
-        
+        .route(
+            "/api/rutinas/:id/realizaciones",
+            get(rutina::get_rutina_realizaciones),
+        )
+        .route(
+            "/api/rutina-realizacion",
+            post(rutina::add_realizacion_rutina),
+        )
+        .route(
+            "/api/rutina-realizacion/:id",
+            put(rutina::update_realizacion_rutina).delete(rutina::delete_realizacion_rutina),
+        )
         // --- HISTORIAL DE ENTRENAMIENTO ---
-        .route("/api/historial-rutinas", post(rutina::finalizar_entrenamiento))
-        .route("/api/estadisticas/historial", get(rutina::get_estadisticas_historial))
-        
+        .route(
+            "/api/historial-rutinas",
+            post(rutina::finalizar_entrenamiento),
+        )
+        .route(
+            "/api/estadisticas/historial",
+            get(rutina::get_estadisticas_historial),
+        )
         // TIPO ENTRENAMIENTO
-        .route("/api/tipos-entrenamiento", get(ejercicio::get_tipos_entrenamiento).post(ejercicio::create_tipo_entrenamiento))
-        .route("/api/tipos-entrenamiento/:id", delete(ejercicio::delete_tipo_entrenamiento))
-
+        .route(
+            "/api/tipos-entrenamiento",
+            get(ejercicio::get_tipos_entrenamiento).post(ejercicio::create_tipo_entrenamiento),
+        )
+        .route(
+            "/api/tipos-entrenamiento/:id",
+            delete(ejercicio::delete_tipo_entrenamiento),
+        )
         // --- CATEGORÍAS MEDICAMENTOS ---
-        .route("/api/categorias-medicamentos", get(medicamento::get_categorias).post(medicamento::create_categoria))
-        .route("/api/categorias-medicamentos/:id", delete(medicamento::delete_categoria))
-
+        .route(
+            "/api/categorias-medicamentos",
+            get(medicamento::get_categorias).post(medicamento::create_categoria),
+        )
+        .route(
+            "/api/categorias-medicamentos/:id",
+            delete(medicamento::delete_categoria),
+        )
         // --- UNIDADES DE DOSIS (DICCIONARIO) ---
-        .route("/api/unidades-dosis", get(medicamento::get_unidades_dosis).post(medicamento::create_unidad_dosis))
-        .route("/api/unidades-dosis/:id", put(medicamento::update_unidad_dosis).delete(medicamento::delete_unidad_dosis))
-
+        .route(
+            "/api/unidades-dosis",
+            get(medicamento::get_unidades_dosis).post(medicamento::create_unidad_dosis),
+        )
+        .route(
+            "/api/unidades-dosis/:id",
+            put(medicamento::update_unidad_dosis).delete(medicamento::delete_unidad_dosis),
+        )
         // --- MEDICAMENTOS ---
-        .route("/api/medicamentos", get(medicamento::get_medicamentos).post(medicamento::create_medicamento))
-        .route("/api/medicamentos/:id", put(medicamento::update_medicamento).delete(medicamento::delete_medicamento))
-
+        .route(
+            "/api/medicamentos",
+            get(medicamento::get_medicamentos).post(medicamento::create_medicamento),
+        )
+        .route(
+            "/api/medicamentos/:id",
+            put(medicamento::update_medicamento).delete(medicamento::delete_medicamento),
+        )
         // --- MEDICACIÓN ACTIVA ---
-        .route("/api/medicaciones-activas", get(medicamento::get_medicaciones_activas).post(medicamento::create_medicacion_activa))
-        .route("/api/medicaciones-activas/:id", put(medicamento::update_medicacion_activa).delete(medicamento::delete_medicacion_activa))
-        .route("/api/medicaciones-activas/:id/toggle", patch(medicamento::toggle_medicacion_activa))
-
+        .route(
+            "/api/medicaciones-activas",
+            get(medicamento::get_medicaciones_activas).post(medicamento::create_medicacion_activa),
+        )
+        .route(
+            "/api/medicaciones-activas/:id",
+            put(medicamento::update_medicacion_activa)
+                .delete(medicamento::delete_medicacion_activa),
+        )
+        .route(
+            "/api/medicaciones-activas/:id/toggle",
+            patch(medicamento::toggle_medicacion_activa),
+        )
         // --- HISTORIAL DE TOMAS ---
-        .route("/api/historial-medicacion/pendientes", get(medicamento::get_historial_rango))
-        .route("/api/historial-medicacion", get(medicamento::get_historial).post(medicamento::add_historial_medicacion))
-        .route("/api/historial-medicacion/:id", put(medicamento::update_historial_medicacion).delete(medicamento::delete_historial_medicacion))
-        .route("/api/historial-medicacion/:id/tomado", patch(medicamento::marcar_historial_tomado))
-        .route("/api/historial-medicacion/:id/pendiente", patch(medicamento::marcar_historial_pendiente))
-
+        .route(
+            "/api/historial-medicacion/pendientes",
+            get(medicamento::get_historial_rango),
+        )
+        .route(
+            "/api/historial-medicacion",
+            get(medicamento::get_historial).post(medicamento::add_historial_medicacion),
+        )
+        .route(
+            "/api/historial-medicacion/:id",
+            put(medicamento::update_historial_medicacion)
+                .delete(medicamento::delete_historial_medicacion),
+        )
+        .route(
+            "/api/historial-medicacion/:id/tomado",
+            patch(medicamento::marcar_historial_tomado),
+        )
+        .route(
+            "/api/historial-medicacion/:id/pendiente",
+            patch(medicamento::marcar_historial_pendiente),
+        )
         // RECORDATORIOS
-        .route("/api/recordatorios", get(recordatorio::get_recordatorios).post(recordatorio::create_recordatorio))
-        .route("/api/recordatorios/:clave", put(recordatorio::update_recordatorio).delete(recordatorio::delete_recordatorio))
-        .route("/api/recordatorios/:clave/posponer", patch(recordatorio::posponer_recordatorio))
-
+        .route(
+            "/api/recordatorios",
+            get(recordatorio::get_recordatorios).post(recordatorio::create_recordatorio),
+        )
+        .route(
+            "/api/recordatorios/:clave",
+            put(recordatorio::update_recordatorio).delete(recordatorio::delete_recordatorio),
+        )
+        .route(
+            "/api/recordatorios/:clave/posponer",
+            patch(recordatorio::posponer_recordatorio),
+        )
         // SÍNTOMAS
         .route("/api/sintomas/catalogo", get(sintomas::get_sintomas))
-
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)
 }

@@ -1,3 +1,5 @@
+use crate::error::AppError;
+use crate::models::medicion::{CreateMedicionDto, MedicionEntity};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -5,11 +7,10 @@ use axum::{
 };
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::models::medicion::{CreateMedicionDto, MedicionEntity};
 
 pub async fn listar_mediciones(
     State(pool): State<PgPool>,
-) -> Result<Json<Vec<MedicionEntity>>, (StatusCode, String)> {
+) -> Result<Json<Vec<MedicionEntity>>, AppError> {
     let mediciones = sqlx::query_as!(
         MedicionEntity,
         r#"
@@ -23,8 +24,7 @@ pub async fn listar_mediciones(
         "#
     )
     .fetch_all(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .await?;
 
     Ok(Json(mediciones))
 }
@@ -32,16 +32,15 @@ pub async fn listar_mediciones(
 pub async fn crear_medicion(
     State(pool): State<PgPool>,
     Json(payload): Json<CreateMedicionDto>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<StatusCode, AppError> {
     sqlx::query!(
         "INSERT INTO medicion (fecha, cm_cintura, cm_cadera) VALUES ($1, $2::FLOAT8, $3::FLOAT8)",
         payload.fecha,
-        payload.cm_cintura, 
+        payload.cm_cintura,
         payload.cm_cadera
     )
     .execute(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .await?;
 
     Ok(StatusCode::CREATED)
 }
@@ -50,7 +49,7 @@ pub async fn modificar_medicion(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,
     Json(payload): Json<CreateMedicionDto>,
-) -> Result<Json<MedicionEntity>, (StatusCode, String)> {
+) -> Result<Json<MedicionEntity>, AppError> {
     let medicion_actualizada = sqlx::query_as!(
         MedicionEntity,
         r#"
@@ -60,13 +59,12 @@ pub async fn modificar_medicion(
         RETURNING id, fecha, cm_cintura::FLOAT8, cm_cadera::FLOAT8
         "#,
         payload.fecha,
-        payload.cm_cintura, 
-        payload.cm_cadera, 
+        payload.cm_cintura,
+        payload.cm_cadera,
         id
     )
     .fetch_one(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .await?;
 
     Ok(Json(medicion_actualizada))
 }
@@ -74,11 +72,10 @@ pub async fn modificar_medicion(
 pub async fn borrar_medicion(
     State(pool): State<PgPool>,
     Path(id): Path<Uuid>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<StatusCode, AppError> {
     sqlx::query!("DELETE FROM medicion WHERE id = $1", id)
         .execute(&pool)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        .await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

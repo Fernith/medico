@@ -1,18 +1,16 @@
-use axum::{extract::State, http::StatusCode, Json};
+use crate::error::AppError;
+use crate::models::usuario::{Sexo, UpdateUsuarioDto, UsuarioEntity};
+use axum::{extract::State, Json};
 use sqlx::PgPool;
-use crate::models::usuario::{UpdateUsuarioDto, UsuarioEntity, Sexo};
 
-pub async fn obtener_usuario(
-    State(pool): State<PgPool>,
-) -> Result<Json<UsuarioEntity>, (StatusCode, String)> {
+pub async fn obtener_usuario(State(pool): State<PgPool>) -> Result<Json<UsuarioEntity>, AppError> {
     let usuario = sqlx::query_as!(
         UsuarioEntity,
         // Le decimos a SQLx que mapee directamente al enum Sexo de Rust
         r#"SELECT id, altura, sexo as "sexo: Sexo" FROM usuario WHERE id = 1"#
     )
     .fetch_one(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .await?;
 
     Ok(Json(usuario))
 }
@@ -20,7 +18,7 @@ pub async fn obtener_usuario(
 pub async fn modificar_usuario(
     State(pool): State<PgPool>,
     Json(payload): Json<UpdateUsuarioDto>,
-) -> Result<Json<UsuarioEntity>, (StatusCode, String)> {
+) -> Result<Json<UsuarioEntity>, AppError> {
     let usuario_actualizado = sqlx::query_as!(
         UsuarioEntity,
         r#"
@@ -29,12 +27,11 @@ pub async fn modificar_usuario(
         WHERE id = 1 
         RETURNING id, altura, sexo as "sexo: Sexo"
         "#,
-        payload.altura, 
+        payload.altura,
         payload.sexo as _ // Dejamos que SQLx lo infiera basándose en el tipo del trait
     )
     .fetch_one(&pool)
-    .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .await?;
 
     Ok(Json(usuario_actualizado))
 }

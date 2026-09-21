@@ -3,7 +3,7 @@ import { SintomasAnatomiaMapa, type ZonaSeleccionada } from './SintomasAnatomiaM
 
 export const SintomasForm: React.FC = () => {
   // Aquí almacenaremos el array final con los clics procesados (Foco/Irradiado/Lado)
-  const [zonasSeleccionadas, setZonasSeleccionadas] = useState<ZonaSeleccionada[]>([]);
+  const [, setZonasSeleccionadas] = useState<ZonaSeleccionada[]>([]);
 
   return (
     <div className="flex flex-col gap-8">

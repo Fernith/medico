@@ -20,21 +20,12 @@ interface Props {
   onSelectionChange: (selecciones: ZonaSeleccionada[]) => void;
 }
 
-const BACKGROUND_IMAGES: Record<string, string> = {
-  'Cuerpo Completo Frontal': '/cuerpo_humano/cuerpo_completo_frontal_varon.webp',
-  'Cuerpo Completo Posterior': '/cuerpo_humano/cuerpo_completo_posterior_varon.webp',
-  
-  'Extremidad Inferior Frontal': '/cuerpo_humano/extremidad_inferior_frontal_varon.webp',
-  'Extremidad Inferior Posterior': '/cuerpo_humano/extremidad_inferior_posterior_varon.webp', // Añadir cuando la tengas
-  
-  'Extremidad Superior Frontal': '/cuerpo_humano/extremidad_superior_frontal_varon.webp',
-  'Extremidad Superior Posterior': '/cuerpo_humano/extremidad_superior_posterior_varon.webp', // Añadir cuando la tengas
-  
-  'Cabeza y Cuello Frontal': '/cuerpo_humano/cabeza_cuello_frontal_varon.webp',
-  'Cabeza y Cuello Posterior': '/cuerpo_humano/cabeza_cuello_posterior_varon.webp', // Añadir cuando la tengas
-  
-  'Tronco Frontal': '/cuerpo_humano/tronco_frontal_varon.webp',
-  'Tronco Posterior': '/cuerpo_humano/tronco_posterior_varon.webp', // Añadir cuando la tengas
+const NOMBRES_ZONA_ARCHIVO: Record<string, string> = {
+  'Cuerpo Completo': 'cuerpo_completo',
+  'Extremidad Inferior': 'extremidad_inferior',
+  'Extremidad Superior': 'extremidad_superior',
+  'Cabeza y Cuello': 'cabeza_cuello',
+  'Tronco': 'tronco',
 };
 
 export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => {
@@ -100,16 +91,17 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
   // GESTIÓN DINÁMICA DE IMÁGENES Y ATLAS
   // =========================================================================
   
-  // 1. Obtener la clave base ('Tronco Frontal', etc.)
-  const bgImageKey = `${currentViewName} ${vistaPosterior ? 'Posterior' : 'Frontal'}`;
+  // 1. Obtener la base del archivo (ej: 'tronco', 'cuerpo_completo')
+  const baseArchivo = NOMBRES_ZONA_ARCHIVO[currentViewName];
   
-  // 2. Obtener la URL del varón (que es la que tenemos en el diccionario de base)
-  let bgImageUrl = BACKGROUND_IMAGES[bgImageKey] || BACKGROUND_IMAGES[`${currentViewName} Frontal`] || '';
+  // 2. Determinar sufijos de vista y sexo
+  const sufijoVista = vistaPosterior ? 'posterior' : 'frontal';
+  const sufijoSexo = sexoUsuario === 'femenino' ? 'mujer' : 'varon';
 
-  // 3. Sustituir 'varon' por 'mujer' si los ajustes lo indican
-  if (sexoUsuario === 'femenino' && bgImageUrl !== '') {
-    bgImageUrl = bgImageUrl.replace('_varon.webp', '_mujer.webp');
-  }
+  // 3. Ensamblar la URL final
+  const bgImageUrl = baseArchivo 
+    ? `/cuerpo_humano/${baseArchivo}_${sufijoVista}_${sufijoSexo}.webp` 
+    : '';
 
   // 4. Seleccionar el Atlas correcto cruzando Vista y Sexo
   const ATLAS_ACTIVO = vistaPosterior 

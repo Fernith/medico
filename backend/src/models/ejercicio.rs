@@ -20,7 +20,7 @@ pub struct TipoEntrenamientoPayload {
 pub struct GrupoMuscular {
     pub id: Uuid,
     pub nombre: String,
-    pub categoria: Option<String>, 
+    pub categoria: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
@@ -51,7 +51,7 @@ pub struct Ejercicio {
     pub imagen: Option<String>,
     pub tipo_entrenamiento_id: Option<Uuid>,
     pub tipo_entrenamiento_nombre: Option<String>,
-    pub grupos_ids: Option<Vec<Uuid>>, 
+    pub grupos_ids: Option<Vec<Uuid>>,
     pub grupos_nombres: Option<Vec<String>>,
     pub activo: bool,
 }

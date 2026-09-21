@@ -1,3 +1,4 @@
+use crate::error::AppError;
 use axum::{
     extract::{Path, State},
     Json,
@@ -6,74 +7,103 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::rutina::{
-    Rutina, RutinaPayload, RutinaRealizacionDetalle, RutinaRealizacionPayload, HistorialRutinaPayload,
-    EstadisticaSerieRow
+    EstadisticaSerieRow, HistorialRutinaPayload, Rutina, RutinaPayload, RutinaRealizacionDetalle,
+    RutinaRealizacionPayload,
 };
 use chrono::{Datelike, Local, NaiveDate};
-use std::collections::HashSet;
 use serde_json::json;
-
+use std::collections::HashSet;
 
 // ==========================================
 // RUTINAS (Cabecera)
 // ==========================================
-pub async fn get_rutinas(State(pool): State<PgPool>) -> Result<Json<Vec<Rutina>>, String> {
+pub async fn get_rutinas(State(pool): State<PgPool>) -> Result<Json<Vec<Rutina>>, AppError> {
     // CORRECCIÓN: COALESCE asegura que nunca sea nulo, y el '!' calma al compilador de SQLx
     let rutinas = sqlx::query_as!(
         Rutina, 
         r#"SELECT id, nombre, descripcion, color, COALESCE(activo, true) as "activo!" FROM rutinas ORDER BY nombre"#
     )
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+        .fetch_all(&pool).await?;
     Ok(Json(rutinas))
 }
 
-pub async fn create_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaPayload>) -> Result<Json<Rutina>, String> {
+pub async fn create_rutina(
+    State(pool): State<PgPool>,
+    Json(payload): Json<RutinaPayload>,
+) -> Result<Json<Rutina>, AppError> {
     // CORRECCIÓN: Aplicado también en el RETURNING
     let registro = sqlx::query_as!(
         Rutina,
         r#"INSERT INTO rutinas (nombre, descripcion, color) VALUES ($1, $2, $3) RETURNING id, nombre, descripcion, color, COALESCE(activo, true) as "activo!""#,
         payload.nombre, payload.descripcion, payload.color
-    ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
+    ).fetch_one(&pool).await?;
     Ok(Json(registro))
 }
 
-pub async fn update_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<RutinaPayload>) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE rutinas SET nombre=$1, descripcion=$2, color=$3 WHERE id=$4", payload.nombre, payload.descripcion, payload.color, id)
-        .execute(&pool).await.map_err(|e| e.to_string())?;
+pub async fn update_rutina(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<RutinaPayload>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!(
+        "UPDATE rutinas SET nombre=$1, descripcion=$2, color=$3 WHERE id=$4",
+        payload.nombre,
+        payload.descripcion,
+        payload.color,
+        id
+    )
+    .execute(&pool)
+    .await?;
     Ok(Json(()))
 }
 
 // BORRADO FÍSICO DEFINITIVO (Emulando ON DELETE SET NULL)
-pub async fn delete_rutina_fisico(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+pub async fn delete_rutina_fisico(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
 
     // 1. Desvinculamos el historial (ON DELETE SET NULL manual)
-    sqlx::query!("UPDATE historial_rutinas SET rutina_id = NULL WHERE rutina_id = $1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+    sqlx::query!(
+        "UPDATE historial_rutinas SET rutina_id = NULL WHERE rutina_id = $1",
+        id
+    )
+    .execute(&mut *tx)
+    .await?;
 
     // 2. Borramos la rutina físicamente
     sqlx::query!("DELETE FROM rutinas WHERE id=$1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        .execute(&mut *tx)
+        .await?;
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }
 
 // MODIFICAR ESTADO (Archivar / Restaurar)
 pub async fn cambiar_estado_rutina(
-    Path(id): Path<Uuid>, 
-    State(pool): State<PgPool>, 
-    Json(payload): Json<crate::models::rutina::EstadoPayload>
-) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE rutinas SET activo = $1 WHERE id=$2", payload.activo, id)
-        .execute(&pool).await.map_err(|e| e.to_string())?;
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<crate::models::rutina::EstadoPayload>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!(
+        "UPDATE rutinas SET activo = $1 WHERE id=$2",
+        payload.activo,
+        id
+    )
+    .execute(&pool)
+    .await?;
     Ok(Json(()))
 }
 
 // ==========================================
 // RUTINAS (Detalle de Ejercicios)
 // ==========================================
-pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<Vec<RutinaRealizacionDetalle>>, String> {
+pub async fn get_rutina_realizaciones(
+    Path(rutina_id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<RutinaRealizacionDetalle>>, AppError> {
     let detalles = sqlx::query_as!(
         RutinaRealizacionDetalle,
         r#"
@@ -97,44 +127,61 @@ pub async fn get_rutina_realizaciones(Path(rutina_id): Path<Uuid>, State(pool): 
             rr.orden
         "#,
         rutina_id
-    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
-    
+    )
+    .fetch_all(&pool)
+    .await?;
+
     Ok(Json(detalles))
 }
 
-pub async fn add_realizacion_rutina(State(pool): State<PgPool>, Json(payload): Json<RutinaRealizacionPayload>) -> Result<Json<()>, String> {
+pub async fn add_realizacion_rutina(
+    State(pool): State<PgPool>,
+    Json(payload): Json<RutinaRealizacionPayload>,
+) -> Result<Json<()>, AppError> {
     sqlx::query!(
         "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior) VALUES ($1, $2, $3::text::fase_rutina, $4, $5)",
         payload.rutina_id, payload.realizacion_id, payload.fase, payload.orden, payload.descanso_posterior
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
-    
+    ).execute(&pool).await?;
+
     Ok(Json(()))
 }
 
-pub async fn update_realizacion_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<RutinaRealizacionPayload>) -> Result<Json<()>, String> {
+pub async fn update_realizacion_rutina(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<RutinaRealizacionPayload>,
+) -> Result<Json<()>, AppError> {
     sqlx::query!(
         "UPDATE rutina_realizacion SET fase=$1::text::fase_rutina, orden=$2, descanso_posterior=$3 WHERE id=$4",
         payload.fase, payload.orden, payload.descanso_posterior, id
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
-    
+    ).execute(&pool).await?;
+
     Ok(Json(()))
 }
 
-pub async fn delete_realizacion_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM rutina_realizacion WHERE id=$1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+pub async fn delete_realizacion_rutina(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!("DELETE FROM rutina_realizacion WHERE id=$1", id)
+        .execute(&pool)
+        .await?;
     Ok(Json(()))
 }
 
 // ==========================================
 // NUEVO: GUARDAR ENTRENAMIENTO COMPLETADO
 // ==========================================
-pub async fn finalizar_entrenamiento(State(pool): State<PgPool>, Json(payload): Json<HistorialRutinaPayload>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+pub async fn finalizar_entrenamiento(
+    State(pool): State<PgPool>,
+    Json(payload): Json<HistorialRutinaPayload>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
 
     let registro_historial = sqlx::query!(
         "INSERT INTO historial_rutinas (rutina_id, nombre, fecha_inicio, fecha_fin, duracion_segundos) VALUES ($1, $2, $3, $4, $5) RETURNING id",
         payload.rutina_id, payload.nombre, payload.fecha_inicio, payload.fecha_fin, payload.duracion_segundos
-    ).fetch_one(&mut *tx).await.map_err(|e| e.to_string())?;
+    ).fetch_one(&mut *tx).await?;
 
     for serie in payload.series {
         sqlx::query!(
@@ -147,17 +194,19 @@ pub async fn finalizar_entrenamiento(State(pool): State<PgPool>, Json(payload): 
             serie.fase, serie.orden_ejercicio, serie.serie_numero, 
             serie.reps_completadas, serie.unidad_objetivo,
             serie.carga_completada, serie.unidad_carga
-        ).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        ).execute(&mut *tx).await?;
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }
 
 // ==========================================
 // NUEVO: ESTADÍSTICAS
 // ==========================================
-pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Json<Vec<EstadisticaSerieRow>>, String> {
+pub async fn get_estadisticas_historial(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<EstadisticaSerieRow>>, AppError> {
     let stats = sqlx::query_as!(
         EstadisticaSerieRow,
         r#"
@@ -188,24 +237,38 @@ pub async fn get_estadisticas_historial(State(pool): State<PgPool>) -> Result<Js
             hs.unidad_objetivo, hs.carga_completada, hs.unidad_carga, te.id
         ORDER BY hr.fecha_inicio DESC, hs.orden_ejercicio ASC, hs.serie_numero ASC
         "#
-    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    ).fetch_all(&pool).await?;
 
     Ok(Json(stats))
 }
 
-pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json<serde_json::Value>, String> {
-    let meta_dias = sqlx::query!("SELECT valor FROM ajustes_usuario WHERE clave = 'racha_entrenamiento'")
-        .fetch_optional(&pool).await.unwrap_or(None)
-        .and_then(|r| r.valor.parse::<i32>().ok()).unwrap_or(4);
+pub async fn get_racha_entrenamientos(
+    State(pool): State<PgPool>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let meta_dias =
+        sqlx::query!("SELECT valor FROM ajustes_usuario WHERE clave = 'racha_entrenamiento'")
+            .fetch_optional(&pool)
+            .await
+            .unwrap_or(None)
+            .and_then(|r| r.valor.parse::<i32>().ok())
+            .unwrap_or(4);
 
-    let rows = sqlx::query!("SELECT DISTINCT DATE(fecha_fin) as fecha FROM historial_rutinas ORDER BY fecha DESC")
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    let rows = sqlx::query!(
+        "SELECT DISTINCT DATE(fecha_fin) as fecha FROM historial_rutinas ORDER BY fecha DESC"
+    )
+    .fetch_all(&pool)
+    .await?;
 
     let mut trained_dates: HashSet<NaiveDate> = HashSet::new();
-    for r in rows { if let Some(d) = r.fecha { trained_dates.insert(d); } }
+    for r in rows {
+        if let Some(d) = r.fecha {
+            trained_dates.insert(d);
+        }
+    }
 
     let today = Local::now().date_naive();
-    let current_week_start = today - chrono::Duration::days(today.weekday().num_days_from_monday() as i64);
+    let current_week_start =
+        today - chrono::Duration::days(today.weekday().num_days_from_monday() as i64);
 
     let mut racha_count = 0;
     let mut racha_start = today;
@@ -220,7 +283,7 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
             max_possible_this_week += 1;
         }
     }
-    
+
     let current_week_valid = max_possible_this_week >= meta_dias;
 
     // 2. Si la semana actual está matemáticamente rota, solo contamos los días consecutivos hacia atrás.
@@ -230,27 +293,27 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
         if !trained_dates.contains(&curr) {
             curr -= chrono::Duration::days(1);
         }
-        
+
         while trained_dates.contains(&curr) {
             racha_count += 1;
             racha_start = curr;
             curr -= chrono::Duration::days(1);
         }
-        
+
         // Si no hay racha en absoluto, reseteamos la fecha a hoy
         if racha_count == 0 {
-            racha_start = today; 
+            racha_start = today;
         }
-        
+
         return Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })));
     }
 
     // 3. La semana actual es válida. Contamos los días entrenados esta semana hasta hoy.
     let mut curr = today;
     while curr >= check_week_start {
-        if trained_dates.contains(&curr) { 
-            racha_count += 1; 
-            racha_start = curr; 
+        if trained_dates.contains(&curr) {
+            racha_count += 1;
+            racha_start = curr;
         }
         curr -= chrono::Duration::days(1);
     }
@@ -263,16 +326,18 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
         let mut week_trained = 0;
         for i in 0..7 {
             let d = check_week_start + chrono::Duration::days(i);
-            if trained_dates.contains(&d) { week_trained += 1; }
+            if trained_dates.contains(&d) {
+                week_trained += 1;
+            }
         }
 
         if week_trained >= meta_dias {
             // Semana válida: Sumamos todos los días entrenados de esa semana
             for i in (0..7).rev() {
                 let d = check_week_start + chrono::Duration::days(i);
-                if trained_dates.contains(&d) { 
-                    racha_count += 1; 
-                    racha_start = d; 
+                if trained_dates.contains(&d) {
+                    racha_count += 1;
+                    racha_start = d;
                 }
             }
             check_week_start -= chrono::Duration::days(7);
@@ -291,23 +356,30 @@ pub async fn get_racha_entrenamientos(State(pool): State<PgPool>) -> Result<Json
     Ok(Json(json!({ "dias": racha_count, "inicio": racha_start })))
 }
 
-pub async fn duplicar_rutina(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<crate::models::rutina::DuplicarPayload>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    
+pub async fn duplicar_rutina(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<crate::models::rutina::DuplicarPayload>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
+
     // 1. Copiamos la rutina maestra
     let nueva_rutina = sqlx::query!(
         "INSERT INTO rutinas (nombre, descripcion, color, activo)
          SELECT $1, descripcion, color, activo FROM rutinas WHERE id = $2 RETURNING id",
-        payload.nombre, id
-    ).fetch_one(&mut *tx).await.map_err(|e| e.to_string())?;
+        payload.nombre,
+        id
+    )
+    .fetch_one(&mut *tx)
+    .await?;
 
     // 2. Copiamos todos los ejercicios asociados (apuntando a la nueva rutina)
     sqlx::query!(
         "INSERT INTO rutina_realizacion (rutina_id, realizacion_id, fase, orden, descanso_posterior)
          SELECT $1, realizacion_id, fase, orden, descanso_posterior FROM rutina_realizacion WHERE rutina_id = $2",
         nueva_rutina.id, id
-    ).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+    ).execute(&mut *tx).await?;
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }

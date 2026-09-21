@@ -1,6 +1,6 @@
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use chrono::NaiveDate; // Usando NaiveDate como cambiamos recientemente
+use uuid::Uuid; // Usando NaiveDate como cambiamos recientemente
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct PesoEntity {
@@ -15,5 +15,5 @@ pub struct PesoEntity {
 pub struct CreatePesoDto {
     pub fecha: NaiveDate,
     pub peso: f64,
-    pub en_ayunas: bool
+    pub en_ayunas: bool,
 }

@@ -1,10 +1,9 @@
-use axum::{extract::State, http::StatusCode, Json};
-use sqlx::PgPool;
+use crate::error::AppError;
 use crate::models::sueno::SuenoEntity;
+use axum::{extract::State, Json};
+use sqlx::PgPool;
 
-pub async fn listar_sueno(
-    State(pool): State<PgPool>,
-) -> Result<Json<Vec<SuenoEntity>>, (StatusCode, String)> {
+pub async fn listar_sueno(State(pool): State<PgPool>) -> Result<Json<Vec<SuenoEntity>>, AppError> {
     let registros = sqlx::query_as!(
         SuenoEntity,
         r#"
@@ -27,11 +26,7 @@ pub async fn listar_sueno(
         "#
     )
     .fetch_all(&pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Error en BD al listar sueño: {}", e);
-        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
-    })?;
+    .await?;
 
     Ok(Json(registros))
 }

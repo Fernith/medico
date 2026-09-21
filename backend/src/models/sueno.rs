@@ -1,5 +1,5 @@
-use chrono::{NaiveDate, DateTime, Utc};
-use serde::{Serialize, Deserialize};
+use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub struct SuenoEntity {
     pub minutos_rem: i32,
     pub minutos_despierto: i32,
     pub minutos_siesta: i32,
-    
+
     pub siesta_hora_inicio: Option<DateTime<Utc>>,
     pub siesta_hora_fin: Option<DateTime<Utc>>,
 }

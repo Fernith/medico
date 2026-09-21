@@ -1,7 +1,7 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 // ==========================================
 // MUDANZA: PLANTILLAS DE RUTINA
@@ -28,7 +28,7 @@ pub struct RutinaRealizacionDetalle {
     pub rutina_id: Uuid,
     pub realizacion_id: Uuid,
     pub ejercicio_id: Uuid,
-    pub fase: String, 
+    pub fase: String,
     pub orden: i32,
     pub descanso_posterior: Option<i32>,
     pub ejercicio_nombre: String,

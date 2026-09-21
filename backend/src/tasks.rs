@@ -1,6 +1,6 @@
+use crate::services;
 use sqlx::PgPool;
 use tokio_cron_scheduler::{Job, JobScheduler};
-use crate::services;
 
 pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
     let pool_servidor = pool.clone();
@@ -9,7 +9,7 @@ pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
     // 1. Disparador Inicial (Se ejecuta al arrancar el servidor)
     tokio::spawn(async move {
         println!("[Iniciación] Comprobando actualizaciones de Google Fit y Medicación...");
-        
+
         // 1º Ejecutamos el generador de tomas en el encendido
         generar_tomas_pendientes(&pool_servidor).await;
 
@@ -24,14 +24,15 @@ pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
             let pool = pool_cron.clone();
             Box::pin(async move {
                 println!("[Cron 12 AM] Iniciando tareas planificadas...");
-                
+
                 // 1º Ejecutamos el generador de tomas a medianoche
                 generar_tomas_pendientes(&pool).await;
 
                 // 2º Sincronizamos con Google Fit
                 let _ = services::google_fit::sync_data(&pool).await;
             })
-        }).unwrap();
+        })
+        .unwrap();
 
         scheduler.add(job).await.unwrap();
         scheduler.start().await.unwrap();
@@ -54,7 +55,9 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
         Err(e) => { eprintln!("❌ [Medicación] Error al obtener planes activos: {}", e); return; }
     };
 
-    if planes.is_empty() { return; }
+    if planes.is_empty() {
+        return;
+    }
 
     // 2. Límite de tiempo: Final del día de hoy en España
     let offset_spain = chrono::Duration::hours(2);
@@ -80,8 +83,13 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
             FROM historial_medicacion 
             WHERE medicamento_id = $1 AND fecha_hora >= $2
             "#,
-            plan.medicamento_id, plan.fecha_inicio
-        ).fetch_one(pool).await.ok().and_then(|r| r.max_fecha);
+            plan.medicamento_id,
+            plan.fecha_inicio
+        )
+        .fetch_one(pool)
+        .await
+        .ok()
+        .and_then(|r| r.max_fecha);
 
         // Si hay una última toma, le sumamos la frecuencia. Si no, empezamos desde fecha_inicio
         let mut next_dose = match last_toma {
@@ -94,7 +102,6 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
 
         // 4. Bucle generador: Proyectar tomas futuras hasta el límite de hoy
         while next_dose <= limit_utc {
-            
             // Si tiene fecha fin y nos pasamos, paramos la generación
             if let Some(fin) = plan.fecha_fin {
                 if next_dose > fin {
@@ -109,20 +116,36 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
                 plan.medicamento_id, next_dose, plan.cantidad
             ).execute(pool).await;
 
-            if res.is_ok() { insertadas += 1; }
+            if res.is_ok() {
+                insertadas += 1;
+            }
 
             // Avanzamos el reloj para la siguiente iteración
             next_dose += chrono::Duration::hours(horas);
         }
 
         if insertadas > 0 {
-            println!("   💊 [Medicación] Generadas {} tomas futuras para el plan: {}", insertadas, plan.id);
+            println!(
+                "   💊 [Medicación] Generadas {} tomas futuras para el plan: {}",
+                insertadas, plan.id
+            );
         }
 
         // 5. Apagado automático del plan si la fecha caducó
-        if plan_finished || (plan.fecha_fin.is_some() && chrono::Utc::now() > plan.fecha_fin.unwrap()) {
-            sqlx::query!("UPDATE medicacion_activa SET activo = false WHERE id = $1", plan.id).execute(pool).await.ok();
-            println!("   🛑 [Medicación] El plan {} ha llegado a su fecha de fin y se ha desactivado.", plan.id);
+        if plan_finished
+            || (plan.fecha_fin.is_some() && chrono::Utc::now() > plan.fecha_fin.unwrap())
+        {
+            sqlx::query!(
+                "UPDATE medicacion_activa SET activo = false WHERE id = $1",
+                plan.id
+            )
+            .execute(pool)
+            .await
+            .ok();
+            println!(
+                "   🛑 [Medicación] El plan {} ha llegado a su fecha de fin y se ha desactivado.",
+                plan.id
+            );
         }
     }
 }

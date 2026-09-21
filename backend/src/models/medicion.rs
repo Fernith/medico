@@ -1,6 +1,6 @@
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::NaiveDate;
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct MedicionEntity {

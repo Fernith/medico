@@ -1,3 +1,4 @@
+use crate::error::AppError;
 use axum::{
     extract::{Path, State},
     Json,
@@ -6,61 +7,97 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::ejercicio::{
-    Ejercicio, EjercicioPayload, Equipamiento, EquipamientoPayload, 
-    GrupoMuscular, GrupoMuscularPayload, RealizacionEjercicio, RealizacionPayload,
-    TipoEntrenamiento, TipoEntrenamientoPayload, ReactivateEjercicioPayload
+    Ejercicio, EjercicioPayload, Equipamiento, EquipamientoPayload, GrupoMuscular,
+    GrupoMuscularPayload, ReactivateEjercicioPayload, RealizacionEjercicio, RealizacionPayload,
+    TipoEntrenamiento, TipoEntrenamientoPayload,
 };
 
 // ==========================================
 // DATOS MAESTROS (Grupos y Equipos)
 // ==========================================
-pub async fn get_grupos_musculares(State(pool): State<PgPool>) -> Result<Json<Vec<GrupoMuscular>>, String> {
-    let grupos = sqlx::query_as!(GrupoMuscular, "SELECT id, nombre, categoria::text FROM grupos_musculares ORDER BY categoria DESC, nombre")
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+pub async fn get_grupos_musculares(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<GrupoMuscular>>, AppError> {
+    let grupos = sqlx::query_as!(
+        GrupoMuscular,
+        "SELECT id, nombre, categoria::text FROM grupos_musculares ORDER BY categoria DESC, nombre"
+    )
+    .fetch_all(&pool)
+    .await?;
     Ok(Json(grupos))
 }
 
-pub async fn create_grupo_muscular(State(pool): State<PgPool>, Json(payload): Json<GrupoMuscularPayload>) -> Result<Json<GrupoMuscular>, String> {
+pub async fn create_grupo_muscular(
+    State(pool): State<PgPool>,
+    Json(payload): Json<GrupoMuscularPayload>,
+) -> Result<Json<GrupoMuscular>, AppError> {
     let registro = sqlx::query_as!(GrupoMuscular, 
         r#"INSERT INTO grupos_musculares (nombre, categoria) VALUES ($1, $2::text::categoria_grupo) RETURNING id, nombre, categoria::text as "categoria""#,
         payload.nombre, payload.categoria
-    ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
+    ).fetch_one(&pool).await?;
     Ok(Json(registro))
 }
 
-pub async fn update_grupo_muscular(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<GrupoMuscularPayload>) -> Result<Json<()>, String> {
+pub async fn update_grupo_muscular(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<GrupoMuscularPayload>,
+) -> Result<Json<()>, AppError> {
     sqlx::query!("UPDATE grupos_musculares SET nombre = $1, categoria = $2::text::categoria_grupo WHERE id = $3", payload.nombre, payload.categoria, id)
-        .execute(&pool).await.map_err(|e| e.to_string())?;
+        .execute(&pool).await?;
     Ok(Json(()))
 }
 
-pub async fn delete_grupo_muscular(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM grupos_musculares WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+pub async fn delete_grupo_muscular(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!("DELETE FROM grupos_musculares WHERE id = $1", id)
+        .execute(&pool)
+        .await?;
     Ok(Json(()))
 }
 
-pub async fn get_equipamientos(State(pool): State<PgPool>) -> Result<Json<Vec<Equipamiento>>, String> {
-    let equipos = sqlx::query_as!(Equipamiento, "SELECT id, nombre FROM equipamiento ORDER BY nombre")
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+pub async fn get_equipamientos(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<Equipamiento>>, AppError> {
+    let equipos = sqlx::query_as!(
+        Equipamiento,
+        "SELECT id, nombre FROM equipamiento ORDER BY nombre"
+    )
+    .fetch_all(&pool)
+    .await?;
     Ok(Json(equipos))
 }
 
-pub async fn create_equipamiento(State(pool): State<PgPool>, Json(payload): Json<EquipamientoPayload>) -> Result<Json<Equipamiento>, String> {
-    let registro = sqlx::query_as!(Equipamiento, "INSERT INTO equipamiento (nombre) VALUES ($1) RETURNING id, nombre", payload.nombre)
-        .fetch_one(&pool).await.map_err(|e| e.to_string())?;
+pub async fn create_equipamiento(
+    State(pool): State<PgPool>,
+    Json(payload): Json<EquipamientoPayload>,
+) -> Result<Json<Equipamiento>, AppError> {
+    let registro = sqlx::query_as!(
+        Equipamiento,
+        "INSERT INTO equipamiento (nombre) VALUES ($1) RETURNING id, nombre",
+        payload.nombre
+    )
+    .fetch_one(&pool)
+    .await?;
     Ok(Json(registro))
 }
 
-pub async fn delete_equipamiento(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM equipamiento WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+pub async fn delete_equipamiento(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!("DELETE FROM equipamiento WHERE id = $1", id)
+        .execute(&pool)
+        .await?;
     Ok(Json(()))
 }
-
 
 // ==========================================
 // CATÁLOGO DE EJERCICIOS
 // ==========================================
-pub async fn get_ejercicios(State(pool): State<PgPool>) -> Result<Json<Vec<Ejercicio>>, String> {
+pub async fn get_ejercicios(State(pool): State<PgPool>) -> Result<Json<Vec<Ejercicio>>, AppError> {
     let ejercicios = sqlx::query_as!(
         Ejercicio,
         r#"
@@ -73,87 +110,130 @@ pub async fn get_ejercicios(State(pool): State<PgPool>) -> Result<Json<Vec<Ejerc
         LEFT JOIN tipos_entrenamiento t ON e.tipo_entrenamiento_id = t.id
         ORDER BY e.nombre
         "#
-    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
+    ).fetch_all(&pool).await?;
     Ok(Json(ejercicios))
 }
 
-pub async fn create_ejercicio(State(pool): State<PgPool>, Json(payload): Json<EjercicioPayload>) -> Result<Json<Ejercicio>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+pub async fn create_ejercicio(
+    State(pool): State<PgPool>,
+    Json(payload): Json<EjercicioPayload>,
+) -> Result<Json<Ejercicio>, AppError> {
+    let mut tx = pool.begin().await?;
 
     let registro = sqlx::query!(
         "INSERT INTO ejercicios (nombre, descripcion, imagen, tipo_entrenamiento_id) VALUES ($1, $2, $3, $4) RETURNING id",
         payload.nombre, payload.descripcion, payload.imagen, payload.tipo_entrenamiento_id
-    ).fetch_one(&mut *tx).await.map_err(|e| e.to_string())?;
+    ).fetch_one(&mut *tx).await?;
 
     for id in &payload.grupos_ids {
-        sqlx::query!("INSERT INTO ejercicio_grupos (ejercicio_id, grupo_id) VALUES ($1, $2)", registro.id, id)
-            .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        sqlx::query!(
+            "INSERT INTO ejercicio_grupos (ejercicio_id, grupo_id) VALUES ($1, $2)",
+            registro.id,
+            id
+        )
+        .execute(&mut *tx)
+        .await?;
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
 
     Ok(Json(Ejercicio {
-        id: registro.id, nombre: payload.nombre, descripcion: payload.descripcion, imagen: payload.imagen,
-        tipo_entrenamiento_id: payload.tipo_entrenamiento_id, tipo_entrenamiento_nombre: None,
-        grupos_ids: Some(payload.grupos_ids), grupos_nombres: Some(vec![]),
+        id: registro.id,
+        nombre: payload.nombre,
+        descripcion: payload.descripcion,
+        imagen: payload.imagen,
+        tipo_entrenamiento_id: payload.tipo_entrenamiento_id,
+        tipo_entrenamiento_nombre: None,
+        grupos_ids: Some(payload.grupos_ids),
+        grupos_nombres: Some(vec![]),
         activo: true,
     }))
 }
 
-pub async fn update_ejercicio(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<EjercicioPayload>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+pub async fn update_ejercicio(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<EjercicioPayload>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
 
     sqlx::query!("UPDATE ejercicios SET nombre=$1, descripcion=$2, imagen=$3, tipo_entrenamiento_id=$4 WHERE id=$5", 
         payload.nombre, payload.descripcion, payload.imagen, payload.tipo_entrenamiento_id, id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        .execute(&mut *tx).await?;
 
-    sqlx::query!("DELETE FROM ejercicio_grupos WHERE ejercicio_id = $1", id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+    sqlx::query!("DELETE FROM ejercicio_grupos WHERE ejercicio_id = $1", id)
+        .execute(&mut *tx)
+        .await?;
     for g_id in payload.grupos_ids {
-        sqlx::query!("INSERT INTO ejercicio_grupos (ejercicio_id, grupo_id) VALUES ($1, $2)", id, g_id).execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        sqlx::query!(
+            "INSERT INTO ejercicio_grupos (ejercicio_id, grupo_id) VALUES ($1, $2)",
+            id,
+            g_id
+        )
+        .execute(&mut *tx)
+        .await?;
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }
 
-pub async fn delete_ejercicio(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    
+pub async fn delete_ejercicio(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
+
     // 1. Inactiva el ejercicio
     sqlx::query!("UPDATE ejercicios SET activo = false WHERE id = $1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
-        
+        .execute(&mut *tx)
+        .await?;
+
     // 2. Inactiva todas sus realizaciones asociadas (Cascada)
-    sqlx::query!("UPDATE realizacion_ejercicio SET activo = false WHERE ejercicio_id = $1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
-        
-    tx.commit().await.map_err(|e| e.to_string())?;
+    sqlx::query!(
+        "UPDATE realizacion_ejercicio SET activo = false WHERE ejercicio_id = $1",
+        id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
     Ok(Json(()))
 }
 
 // REACTIVAR EN CASCADA OPCIONAL
-pub async fn reactivate_ejercicio(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<ReactivateEjercicioPayload>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
-    
+pub async fn reactivate_ejercicio(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<ReactivateEjercicioPayload>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
+
     // 1. Reactiva el ejercicio
     sqlx::query!("UPDATE ejercicios SET activo = true WHERE id = $1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
-    
+        .execute(&mut *tx)
+        .await?;
+
     // 2. Si el checkbox venía marcado, reactiva las realizaciones
     if payload.reactivar_realizaciones {
-        sqlx::query!("UPDATE realizacion_ejercicio SET activo = true WHERE ejercicio_id = $1", id)
-            .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        sqlx::query!(
+            "UPDATE realizacion_ejercicio SET activo = true WHERE ejercicio_id = $1",
+            id
+        )
+        .execute(&mut *tx)
+        .await?;
     }
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }
-
 
 // ==========================================
 // REALIZACIÓN DE EJERCICIOS
 // ==========================================
-pub async fn get_realizaciones(State(pool): State<PgPool>) -> Result<Json<Vec<RealizacionEjercicio>>, String> {
+pub async fn get_realizaciones(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<RealizacionEjercicio>>, AppError> {
     let realizaciones = sqlx::query_as!(
         RealizacionEjercicio,
         r#"
@@ -178,12 +258,17 @@ pub async fn get_realizaciones(State(pool): State<PgPool>) -> Result<Json<Vec<Re
         JOIN ejercicios e ON r.ejercicio_id = e.id
         ORDER BY e.nombre
         "#
-    ).fetch_all(&pool).await.map_err(|e| e.to_string())?;
-    
+    )
+    .fetch_all(&pool)
+    .await?;
+
     Ok(Json(realizaciones))
 }
 
-pub async fn create_realizacion(State(pool): State<PgPool>, Json(payload): Json<RealizacionPayload>) -> Result<Json<RealizacionEjercicio>, String> {
+pub async fn create_realizacion(
+    State(pool): State<PgPool>,
+    Json(payload): Json<RealizacionPayload>,
+) -> Result<Json<RealizacionEjercicio>, AppError> {
     let registro = sqlx::query!(
         r#"
         INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso)
@@ -192,20 +277,20 @@ pub async fn create_realizacion(State(pool): State<PgPool>, Json(payload): Json<
         "#,
         payload.nombre, payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga, 
         payload.series, payload.reps_min, payload.reps_max, payload.unidad_objetivo, payload.descanso
-    ).fetch_one(&pool).await.map_err(|e| e.to_string())?;
+    ).fetch_one(&pool).await?;
 
     Ok(Json(RealizacionEjercicio {
-        id: registro.id, 
+        id: registro.id,
         nombre: payload.nombre,
-        ejercicio_id: payload.ejercicio_id, 
+        ejercicio_id: payload.ejercicio_id,
         ejercicio_nombre: "".to_string(),
-        ejercicio_imagen: None, 
-        equipamiento_id: payload.equipamiento_id, 
-        equipamiento_nombre: None, 
-        carga_actual: payload.carga_actual, 
-        unidad_carga: payload.unidad_carga, 
-        series: payload.series, 
-        reps_min: payload.reps_min, 
+        ejercicio_imagen: None,
+        equipamiento_id: payload.equipamiento_id,
+        equipamiento_nombre: None,
+        carga_actual: payload.carga_actual,
+        unidad_carga: payload.unidad_carga,
+        series: payload.series,
+        reps_min: payload.reps_min,
         reps_max: payload.reps_max,
         unidad_objetivo: payload.unidad_objetivo,
         descanso: payload.descanso,
@@ -214,7 +299,11 @@ pub async fn create_realizacion(State(pool): State<PgPool>, Json(payload): Json<
     }))
 }
 
-pub async fn update_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<RealizacionPayload>) -> Result<Json<()>, String> {
+pub async fn update_realizacion(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<RealizacionPayload>,
+) -> Result<Json<()>, AppError> {
     sqlx::query!(
         r#"
         UPDATE realizacion_ejercicio 
@@ -223,63 +312,99 @@ pub async fn update_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>
         "#,
         payload.nombre, payload.ejercicio_id, payload.equipamiento_id, payload.carga_actual, payload.unidad_carga,
         payload.series, payload.reps_min, payload.reps_max, payload.unidad_objetivo, payload.descanso, id
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
+    ).execute(&pool).await?;
     Ok(Json(()))
 }
 
 // BORRADO FÍSICO DEFINITIVO (Emulando ON DELETE CASCADE)
-pub async fn delete_realizacion_fisica(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    let mut tx = pool.begin().await.map_err(|e| e.to_string())?;
+pub async fn delete_realizacion_fisica(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    let mut tx = pool.begin().await?;
 
     // 1. Eliminamos sus apariciones en las rutinas (ON DELETE CASCADE manual)
-    sqlx::query!("DELETE FROM rutina_realizacion WHERE realizacion_id = $1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+    sqlx::query!(
+        "DELETE FROM rutina_realizacion WHERE realizacion_id = $1",
+        id
+    )
+    .execute(&mut *tx)
+    .await?;
 
     // 2. Borramos la realización físicamente
     sqlx::query!("DELETE FROM realizacion_ejercicio WHERE id=$1", id)
-        .execute(&mut *tx).await.map_err(|e| e.to_string())?;
+        .execute(&mut *tx)
+        .await?;
 
-    tx.commit().await.map_err(|e| e.to_string())?;
+    tx.commit().await?;
     Ok(Json(()))
 }
 
 // MODIFICAR ESTADO (Archivar / Restaurar)
 pub async fn cambiar_estado_realizacion(
-    Path(id): Path<Uuid>, 
-    State(pool): State<PgPool>, 
-    Json(payload): Json<crate::models::ejercicio::EstadoPayload>
-) -> Result<Json<()>, String> {
-    sqlx::query!("UPDATE realizacion_ejercicio SET activo = $1 WHERE id=$2", payload.activo, id)
-        .execute(&pool).await.map_err(|e| e.to_string())?;
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<crate::models::ejercicio::EstadoPayload>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!(
+        "UPDATE realizacion_ejercicio SET activo = $1 WHERE id=$2",
+        payload.activo,
+        id
+    )
+    .execute(&pool)
+    .await?;
     Ok(Json(()))
 }
 
-pub async fn duplicar_realizacion(Path(id): Path<Uuid>, State(pool): State<PgPool>, Json(payload): Json<crate::models::ejercicio::DuplicarPayload>) -> Result<Json<()>, String> {
+pub async fn duplicar_realizacion(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+    Json(payload): Json<crate::models::ejercicio::DuplicarPayload>,
+) -> Result<Json<()>, AppError> {
     sqlx::query!(
         "INSERT INTO realizacion_ejercicio (nombre, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo)
          SELECT $1, ejercicio_id, equipamiento_id, carga_actual, unidad_carga, series, reps_min, reps_max, unidad_objetivo, descanso, activo
          FROM realizacion_ejercicio WHERE id = $2",
         payload.nombre, id
-    ).execute(&pool).await.map_err(|e| e.to_string())?;
+    ).execute(&pool).await?;
     Ok(Json(()))
 }
 
 // ==========================================
 // TIPOS DE ENTRENAMIENTO
 // ==========================================
-pub async fn get_tipos_entrenamiento(State(pool): State<PgPool>) -> Result<Json<Vec<TipoEntrenamiento>>, String> {
-    let tipos = sqlx::query_as!(TipoEntrenamiento, "SELECT id, nombre FROM tipos_entrenamiento ORDER BY nombre")
-        .fetch_all(&pool).await.map_err(|e| e.to_string())?;
+pub async fn get_tipos_entrenamiento(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<TipoEntrenamiento>>, AppError> {
+    let tipos = sqlx::query_as!(
+        TipoEntrenamiento,
+        "SELECT id, nombre FROM tipos_entrenamiento ORDER BY nombre"
+    )
+    .fetch_all(&pool)
+    .await?;
     Ok(Json(tipos))
 }
 
-pub async fn create_tipo_entrenamiento(State(pool): State<PgPool>, Json(payload): Json<TipoEntrenamientoPayload>) -> Result<Json<TipoEntrenamiento>, String> {
-    let registro = sqlx::query_as!(TipoEntrenamiento, "INSERT INTO tipos_entrenamiento (nombre) VALUES ($1) RETURNING id, nombre", payload.nombre)
-        .fetch_one(&pool).await.map_err(|e| e.to_string())?;
+pub async fn create_tipo_entrenamiento(
+    State(pool): State<PgPool>,
+    Json(payload): Json<TipoEntrenamientoPayload>,
+) -> Result<Json<TipoEntrenamiento>, AppError> {
+    let registro = sqlx::query_as!(
+        TipoEntrenamiento,
+        "INSERT INTO tipos_entrenamiento (nombre) VALUES ($1) RETURNING id, nombre",
+        payload.nombre
+    )
+    .fetch_one(&pool)
+    .await?;
     Ok(Json(registro))
 }
 
-pub async fn delete_tipo_entrenamiento(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<()>, String> {
-    sqlx::query!("DELETE FROM tipos_entrenamiento WHERE id = $1", id).execute(&pool).await.map_err(|e| e.to_string())?;
+pub async fn delete_tipo_entrenamiento(
+    Path(id): Path<Uuid>,
+    State(pool): State<PgPool>,
+) -> Result<Json<()>, AppError> {
+    sqlx::query!("DELETE FROM tipos_entrenamiento WHERE id = $1", id)
+        .execute(&pool)
+        .await?;
     Ok(Json(()))
 }

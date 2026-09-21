@@ -1,13 +1,14 @@
 use axum::Router;
-use tower_http::services::{ServeDir, ServeFile};
 use std::env;
+use tower_http::services::{ServeDir, ServeFile};
 
 mod config;
-mod routes;
+pub mod error;
 mod handlers;
-mod services;
 mod models;
-mod tasks; 
+mod routes;
+mod services;
+mod tasks;
 
 #[tokio::main]
 async fn main() {
@@ -18,10 +19,10 @@ async fn main() {
 
     // Enrutador Principal de la API
     let api_router = routes::construir_router(configuracion.database_pool);
-    
+
     // --- BUSCADOR DE RUTAS A PRUEBA DE BALAS ---
     let mut ruta_estaticos = "frontend/dist"; // Ruta por defecto
-    
+
     if std::path::Path::new("/app/frontend/dist").exists() {
         ruta_estaticos = "/app/frontend/dist"; // 1. Entorno de Producción (Docker en Render)
     } else if std::path::Path::new("../frontend/dist").exists() {
@@ -46,7 +47,7 @@ async fn main() {
     let addr = format!("0.0.0.0:{}", port);
 
     println!("🚀 Servidor Full Stack corriendo en: http://{}", addr);
-    
+
     let oyente = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(oyente, app).await.unwrap();
 }
