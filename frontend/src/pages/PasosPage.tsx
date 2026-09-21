@@ -5,12 +5,16 @@ import { PasosGrafica } from '../features/pasos/PasosGrafica';
 import { PasosIndicadores } from '../features/pasos/PasosIndicadores';
 import { PasosTabla } from '../features/pasos/PasosTabla';
 import { useAjustes } from '../context/AjustesContext';
+import { useUsuario } from '../context/UsuarioContext';
 import { apiFetch } from '../api/client';
-
 
 export const PasosPage: React.FC = () => {
   const [pasos, setPasos] = useState<PasoDB[]>([]);
-  const [usuario, setUsuario] = useState({ altura: 170, sexo: 'Masculino' });
+  const { datosUsuario } = useUsuario();
+  const usuario = {
+    altura: Number(datosUsuario.altura) || 170,
+    sexo: datosUsuario.sexo || 'Masculino'
+  };
   const [isLoading, setIsLoading] = useState(true);
 
   const [viewMode, setViewMode] = useState<'S' | 'M' | 'A'>('M'); 
@@ -21,12 +25,8 @@ export const PasosPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [resPasos, resUsu] = await Promise.all([
-        apiFetch('/api/pasos/historial'),
-        apiFetch('/api/usuario')
-      ]);
+      const resPasos = await apiFetch('/api/pasos/historial');
       if (resPasos.ok) setPasos(await resPasos.json());
-      if (resUsu.ok) setUsuario(await resUsu.json());
     } catch (err) { console.error(err); } finally { setIsLoading(false); }
   };
 

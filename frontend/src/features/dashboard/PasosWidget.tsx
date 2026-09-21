@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Activity, Smile, Meh, Frown, ChevronRight } from 'lucide-react';
 import { formatearFechaRelativa } from '../../utils/formatters';
 import { calcularDistanciaKm, getDiasDelMes } from '../../utils/pasosCalculations';
 import { useAjustes } from '../../context/AjustesContext';
-import { apiFetch } from '../../api/client';
+import { useUsuario } from '../../context/UsuarioContext';
 
 
 interface PasosWidgetProps {
@@ -39,24 +38,14 @@ const CustomTooltipPasos = ({ active, payload, altura, sexo }: any) => {
 };
 
 export const PasosWidget = ({ data }: PasosWidgetProps) => {
-  const [altura, setAltura] = useState<number>(170);
-  const [sexo, setSexo] = useState<string>('Masculino');
+  const { datosUsuario } = useUsuario();
+  const altura = Number(datosUsuario.altura) || 170;
+  const sexo = datosUsuario.sexo || 'Masculino';
   
   // Obtenemos la meta desde la BBDD a través del Contexto
   const { ajustes } = useAjustes();
   const metaDiaria = Number(ajustes['objetivo_pasos_diarios']) || 8000;
   const metaMensual = metaDiaria * getDiasDelMes();
-
-  useEffect(() => {
-    apiFetch('/api/usuario')
-      .then(res => res.json())
-      .then(userData => {
-        if (userData) {
-          if (userData.altura) setAltura(userData.altura);
-          if (userData.sexo) setSexo(userData.sexo);
-        }
-      }).catch(console.error);
-  }, []);
 
   const porcPasos = Math.min(100, (data.hoy / metaDiaria) * 100);
   

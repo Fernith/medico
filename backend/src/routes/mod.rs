@@ -65,7 +65,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         // USUARIO
         .route(
             "/api/usuario",
-            get(usuario::obtener_usuario).put(usuario::modificar_usuario),
+            get(usuario::listar_usuario).put(usuario::guardar_usuario),
         )
         // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
         .route(
@@ -240,6 +240,7 @@ pub fn construir_router(pool: PgPool) -> Router {
         )
         // SÍNTOMAS
         .route("/api/sintomas/catalogo", get(sintomas::get_sintomas))
+        .route("/api/sintomas/ocurrencias", post(sintomas::crear_ocurrencia))
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)
 }

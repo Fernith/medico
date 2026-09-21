@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { calcularIMC } from '../../utils/pesoCalculations';
 import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../../api/client';
-
+import { useUsuario } from '../../context/UsuarioContext';
 
 export const PesoWidget = () => {
   const [ultimoPeso, setUltimoPeso] = useState<number | null>(null);
-  const [altura, setAltura] = useState<number>(180); // Por defecto si falla la petición
+  const { datosUsuario } = useUsuario();
+  const altura = Number(datosUsuario.altura) || 180;
   
   useEffect(() => {
     // 1. Llamada para traer el último peso
@@ -17,16 +18,6 @@ export const PesoWidget = () => {
         if (data && data.length > 0) {
           const last = data.sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
           setUltimoPeso(last.peso);
-        }
-      })
-      .catch(console.error);
-
-    // 2. Llamada para traer los datos del usuario (altura real)
-    apiFetch('/api/usuario')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.altura) {
-          setAltura(data.altura);
         }
       })
       .catch(console.error);

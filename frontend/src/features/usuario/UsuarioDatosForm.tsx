@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { apiFetch } from '../../api/client';
-
-
-export interface Usuario {
-  id: number;
-  altura: number;
-  sexo: 'Masculino' | 'Femenino'; 
-}
+import { useUsuario, type DatosUsuario } from '../../context/UsuarioContext';
+import { Calendar } from 'lucide-react';
 
 const indigoInputTheme: Partial<InputColorTheme> = {
   borderNormal: 'border-indigo-200 hover:border-indigo-300',
@@ -30,41 +24,36 @@ const indigoSelectTheme = {
 };
 
 export const UsuarioDatosForm: React.FC = () => {
-  const [formData, setFormData] = useState<Usuario>({ id: 1, altura: 180, sexo: 'Masculino' });
-  const [isLoading, setIsLoading] = useState(true);
+  const { datosUsuario, actualizarDatos, isLoading } = useUsuario();
+  const [formData, setFormData] = useState<DatosUsuario>({
+    altura: '',
+    sexo: 'masculino',
+    nacimiento: ''
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error', texto: string } | null>(null);
 
-  // EFECTO NUEVO: Borra el mensaje a los 3 segundos
+  useEffect(() => {
+    if (!isLoading) {
+      setFormData({
+        altura: datosUsuario.altura || '',
+        sexo: datosUsuario.sexo || 'masculino',
+        nacimiento: datosUsuario.nacimiento || ''
+      });
+    }
+  }, [datosUsuario, isLoading]);
+
   useEffect(() => {
     if (mensaje) {
       const timer = setTimeout(() => {
         setMensaje(null);
       }, 2500);
-      
-      // Cleanup: si el componente se desmonta o el mensaje cambia antes de 3s, limpiamos el timer
       return () => clearTimeout(timer);
     }
   }, [mensaje]);
 
-  useEffect(() => {
-    const fetchUsuario = async () => {
-      try {
-        const res = await apiFetch('/api/usuario');
-        if (res.ok) {
-          const data = await res.json();
-          setFormData(data);
-        }
-      } catch (err) {
-        console.error('Error al obtener usuario', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUsuario();
-  }, []);
-
-  const handleChange = (campo: keyof Usuario, valor: any) => {
+  const handleChange = (campo: keyof DatosUsuario, valor: any) => {
     setFormData(prev => ({ ...prev, [campo]: valor }));
     setMensaje(null);
   };
@@ -75,23 +64,8 @@ export const UsuarioDatosForm: React.FC = () => {
     setMensaje(null);
     
     try {
-      const res = await apiFetch('/api/usuario', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          altura: Number(formData.altura),
-          sexo: formData.sexo
-        })
-      });
-
-      if (res.ok) {
-        const updated = await res.json();
-        setFormData(updated);
-        setMensaje({ tipo: 'exito', texto: 'Datos del usuario actualizados.' });
-      } else {
-        const errorText = await res.text();
-        setMensaje({ tipo: 'error', texto: `Error: ${errorText}` });
-      }
+      await actualizarDatos(formData);
+      setMensaje({ tipo: 'exito', texto: 'Datos del usuario actualizados.' });
     } catch (err) {
       setMensaje({ tipo: 'error', texto: 'Error de conexión al guardar los datos.' });
     } finally {
@@ -130,8 +104,8 @@ export const UsuarioDatosForm: React.FC = () => {
             value={formData.sexo}
             onChange={(val) => handleChange('sexo', val)}
             options={[
-              { value: 'Masculino', label: 'Masculino' },
-              { value: 'Femenino', label: 'Femenino' }
+              { value: 'masculino', label: 'Masculino' },
+              { value: 'femenino', label: 'Femenino' }
             ]}
             colorTheme={indigoSelectTheme}
             icon={
@@ -141,6 +115,16 @@ export const UsuarioDatosForm: React.FC = () => {
             }
           />
         </div>
+
+        <Input 
+          label="Fecha de Nacimiento" 
+          type="date" 
+          value={formData.nacimiento} 
+          onChange={(e) => handleChange('nacimiento', e.target.value)} 
+          required 
+          colorTheme={indigoInputTheme}
+          icon={<Calendar className="w-5 h-5" />}
+        />
       </div>
 
       {mensaje && (
@@ -152,7 +136,7 @@ export const UsuarioDatosForm: React.FC = () => {
       <div className="flex justify-end pt-4 border-t border-indigo-50">
         <button 
           type="submit" 
-          disabled={isSubmitting || !formData.altura}
+          disabled={isSubmitting || !formData.altura || !formData.nacimiento}
           className="px-8 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm hover:shadow-indigo-500/30"
         >
           {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}

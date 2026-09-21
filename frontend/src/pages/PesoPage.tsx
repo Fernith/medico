@@ -9,8 +9,8 @@ import { MedidasIndicadoresWidget } from '../features/peso/MedidasIndicadoresWid
 import { type PesoDB } from '../utils/pesoCalculations';
 import { type MedicionDB } from '../utils/medicionCalculations';
 import { Select } from '../components/ui/Select';
+import { useUsuario } from '../context/UsuarioContext';
 import { apiFetch } from '../api/client';
-
 
 export const PesoPage: React.FC = () => {
   const [vista, setVista] = useState<'peso' | 'medidas'>('peso');
@@ -19,17 +19,20 @@ export const PesoPage: React.FC = () => {
   
   const [pesos, setPesos] = useState<PesoDB[]>([]);
   const [mediciones, setMediciones] = useState<MedicionDB[]>([]);
-  const [usuario, setUsuario] = useState({ altura: 180, sexo: 'Masculino' as 'Masculino' | 'Femenino' });
+  
+  const { datosUsuario } = useUsuario();
+  const usuario = {
+    altura: Number(datosUsuario.altura) || 180,
+    sexo: datosUsuario.sexo as 'Masculino' | 'Femenino' || 'Masculino'
+  };
 
   const fetchAllData = async () => {
     try {
-      const [resUsu, resPes, resMed] = await Promise.all([
-        apiFetch('/api/usuario'),
+      const [resPes, resMed] = await Promise.all([
         apiFetch('/api/pesos'),
         apiFetch('/api/mediciones')
       ]);
 
-      if (resUsu.ok) setUsuario(await resUsu.json());
       if (resPes.ok) setPesos((await resPes.json()).sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
       if (resMed.ok) setMediciones((await resMed.json()).sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
       
