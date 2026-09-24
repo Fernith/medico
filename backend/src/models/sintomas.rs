@@ -10,6 +10,12 @@ pub enum ReglaMedicionEnum {
     #[sqlx(rename = "escala_1_10")]
     #[serde(rename = "escala_1_10")]
     Escala110,
+    #[sqlx(rename = "cualitativa_3")]
+    #[serde(rename = "cualitativa_3")]
+    Cualitativa3,
+    #[sqlx(rename = "conteo_episodios")]
+    #[serde(rename = "conteo_episodios")]
+    ConteoEpisodios,
     GradosCelsius,
     PresenciaBooleana,
     TextoLibre,
@@ -77,14 +83,6 @@ pub struct OcurrenciaSintoma {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
-pub struct OcurrenciaLocalizacion {
-    pub ocurrencia_id: Uuid,
-    pub localizacion_id: String,
-    pub es_irradiado: bool,
-    pub lado: Option<LadoEnum>,
-}
-
 // Request Payload DTO
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocalizacionPayload {
@@ -103,4 +101,21 @@ pub struct CrearOcurrenciaPayload {
     pub frecuencia: Option<FrecuenciaEnum>,
     pub modificadores: Vec<ModificadorDTO>,
     pub localizaciones: Vec<LocalizacionPayload>,
+}
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct OcurrenciaDetalleDTO {
+    pub id: Uuid,
+    pub sintoma_id: Uuid,
+    pub sintoma_nombre: String,
+    pub fecha_inicio: DateTime<Utc>,
+    pub fecha_fin: Option<DateTime<Utc>>,
+    pub valor_registro: Option<String>,
+    pub notas: Option<String>,
+    pub caracteristica: Option<CaracteristicaEnum>,
+    pub frecuencia: Option<FrecuenciaEnum>,
+    pub modificadores: sqlx::types::Json<Vec<ModificadorDTO>>,
+    // Let's use jsonb for locations to map everything easily
+    pub localizaciones: sqlx::types::Json<Vec<LocalizacionPayload>>,
+    pub created_at: DateTime<Utc>,
 }

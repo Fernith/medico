@@ -4,6 +4,7 @@ import { PesoForm } from '../../features/peso/PesoForm';
 import { ReglaForm } from '../../features/regla/ReglaForm';
 import { MedicionForm } from '../../features/peso/MedicionForm';
 import { HistorialMedicacionForm } from '../../features/medicamentos/HistorialMedicacionForm';
+import { SintomasForm } from '../../features/sintomas/SintomasForm';
 import type { Ciclo } from '../../utils/reglaCalculations';
 import { apiFetch } from '../../api/client';
 
@@ -13,7 +14,7 @@ interface ModalAddProps {
   onClose: () => void;
 }
 
-type TabType = 'peso' | 'medicion' | 'regla' | 'medicacion';
+type TabType = 'peso' | 'medicion' | 'regla' | 'medicacion' | 'sintomas';
 
 export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>('peso');
@@ -46,12 +47,13 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   const medicionTheme: Partial<ModalColorTheme> = { titleColor: 'text-rose-900', headerBorder: 'border-rose-100', closeIconHover: 'hover:text-rose-500', modalBorder: 'border-rose-400', };
   const reglaTheme: Partial<ModalColorTheme> = { titleColor: 'text-purple-900', headerBorder: 'border-pink-100', closeIconHover: 'hover:text-pink-500', modalBorder: 'border-pink-400', };
   const medicacionTheme: Partial<ModalColorTheme> = { titleColor: 'text-teal-900', headerBorder: 'border-teal-100', closeIconHover: 'hover:text-teal-500', modalBorder: 'border-teal-400' };
+  const sintomasTheme: Partial<ModalColorTheme> = { titleColor: 'text-rose-900', headerBorder: 'border-rose-100', closeIconHover: 'hover:text-rose-500', modalBorder: 'border-rose-400' };
 
   const currentTheme = 
     activeTab === 'peso' ? pesoTheme : 
     activeTab === 'medicion' ? medicionTheme : 
     activeTab === 'regla' ? reglaTheme : 
-    medicacionTheme;
+    activeTab === 'sintomas' ? sintomasTheme : medicacionTheme;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo Registro" preventClose={true} colorTheme={currentTheme} size='lg'>
@@ -60,6 +62,7 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
         <button onClick={() => setActiveTab('medicion')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicion' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medidas</button>
         <button onClick={() => setActiveTab('regla')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'regla' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Regla</button>
         <button onClick={() => setActiveTab('medicacion')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicacion' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medicación</button>
+        <button onClick={() => setActiveTab('sintomas')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'sintomas' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Síntomas</button>
       </div>
 
       <div className="transition-opacity duration-300">
@@ -67,6 +70,7 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
         {activeTab === 'medicion' && <MedicionForm onSuccess={onClose} onCancel={onClose} />}
         {activeTab === 'regla' && <ReglaForm initialData={cicloActivo} onSuccess={onClose} onCancel={onClose} />}
         {activeTab === 'medicacion' && <HistorialMedicacionForm onSuccess={onClose} onCancel={onClose} />}
+        {activeTab === 'sintomas' && <SintomasForm onSuccess={onClose} onCancel={onClose} />}
       </div>
     </Modal>
   );

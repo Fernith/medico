@@ -240,7 +240,8 @@ pub fn construir_router(pool: PgPool) -> Router {
         )
         // SÍNTOMAS
         .route("/api/sintomas/catalogo", get(sintomas::get_sintomas))
-        .route("/api/sintomas/ocurrencias", post(sintomas::crear_ocurrencia))
+        .route("/api/sintomas/ocurrencias", post(sintomas::crear_ocurrencia).get(sintomas::listar_ocurrencias))
+        .route("/api/sintomas/ocurrencias/:id", put(sintomas::actualizar_ocurrencia).delete(sintomas::borrar_ocurrencia))
         .layer(DefaultBodyLimit::max(15 * 1024 * 1024))
         .with_state(pool)
 }

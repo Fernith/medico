@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub async fn listar_usuario(
     State(pool): State<PgPool>,
 ) -> Result<Json<HashMap<String, String>>, AppError> {
-    let registros = sqlx::query_as::<_, crate::models::usuario::UsuarioDatoEntity>("SELECT clave, valor FROM usuario")
+    let registros = sqlx::query_as::<_, UsuarioDatoEntity>("SELECT clave, valor FROM usuario")
         .fetch_all(&pool)
         .await?;
 

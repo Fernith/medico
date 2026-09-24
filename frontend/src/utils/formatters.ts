@@ -33,3 +33,15 @@ export const formatearFechaRelativa = (fechaStr?: string | null) => {
     sufijo: `el ${dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
   };
 };
+
+// Formatea una fecha y hora ISO (ej. 2026-09-22T14:30:00Z) a un texto amigable "22 sept, 14:30"
+export const formatearFecha = (isoString: string) => {
+  const date = new Date(isoString);
+  return date.toLocaleString('es-ES', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: '2-digit',
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};

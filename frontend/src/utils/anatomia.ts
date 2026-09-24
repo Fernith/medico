@@ -103,3 +103,64 @@ export const CATALOGO_ANATOMIA: LocalizacionAnatomica[] = [
   { id: 'talon_pie', nombre: 'Talón', nivel: 3, parent_id: 'pie', es_bilateral: true },
   { id: 'dedos_pie', nombre: 'Dedos', nivel: 3, parent_id: 'pie', es_bilateral: true },
 ];
+
+export const SINTOMAS_POR_LOCALIZACION: Record<string, string[]> = {
+  ojos: ['Oftalmológico y ORL', 'Musculoesquelético'],
+  garganta: ['Oftalmológico y ORL', 'Musculoesquelético'],
+  nariz: ['Oftalmológico y ORL', 'Dermatológico', 'Musculoesquelético'],
+  boca_labios: ['Oftalmológico y ORL', 'Dermatológico', 'Musculoesquelético'],
+  torax: ['Musculoesquelético', 'Dermatológico', 'Cardiovascular', 'Respiratorio'],
+  pecho: ['Musculoesquelético', 'Dermatológico', 'Cardiovascular', 'Respiratorio'],
+  costillas: ['Musculoesquelético', 'Respiratorio'],
+  abdomen: ['Musculoesquelético', 'Dermatológico', 'Digestivo'],
+  abdomen_sup: ['Digestivo', 'Musculoesquelético'],
+  abdomen_inf: ['Digestivo', 'Urológico y Reproductivo', 'Musculoesquelético'],
+  pelvis: ['Urológico y Reproductivo', 'Digestivo', 'Musculoesquelético', 'Dermatológico'],
+  espalda: ['Musculoesquelético', 'Dermatológico', 'Neurológico'],
+  dorsal: ['Musculoesquelético', 'Neurológico'],
+  lumbar: ['Musculoesquelético', 'Neurológico'],
+  sacro: ['Musculoesquelético', 'Neurológico'],
+  sistemico: ['Sistémico / General', 'Estado de Ánimo y Cognitivo', 'Otros'],
+  
+  // Default general mapping for remaining categories based on logical tissue inheritance
+  cabeza_cuello: ['Oftalmológico y ORL', 'Musculoesquelético', 'Dermatológico', 'Neurológico'],
+  tronco: ['Musculoesquelético', 'Dermatológico', 'Cardiovascular', 'Respiratorio', 'Digestivo', 'Urológico y Reproductivo'],
+  ext_sup: ['Musculoesquelético', 'Dermatológico', 'Neurológico'],
+  ext_inf: ['Musculoesquelético', 'Dermatológico', 'Neurológico'],
+};
+
+/**
+ * Dada una lista de IDs de localizaciones anatómicas seleccionadas,
+ * devuelve un array con las categorías de síntomas permitidas.
+ */
+export const getCategoriasParaZonas = (zonas: string[]): string[] => {
+  if (zonas.length === 0) {
+    return ['Sistémico / General', 'Estado de Ánimo y Cognitivo', 'Otros'];
+  }
+
+  const categorias = new Set<string>();
+
+  for (const zonaId of zonas) {
+    let currentId: string | null = zonaId;
+    let found = false;
+
+    while (currentId) {
+      if (SINTOMAS_POR_LOCALIZACION[currentId]) {
+        SINTOMAS_POR_LOCALIZACION[currentId].forEach(c => categorias.add(c));
+        found = true;
+        break;
+      }
+      
+      const loc = CATALOGO_ANATOMIA.find(c => c.id === currentId);
+      currentId = loc ? loc.parent_id : null;
+    }
+
+    if (!found) {
+      // Fallback si no se encontró nada en el árbol
+      categorias.add('Musculoesquelético');
+      categorias.add('Dermatológico');
+    }
+  }
+
+  return Array.from(categorias);
+};

@@ -18,6 +18,8 @@ export interface ZonaSeleccionada {
 
 interface Props {
   onSelectionChange: (zonas: ZonaSeleccionada[]) => void;
+  initialSelection?: ZonaSeleccionada[];
+  isReadOnly?: boolean;
 }
 
 const NOMBRES_ZONA_ARCHIVO: Record<string, string> = {
@@ -28,11 +30,11 @@ const NOMBRES_ZONA_ARCHIVO: Record<string, string> = {
   'Tronco': 'tronco',
 };
 
-export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => {
+export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange, initialSelection, isReadOnly }) => {
   const { datosUsuario } = useUsuario();
   const sexoUsuario = datosUsuario.sexo || 'masculino'; 
-
-  const [selecciones, setSelecciones] = useState<ZonaSeleccionada[]>([]);
+  
+  const [selecciones, setSelecciones] = useState<ZonaSeleccionada[]>(initialSelection || []);
   const [historialLupa, setHistorialLupa] = useState<string[]>([]);
   const [vistaPosterior, setVistaPosterior] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -60,6 +62,7 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
   }, [zonasVisibles]);
 
   const handleZoneClick = (zona: LocalizacionAnatomica) => {
+    if (isReadOnly) return;
     setSelecciones(prev => {
       const index = prev.findIndex(s => s.localizacion_id === zona.id);
       if (index === -1) {
@@ -76,10 +79,12 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
   };
 
   const handleRemoveZone = (id: string) => {
+    if (isReadOnly) return;
     setSelecciones(prev => prev.filter(s => s.localizacion_id !== id));
   };
 
   const handleLadoChange = (id: string, lado: 'Izquierdo' | 'Derecho' | 'Ambos') => {
+    if (isReadOnly) return;
     setSelecciones(prev => prev.map(s => s.localizacion_id === id ? { ...s, lado } : s));
   };
 
@@ -158,7 +163,7 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
   );
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6">
+    <div className="flex flex-col gap-6">
       
       <div className="flex-1 flex flex-col gap-4">
         
@@ -174,8 +179,7 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
           </div>
         </div>
 
-        {/* NAVEGACIÃ“N MÃ“VIL: Visible sÃ³lo hasta pantallas grandes (xl) */}
-        <div className="xl:hidden">
+        <div>
           {panelNavegacion}
         </div>
 
@@ -186,7 +190,8 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
               <button
                 type="button"
                 onClick={() => handleZoneClick(zonaSistemica)}
-                className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 rounded-full font-bold text-sm shadow-md transition-all border ${
+                title="Sistémico (Foco/Irradiado)"
+                className={`flex items-center justify-center gap-2 p-2 rounded-full font-bold text-sm shadow-md transition-all border ${
                   selSistemico 
                     ? selSistemico.es_irradiado 
                       ? 'bg-orange-500 border-orange-600 text-white' 
@@ -194,19 +199,17 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
                     : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
                 >
-                  <PersonStanding className="w-4 h-4 shrink-0" />
-                  <span className="hidden md:inline">Sistémico</span>
-                  {selSistemico && <span className="hidden md:inline ml-1 text-[10px] uppercase opacity-80">{selSistemico.es_irradiado ? '(Irradia)' : '(Foco)'}</span>}
+                  <PersonStanding className="w-5 h-5 shrink-0" />
                 </button>
             )}
 
             <button
               type="button"
               onClick={() => setVistaPosterior(!vistaPosterior)}
-              className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 rounded-full font-bold text-sm shadow-md transition-all border bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              title={vistaPosterior ? 'Ver Frontal' : 'Ver Posterior'}
+              className="flex items-center justify-center gap-2 p-2 rounded-full font-bold text-sm shadow-md transition-all border bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
             >
-              <RotateCcw className="w-4 h-4 shrink-0" />
-              <span className="hidden md:inline">{vistaPosterior ? 'Ver Frontal' : 'Ver Posterior'}</span>
+              <RotateCcw className="w-5 h-5 shrink-0" />
             </button>
           </div>
 
@@ -258,13 +261,8 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
         </div>
       </div>
 
-      <div className="w-full xl:w-80 flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-4">
         
-        {/* NAVEGACIÃ“N ESCRITORIO: Visible sÃ³lo en pantallas grandes (xl) */}
-        <div className="hidden xl:block">
-          {panelNavegacion}
-        </div>
-
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex-1">
           <h3 className="font-bold text-slate-800 text-sm mb-4">Zonas Registradas</h3>
           
@@ -280,9 +278,10 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
                 return (
                   <div key={sel.localizacion_id} className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${sel.es_irradiado ? 'bg-orange-100 text-orange-700' : 'bg-rose-100 text-rose-700'}`}>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${sel.es_irradiado ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
                         {sel.nombre} {sel.es_irradiado && '(Irradia)'}
                       </span>
+                      {!isReadOnly && (
                       <button 
                         type="button"
                         onClick={() => handleRemoveZone(sel.localizacion_id)} 
@@ -291,6 +290,7 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange }) => 
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      )}
                     </div>
                     
                     {zonaEnCatalogo?.es_bilateral && (

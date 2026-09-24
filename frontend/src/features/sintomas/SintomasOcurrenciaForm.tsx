@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Calendar, X, ArrowUpCircle, ArrowDownCircle, Thermometer, Plus, Minus } from 'lucide-react';
 import { Select } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
 
 // Tipos que reflejan la base de datos
-export type ReglaMedicion = 'escala_1_10' | 'grados_celsius' | 'presencia_booleana' | 'texto_libre';
+export type ReglaMedicion = 'escala_1_10' | 'grados_celsius' | 'presencia_booleana' | 'texto_libre' | 'cualitativa_3' | 'conteo_episodios';
 
 export interface Sintoma {
   id: string;
@@ -31,8 +31,14 @@ export interface OcurrenciaData {
   notas: string;
 }
 
+import { type ZonaSeleccionada } from './SintomasAnatomiaMapa';
+import { getCategoriasParaZonas } from '../../utils/anatomia';
+
 interface Props {
   onDataChange: (data: OcurrenciaData) => void;
+  zonasSeleccionadas: ZonaSeleccionada[];
+  initialData?: any;
+  isReadOnly?: boolean;
 }
 
 const CARACTERISTICAS_OPCIONES = [
@@ -59,7 +65,7 @@ const SUGERENCIAS = [
   "Al presionar la zona", "Con estiramientos", "Con medicación habitual"
 ];
 
-export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
+export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSeleccionadas, initialData, isReadOnly }) => {
   const [catalogo, setCatalogo] = useState<Sintoma[]>([]);
   
   useEffect(() => {
@@ -71,19 +77,41 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
     });
   }, []);
 
-  // Estado local para los inputs de fecha y hora separados
-  const [localDate, setLocalDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [localTime, setLocalTime] = useState(() => new Date().toTimeString().split(' ')[0].substring(0, 5));
-  
-  const [data, setData] = useState<OcurrenciaData>({
-    sintoma_id: '',
-    fecha_inicio: new Date().toISOString(), // Se inicializa con el valor actual real
-    valor_registro: '',
-    caracteristica: '',
-    frecuencia: '',
-    modificadores: [],
-    notas: '',
+  const [localDate, setLocalDate] = useState(() => {
+    if (initialData?.fecha_inicio) return initialData.fecha_inicio.split('T')[0];
+    return new Date().toISOString().split('T')[0];
   });
+  
+  const [localTime, setLocalTime] = useState(() => {
+    if (initialData?.fecha_inicio) return initialData.fecha_inicio.split('T')[1].substring(0, 5);
+    return new Date().toTimeString().split(' ')[0].substring(0, 5);
+  });
+  
+  const [data, setData] = useState<OcurrenciaData>(() => {
+    if (initialData) {
+      return {
+        sintoma_id: initialData.sintoma_id,
+        fecha_inicio: initialData.fecha_inicio,
+        valor_registro: initialData.valor_registro || '',
+        caracteristica: initialData.caracteristica || '',
+        frecuencia: initialData.frecuencia || '',
+        modificadores: initialData.modificadores || [],
+        notas: initialData.notas || '',
+      };
+    }
+    return {
+      sintoma_id: '',
+      fecha_inicio: new Date().toISOString(),
+      valor_registro: '',
+      caracteristica: '',
+      frecuencia: '',
+      modificadores: [],
+      notas: '',
+    };
+  });
+
+  const categoriasPermitidas = getCategoriasParaZonas(zonasSeleccionadas.map(z => z.localizacion_id));
+  const sintomasFiltrados = catalogo.filter(s => categoriasPermitidas.includes(s.categoria));
 
   const [nuevoModificador, setNuevoModificador] = useState('');
   const [showSugerencias, setShowSugerencias] = useState(false);
@@ -115,9 +143,9 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
       if (field === 'sintoma_id') {
         const sintomaInfo = catalogo.find(s => s.id === value);
         if (sintomaInfo) {
-          if (sintomaInfo.regla_medicion === 'escala_1_10') {
+          if (sintomaInfo.regla_medicion === 'escala_1_10' || sintomaInfo.regla_medicion === 'cualitativa_3') {
             next.valor_registro = '1';
-          } else if (sintomaInfo.regla_medicion === 'grados_celsius') {
+          } else if (sintomaInfo.regla_medicion === 'grados_celsius' || sintomaInfo.regla_medicion === 'conteo_episodios') {
             next.valor_registro = '38.0';
           } else {
             next.valor_registro = '';
@@ -147,7 +175,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={`flex flex-col gap-6 ${isReadOnly ? 'opacity-95' : ''}`}>
       
       {/* 1. SELECCIÓN DE SÍNTOMA Y FECHA */}
       <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col gap-4">
@@ -155,6 +183,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
         {/* FECHA Y HORA (AHORA ARRIBA) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
           <Input
+            disabled={isReadOnly}
             type="date"
             label="Fecha de inicio"
             icon={<Calendar className="w-4 h-4" />}
@@ -162,6 +191,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
             onChange={(e) => handleDateTimeChange(e.target.value, localTime)}
           />
           <Input
+            disabled={isReadOnly}
             type="time"
             label="Hora de inicio"
             icon={<Clock className="w-4 h-4" />}
@@ -175,8 +205,10 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
           <Activity className="w-4 h-4 text-indigo-500" /> Identificación del Síntoma
         </h3>
         <Select
+          disabled={isReadOnly}
           label="Catálogo de Síntomas"
-          options={catalogo.map(s => ({ value: s.id, label: s.nombre }))}
+          options={sintomasFiltrados.map(s => ({ value: s.id, label: s.nombre }))}
+          searchable={true}
           value={data.sintoma_id}
           onChange={(v: string) => handleChange('sintoma_id', v)}
           placeholder="Selecciona el síntoma principal..."
@@ -189,12 +221,34 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
         <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 animate-in fade-in slide-in-from-top-2">
           <h3 className="font-bold text-indigo-900 text-sm mb-4">Medición ({sintomaSeleccionado.nombre})</h3>
           
+                    {sintomaSeleccionado.regla_medicion === 'cualitativa_3' && (
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-bold text-indigo-800">
+                Intensidad: <span className="text-xl text-indigo-600">{data.valor_registro === '1' ? 'Leve' : data.valor_registro === '2' ? 'Moderado' : 'Grave'}</span>
+              </label>
+              <input 
+                type="range" 
+                min="1" max="3" step="1"
+                value={data.valor_registro || '1'}
+                onChange={(e) => handleChange('valor_registro', e.target.value)}
+                disabled={isReadOnly}
+                className="w-full accent-indigo-600 h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
+              />
+              <div className="flex justify-between text-xs text-indigo-600 font-medium">
+                <span>Leve (1)</span>
+                <span>Moderado (2)</span>
+                <span>Grave (3)</span>
+              </div>
+            </div>
+          )}
+
           {sintomaSeleccionado.regla_medicion === 'escala_1_10' && (
             <div className="flex flex-col gap-3">
               <label className="text-sm font-bold text-indigo-800">
                 Intensidad: <span className="text-xl text-indigo-600">{data.valor_registro || '0'}</span> / 10
               </label>
               <input 
+                disabled={isReadOnly}
                 type="range" 
                 min="1" max="10" step="1"
                 value={data.valor_registro || '1'}
@@ -209,12 +263,54 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
             </div>
           )}
 
+                    {sintomaSeleccionado.regla_medicion === 'conteo_episodios' && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700 pl-1">Número de episodios</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = parseInt(data.valor_registro || '1', 10);
+                    if (!isNaN(current) && current > 0) handleChange('valor_registro', (current - 1).toString());
+                  }}
+                  disabled={isReadOnly}
+                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    step="1"
+                    icon={<Activity className="w-4 h-4" />}
+                    value={data.valor_registro}
+                    onChange={(e) => handleChange('valor_registro', e.target.value)}
+                    placeholder="Ej: 3"
+                    disabled={isReadOnly}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = parseInt(data.valor_registro || '1', 10);
+                    if (!isNaN(current)) handleChange('valor_registro', (current + 1).toString());
+                  }}
+                  disabled={isReadOnly}
+                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {sintomaSeleccionado.regla_medicion === 'grados_celsius' && (
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700 pl-1">Temperatura (°C)</label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  disabled={isReadOnly}
                   onClick={() => {
                     const current = parseFloat(data.valor_registro || '38.0');
                     if (!isNaN(current)) handleChange('valor_registro', (current - 0.1).toFixed(1));
@@ -225,6 +321,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
                 </button>
                 <div className="flex-1">
                   <Input
+            disabled={isReadOnly}
                     type="number"
                     step="0.1"
                     icon={<Thermometer className="w-4 h-4" />}
@@ -235,6 +332,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
                 </div>
                 <button
                   type="button"
+                  disabled={isReadOnly}
                   onClick={() => {
                     const current = parseFloat(data.valor_registro || '38.0');
                     if (!isNaN(current)) handleChange('valor_registro', (current + 0.1).toFixed(1));
@@ -251,6 +349,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
                 <input 
+                  disabled={isReadOnly}
                   type="radio" 
                   name="presencia" 
                   checked={data.valor_registro === 'true'}
@@ -261,6 +360,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
               </label>
               <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
                 <input 
+                  disabled={isReadOnly}
                   type="radio" 
                   name="presencia" 
                   checked={data.valor_registro === 'false'}
@@ -274,6 +374,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
 
           {sintomaSeleccionado.regla_medicion === 'texto_libre' && (
             <Input
+            disabled={isReadOnly}
               label="Descripción de la medida"
               value={data.valor_registro}
               onChange={(e) => handleChange('valor_registro', e.target.value)}
@@ -289,6 +390,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
+          disabled={isReadOnly}
             label="Característica"
             options={CARACTERISTICAS_OPCIONES}
             value={data.caracteristica}
@@ -297,6 +399,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
             clearable
           />
           <Select
+          disabled={isReadOnly}
             label="Frecuencia"
             options={FRECUENCIA_OPCIONES}
             value={data.frecuencia}
@@ -314,6 +417,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
           <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <div className="flex-1 relative">
               <Input
+            disabled={isReadOnly}
                 placeholder="Ej: Masticar"
                 value={nuevoModificador}
                 onChange={(e) => {
@@ -361,7 +465,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
               <button
                 type="button"
                 onClick={() => agregarModificador('alivia')}
-                disabled={!nuevoModificador.trim()}
+                disabled={isReadOnly || !nuevoModificador.trim()}
                 className="flex-1 sm:flex-none justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 px-3 py-2 rounded-xl flex items-center gap-1 font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ArrowDownCircle className="w-4 h-4" /> Alivia
@@ -369,7 +473,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
               <button
                 type="button"
                 onClick={() => agregarModificador('empeora')}
-                disabled={!nuevoModificador.trim()}
+                disabled={isReadOnly || !nuevoModificador.trim()}
                 className="flex-1 sm:flex-none justify-center bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-3 py-2 rounded-xl flex items-center gap-1 font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ArrowUpCircle className="w-4 h-4" /> Empeora
@@ -387,7 +491,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
                 }`}>
                   {mod.efecto === 'alivia' ? <ArrowDownCircle className="w-3 h-3" /> : <ArrowUpCircle className="w-3 h-3" />}
                   <span>{mod.factor}</span>
-                  <button type="button" onClick={() => eliminarModificador(index)} className="ml-1 opacity-60 hover:opacity-100">
+                  <button type="button" disabled={isReadOnly} onClick={() => eliminarModificador(index)} className="ml-1 opacity-60 hover:opacity-100">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
@@ -399,6 +503,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange }) => {
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-1">Notas Adicionales</label>
           <textarea
+            disabled={isReadOnly}
             className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-400 min-h-[80px]"
             placeholder="Apunta cualquier otro detalle relevante..."
             value={data.notas}
