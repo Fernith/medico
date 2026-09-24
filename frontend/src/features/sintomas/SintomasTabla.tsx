@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight, ArrowUpDown, Trash2, Edit2, Activity, Calendar, Eye } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ArrowUpDown, Trash2, Edit2, Activity, Eye } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 import { formatearFecha } from '../../utils/formatters';
 import { CATALOGO_ANATOMIA } from '../../utils/anatomia';
