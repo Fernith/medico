@@ -1,3 +1,4 @@
+import { apiFetch } from '../../api/client';
 import React, { useState } from 'react';
 import { SintomasAnatomiaMapa, type ZonaSeleccionada } from './SintomasAnatomiaMapa';
 import { SintomasOcurrenciaForm, type OcurrenciaData } from './SintomasOcurrenciaForm';
@@ -35,7 +36,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
     
     setIsSubmitting(true);
     try {
-      const { apiFetch } = await import('../../api/client');
+      
       
       const payload = {
         ...ocurrenciaData,

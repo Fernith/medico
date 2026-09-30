@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { apiFetch } from '../../api/client';
+import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Calendar, X, ArrowUpCircle, ArrowDownCircle, Thermometer, Plus, Minus } from 'lucide-react';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
