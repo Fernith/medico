@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import type { Ciclo } from '../../utils/reglaCalculations';
 import { apiFetch } from '../../api/client';
+import { Button } from '../../components/ui/Button';
 
 
 export interface FormColorTheme {
@@ -164,12 +165,16 @@ export const ReglaForm: React.FC<ReglaFormProps> = ({ initialData, onSuccess, on
       </div>
 
       <div className="flex gap-4 pt-4 shrink-0">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
-          Cancelar
-        </button>
-        <button type="submit" disabled={isSubmitting || !formData.fecha_inicio} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm ${theme.submitBg} ${theme.submitHover}`}>
-          {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : (formData.fecha_fin ? 'Finalizar Periodo' : 'Iniciar Periodo'))}
-        </button>
+        <Button variant="ghost" onClick={onCancel} className="flex-1 py-3">
+            Cancelar
+          </Button>
+        <Button 
+            type="submit" 
+            disabled={isSubmitting || !formData.fecha_inicio} 
+            className="flex-1 py-3"
+          >
+            {initialData ? 'Actualizar' : 'Guardar'}
+          </Button>
       </div>
     </form>
   );

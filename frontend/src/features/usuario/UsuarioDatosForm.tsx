@@ -3,6 +3,7 @@ import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { useUsuario, type DatosUsuario } from '../../context/UsuarioContext';
 import { Calendar } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
 
 const indigoInputTheme: Partial<InputColorTheme> = {
   borderNormal: 'border-indigo-200 hover:border-indigo-300',
@@ -134,13 +135,15 @@ export const UsuarioDatosForm: React.FC = () => {
       )}
 
       <div className="flex justify-end pt-4 border-t border-indigo-50">
-        <button 
+        <Button 
           type="submit" 
           disabled={isSubmitting || !formData.altura || !formData.nacimiento}
-          className="px-8 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm hover:shadow-indigo-500/30"
+          isLoading={isSubmitting}
+          colorTheme={{ bgNormal: 'bg-indigo-500', bgHover: 'hover:bg-indigo-600', textColor: 'text-white' }}
+          className="px-8 py-3 shadow-sm hover:shadow-indigo-500/30"
         >
           {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-        </button>
+        </Button>
       </div>
     </form>
   );

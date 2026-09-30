@@ -1,5 +1,6 @@
 import { Clock } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input'; 
 import { useAjustes } from '../../context/AjustesContext';
 
@@ -112,13 +113,14 @@ export const AjustesParametrosRegla: React.FC<AjustesParametrosReglaProps> = ({ 
       )}
 
       <div className="border-pink-50 sm:col-span-1">
-        <button 
-          type="submit" 
-          disabled={isSubmitting || ciclo === '' || periodo === ''}
-          className="px-8 py-3 bg-pink-500 text-white rounded-xl font-bold hover:bg-pink-600 transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm hover:shadow-pink-500/30"
-        >
-          {isSubmitting ? 'Guardando...' : 'Guardar Parámetros'}
-        </button>
+        <Button 
+            type="submit" 
+            disabled={isSubmitting || ciclo === '' || periodo === ''}
+            isLoading={isSubmitting}
+            className="px-8 py-3 shadow-sm hover:shadow-pink-500/30"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar Ajustes'}
+          </Button>
       </div>
     </form>
   );

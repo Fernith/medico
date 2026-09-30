@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
 import { BellRing } from 'lucide-react';
 import { apiFetch } from '../../api/client';
@@ -97,6 +98,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
   ];
 
   const inputTheme = { borderNormal: 'border-slate-200', borderFocus: 'focus:border-indigo-500 focus:ring-indigo-500', iconColor: 'text-indigo-500' };
+  const buttonTheme = { bgNormal: 'bg-indigo-600', bgHover: 'hover:bg-indigo-700', textColor: 'text-white' };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-white flex flex-col space-y-5">
@@ -124,7 +126,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
             value={formData.entidad} 
             onChange={(val) => setFormData({ ...formData, entidad: val as string })} 
             options={entidadesOpciones}
-            disabled={isEditing} // BLOQUEADO AL EDITAR
+            disabled={isEditing}
           />
         </div>
       </div>
@@ -159,7 +161,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
             label="Próximo Aviso" 
             value={formData.proxima_fecha || ''} 
             onChange={e => setFormData({ ...formData, proxima_fecha: e.target.value })} 
-            min={hoyStr} // BLOQUEA FECHAS ANTERIORES SIEMPRE (CREAR Y EDITAR)
+            min={hoyStr}
             required 
             colorTheme={inputTheme}
           />
@@ -178,11 +180,11 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
 
       {error && <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold">{error}</div>}
 
-      <div className="flex gap-3 pt-4 border-t border-slate-100">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-colors">Cancelar</button>
-        <button type="submit" disabled={isSubmitting} className="flex-[2] px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50">
-          {isSubmitting ? 'Guardando...' : 'Guardar Recordatorio'}
-        </button>
+      <div className="flex gap-3 border-t border-slate-100">
+        <Button variant="ghost" type="button" onClick={onCancel} className="flex-1 py-3">Cancelar</Button>
+        <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting} colorTheme={buttonTheme} className="flex-1 py-3">
+          {isSubmitting ? 'Guardando...' : 'Guardar'}
+        </Button>
       </div>
     </form>
   );

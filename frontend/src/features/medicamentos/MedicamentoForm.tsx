@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
 import { Pill, Scale, FileText, Tag, Droplet } from 'lucide-react';
 import { type CategoriaMedicamento } from './CategoriasTabla';
@@ -57,6 +58,7 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
 
   const inputTheme = { borderNormal: 'border-slate-200', borderFocus: 'focus:ring-teal-500 focus:border-teal-500', iconColor: 'text-teal-500' };
   const selectTheme = { borderNormal: 'border-slate-200', borderActive: 'border-teal-400 ring-4 ring-teal-50', iconColor: 'text-teal-500', optionSelectedBg: 'bg-teal-50', optionSelectedText: 'text-teal-800' };
+  const buttonTheme = { bgNormal: 'bg-teal-600', bgHover: 'hover:bg-teal-700', textColor: 'text-white' };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -90,9 +92,9 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
       <Input label="Notas (opcional)" placeholder="Ej: Evitar tomar con el estómago vacío" value={formData.notas} onChange={(e) => handleChange('notas', e.target.value)} colorTheme={inputTheme} icon={<FileText className="w-5 h-5" />} />
       
       <div className="flex gap-4 pt-4 border-t border-slate-100">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
-        <button type="submit" disabled={isSubmitting || !formData.nombre} className="flex-1 px-4 py-3 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 disabled:opacity-50 transition-colors">{isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}</button>
-      </div>
+          <Button type="button" variant="ghost" onClick={onCancel} className="flex-1 py-3">Cancelar</Button>
+          <Button type="submit" disabled={isSubmitting || !formData.nombre} isLoading={isSubmitting} colorTheme={buttonTheme} className="flex-1 py-3">{initialData ? 'Actualizar' : 'Guardar'}</Button>
+        </div>
     </form>
   );
 };

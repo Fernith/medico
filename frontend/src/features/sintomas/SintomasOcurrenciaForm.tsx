@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Calendar, X, ArrowUpCircle, ArrowDownCircle, Thermometer, Plus, Minus } from 'lucide-react';
 import { Select } from '../../components/ui/Select';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 // Tipos que reflejan la base de datos
@@ -145,8 +146,10 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
         if (sintomaInfo) {
           if (sintomaInfo.regla_medicion === 'escala_1_10' || sintomaInfo.regla_medicion === 'cualitativa_3') {
             next.valor_registro = '1';
-          } else if (sintomaInfo.regla_medicion === 'grados_celsius' || sintomaInfo.regla_medicion === 'conteo_episodios') {
-            next.valor_registro = '38.0';
+          } else if (sintomaInfo.regla_medicion === 'conteo_episodios') {
+              next.valor_registro = '1';
+            } else if (sintomaInfo.regla_medicion === 'grados_celsius') {
+              next.valor_registro = '38.0';
           } else {
             next.valor_registro = '';
           }
@@ -462,22 +465,28 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
             </div>
             
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => agregarModificador('alivia')}
-                disabled={isReadOnly || !nuevoModificador.trim()}
-                className="flex-1 sm:flex-none justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 px-3 py-2 rounded-xl flex items-center gap-1 font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ArrowDownCircle className="w-4 h-4" /> Alivia
-              </button>
-              <button
-                type="button"
-                onClick={() => agregarModificador('empeora')}
-                disabled={isReadOnly || !nuevoModificador.trim()}
-                className="flex-1 sm:flex-none justify-center bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 px-3 py-2 rounded-xl flex items-center gap-1 font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ArrowUpCircle className="w-4 h-4" /> Empeora
-              </button>
+              <Button
+                  type="button"
+                  onClick={() => agregarModificador('alivia')}
+                  disabled={isReadOnly || !nuevoModificador.trim()}
+                  colorTheme={{ bgNormal: 'bg-emerald-50', bgHover: 'hover:bg-emerald-100', textColor: 'text-emerald-700', border: 'border border-emerald-200' }}
+                  className="flex-1 sm:flex-none justify-center"
+                  size="sm"
+                  icon={<ArrowDownCircle className="w-4 h-4" />}
+                >
+                  Alivia
+                </Button>
+              <Button
+                  type="button"
+                  onClick={() => agregarModificador('empeora')}
+                  disabled={isReadOnly || !nuevoModificador.trim()}
+                  colorTheme={{ bgNormal: 'bg-rose-50', bgHover: 'hover:bg-rose-100', textColor: 'text-rose-700', border: 'border border-rose-200' }}
+                  className="flex-1 sm:flex-none justify-center"
+                  size="sm"
+                  icon={<ArrowUpCircle className="w-4 h-4" />}
+                >
+                  Empeora
+                </Button>
             </div>
           </div>
 

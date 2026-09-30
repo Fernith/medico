@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input'; 
 import { useAjustes } from '../../context/AjustesContext';
 import { decimalToTimeStr, timeStrToDecimal } from '../../utils/suenoCalculations';
@@ -85,13 +86,15 @@ export const AjusteObjetivoSueno: React.FC = () => {
       )}
 
       <div className="flex justify-start pt-4 border-t border-indigo-50">
-        <button 
-          type="submit" 
-          disabled={isSubmitting || !horasStr || !deudaStr}
-          className="px-8 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors disabled:opacity-50 shadow-sm"
-        >
-          {isSubmitting ? 'Guardando...' : 'Guardar Ajustes'}
-        </button>
+        <Button 
+            type="submit" 
+            disabled={isSubmitting || !horasStr || !deudaStr}
+            isLoading={isSubmitting}
+            colorTheme={{ bgNormal: 'bg-indigo-500', bgHover: 'hover:bg-indigo-600', textColor: 'text-white' }}
+            className="px-8 py-3 shadow-sm"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar Ajustes'}
+          </Button>
       </div>
     </form>
   );

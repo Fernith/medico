@@ -54,7 +54,8 @@ export const MedicamentosPage: React.FC = () => {
             vista === 'historial' ? 'bg-teal-500 text-white shadow' : 'text-teal-700 hover:bg-teal-100'
           }`}
         >
-          <History className="w-4 h-4" /> Historial
+          <History className="w-4 h-4" /> 
+          <span className={vista === 'historial' ? '' : 'hidden md:inline'}>Historial</span>
         </button>
         <button
           onClick={() => setVista('estadisticas')}
@@ -62,7 +63,8 @@ export const MedicamentosPage: React.FC = () => {
             vista === 'estadisticas' ? 'bg-teal-500 text-white shadow' : 'text-teal-700 hover:bg-teal-100'
           }`}
         >
-          <BarChart3 className="w-4 h-4" /> Estadísticas
+          <BarChart3 className="w-4 h-4" /> 
+          <span className={vista === 'estadisticas' ? '' : 'hidden md:inline'}>Estadísticas</span>
         </button>
         <button
           onClick={() => setVista('configuracion')}
@@ -70,7 +72,8 @@ export const MedicamentosPage: React.FC = () => {
             vista === 'configuracion' ? 'bg-teal-500 text-white shadow' : 'text-teal-700 hover:bg-teal-100'
           }`}
         >
-          <Settings2 className="w-4 h-4" /> Configuración
+          <Settings2 className="w-4 h-4" /> 
+          <span className={vista === 'configuracion' ? '' : 'hidden md:inline'}>Configuración</span>
         </button>
       </div>
 

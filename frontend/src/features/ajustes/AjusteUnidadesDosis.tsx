@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input'; 
 import { Trash2, Beaker, Edit2, X } from 'lucide-react';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
@@ -93,28 +94,30 @@ export const AjusteUnidadesDosis: React.FC = () => {
         </div>
 
         {/* FORMULARIO DE AÑADIR / EDITAR (Inline) */}
-        <form onSubmit={handleSave} className="bg-teal-50/50 p-4 rounded-xl border border-teal-100 grid grid-cols-1 sm:grid-cols-6 gap-4 items-end transition-all">
-          <div className="sm:col-span-2">
+        <form onSubmit={handleSave} className="bg-teal-50/50 p-4 rounded-xl border border-teal-100 flex flex-col md:flex-row gap-4 items-end transition-all">
+          <div className="flex-1 w-full">
             <Input label="Nombre (Ej: Miligramos)" value={nombre} onChange={(e) => setNombre(e.target.value)} colorTheme={inputTheme} required />
           </div>
-          <div className="sm:col-span-2">
+          <div className="flex-1 w-full">
             <Input label="Abrev. (Ej: mg)" value={abreviatura} onChange={(e) => setAbreviatura(e.target.value)} colorTheme={inputTheme} required />
           </div>
-          <div className="sm:col-span-2 flex gap-2">
+          <div className="flex flex-row gap-2 w-full md:w-auto">
             {editingId && (
-              <button 
-                type="button" onClick={resetForm}
-                className="flex-1 px-4 py-[11px] bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm mt-1 flex items-center justify-center gap-1"
+              <Button 
+                variant="ghost" type="button" onClick={resetForm} 
+                className="flex-1 md:flex-none shadow-sm py-[11px]" 
+                icon={<X className="w-4 h-4" />}
               >
-                <X className="w-4 h-4" /> Cancelar
-              </button>
+                Cancelar
+              </Button>
             )}
-            <button 
-              type="submit" disabled={isSubmitting || !nombre || !abreviatura} 
-              className={`flex-1 px-4 py-[11px] text-white rounded-xl font-bold transition-colors disabled:opacity-50 shadow-sm mt-1 ${editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-teal-500 hover:bg-teal-600'}`}
+            <Button 
+              type="submit" disabled={isSubmitting || !nombre || !abreviatura} isLoading={isSubmitting}
+              colorTheme={editingId ? {bgNormal:'bg-amber-500',bgHover:'hover:bg-amber-600',textColor:'text-white'} : {bgNormal:'bg-teal-500',bgHover:'hover:bg-teal-600',textColor:'text-white'}} 
+              className="flex-1 md:flex-none shadow-sm py-[11px]"
             >
               {editingId ? 'Actualizar' : 'Añadir'}
-            </button>
+            </Button>
           </div>
         </form>
 
@@ -133,7 +136,7 @@ export const AjusteUnidadesDosis: React.FC = () => {
                 <tr key={u.id} className={`border-b border-slate-50 hover:bg-slate-100/50 transition-colors ${editingId === u.id ? 'bg-amber-50/30' : ''}`}>
                   <td className="px-4 py-3 font-bold text-slate-700">{u.nombre}</td>
                   <td className="px-4 py-3 text-teal-600 font-bold">{u.abreviatura}</td>
-                  <td className="px-4 py-3 text-right space-x-2">
+                  <td className="px-4 py-3 text-right">
                     <button onClick={() => handleEdit(u)} className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
                       <Edit2 className="w-4 h-4" />
                     </button>

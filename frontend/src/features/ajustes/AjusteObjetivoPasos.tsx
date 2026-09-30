@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input'; 
 import { useAjustes } from '../../context/AjustesContext';
 import { Footprints } from 'lucide-react';
@@ -68,9 +69,9 @@ export const AjusteObjetivoPasos: React.FC = () => {
       )}
 
       <div className="flex justify-start pt-4 border-t border-orange-50">
-        <button type="submit" disabled={isSubmitting || !pasosStr} className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 shadow-sm">
-          {isSubmitting ? 'Guardando...' : 'Guardar Ajuste'}
-        </button>
+        <Button type="submit" disabled={isSubmitting || !pasosStr} isLoading={isSubmitting} colorTheme={{ bgNormal: 'bg-orange-500', bgHover: 'hover:bg-orange-600', textColor: 'text-white' }} className="px-8 py-3 shadow-sm">
+            {isSubmitting ? 'Guardando...' : 'Guardar Ajuste'}
+          </Button>
       </div>
     </form>
   );

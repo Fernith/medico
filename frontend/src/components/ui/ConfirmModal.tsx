@@ -18,7 +18,7 @@ interface ConfirmModalProps {
 export const ConfirmModal = ({
   isOpen, title, description, onConfirm, onCancel,
   confirmText = 'Confirmar', cancelText = 'Cancelar', isConfirming = false, variant = 'primary',
-  children, hideCancel = false // <--- VALOR POR DEFECTO
+  children, hideCancel = false
 }: ConfirmModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
 

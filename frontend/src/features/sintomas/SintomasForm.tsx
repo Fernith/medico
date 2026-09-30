@@ -118,7 +118,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
         {isReadOnly ? (
           <Button 
             onClick={onCancel}
-            className="flex-1 text-lg px-4 py-3 rounded-xl shadow-lg"
+            className="flex-1 py-3"
           >
             Salir
           </Button>
@@ -126,20 +126,20 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
           <>
             {onCancel && (
               <Button 
-                onClick={onCancel}
                 variant="ghost"
-                disabled={isSubmitting}
-                className="flex-1 text-lg px-4 py-3 rounded-xl"
+                onClick={onCancel}
+                className="flex-1 py-3"
               >
                 Cancelar
               </Button>
             )}
-            <Button 
+            <Button
+              type='submit'
               onClick={handleGuardar}
-              disabled={!ocurrenciaData?.sintoma_id || isSubmitting}
-              className="flex-1 text-lg px-4 py-3 rounded-xl shadow-lg"
+              disabled={isSubmitting || !ocurrenciaData?.sintoma_id}
+              className="flex-1 py-3"
             >
-              {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : 'Guardar Registro')}
+              {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : 'Guardar')}
             </Button>
           </>
         )}

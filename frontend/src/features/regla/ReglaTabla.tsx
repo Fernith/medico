@@ -1,4 +1,5 @@
 import React from 'react';
+import { Edit2, Trash2 } from 'lucide-react';
 import type { Ciclo } from '../../utils/reglaCalculations';
 
 interface ReglaTablaProps {
@@ -29,12 +30,12 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
     <div className="bg-white rounded-xl shadow-sm border border-pink-100 flex flex-col max-h-[382px]">
       <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar rounded-xl">
         <table className="w-full text-sm text-left relative">
-          <thead className="text-xs text-purple-800 uppercase bg-pink-50 sticky top-0 z-20 shadow-sm">
+          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 sticky top-0 z-20">
             <tr>
-              <th scope="col" className="px-6 py-3 text-center w-16">Ánimo</th>
-              <th scope="col" className="px-6 py-3 whitespace-nowrap">Periodo</th>
-              <th scope="col" className="px-6 py-3 w-full">Sensaciones</th>
-              <th scope="col" className="px-6 py-3 text-right">Acciones</th>
+              <th className="px-4 py-3 font-semibold text-center w-16">Ánimo</th>
+              <th className="px-4 py-3 font-semibold whitespace-nowrap">Periodo</th>
+              <th className="px-4 py-3 font-semibold w-full">Sensaciones</th>
+              <th className="px-4 py-3 font-semibold text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -43,7 +44,7 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
               
               return (
                 <tr key={ciclo.id} className="border-b border-pink-50 hover:bg-pink-50/50 transition-colors">
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-3 text-center">
                     {cara ? (
                       <div className={`w-10 h-10 mx-auto flex items-center justify-center text-2xl rounded-full border shadow-sm ${cara.color}`}>
                         {cara.emoji}
@@ -53,7 +54,7 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
                     )}
                   </td>
                   
-                  <td className="px-6 py-4 font-bold text-gray-800 whitespace-nowrap">
+                  <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">
                     {formatFechaMola(ciclo.fecha_inicio)} 
                     <span className="mx-2 text-pink-300">➔</span> 
                     {ciclo.fecha_fin ? (
@@ -65,7 +66,7 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
                     )}
                   </td>
                   
-                  <td className="px-6 py-4 text-gray-600 w-full">
+                  <td className="px-4 py-3 text-gray-600 w-full">
                     {ciclo.sensacion ? (
                       <p className="text-xs font-medium bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed w-full" title={ciclo.sensacion}>
                         {ciclo.sensacion}
@@ -75,13 +76,9 @@ export const ReglaTabla: React.FC<ReglaTablaProps> = ({ ciclos, onEdit, onDelete
                     )}
                   </td>
                   
-                  <td className="px-6 py-4 flex justify-end gap-3 items-center h-full pt-6">
-                    <button onClick={() => onEdit(ciclo)} className="text-purple-500 hover:text-purple-700 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    </button>
-                    <button onClick={() => onDelete(ciclo.id)} className="text-red-400 hover:text-red-600 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
+                  <td className="px-4 py-3 flex justify-end gap-3 items-center h-full pt-6">
+                    <button onClick={() => onEdit(ciclo)} className="text-slate-400 hover:text-pink-600 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
+                    <button onClick={() => onDelete(ciclo.id)} className="text-slate-400 hover:text-red-500 transition-colors" title="Borrar"><Trash2 className="w-5 h-5 inline" /></button>
                   </td>
                 </tr>
               );

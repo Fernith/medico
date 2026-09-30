@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 import type { PesoDB } from '../../utils/pesoCalculations';
 import { apiFetch } from '../../api/client';
 
@@ -135,20 +136,22 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
       </div>
 
       <div className="flex gap-4">
-        <button 
-          type="button" 
+        <Button 
+          variant="ghost"
           onClick={onCancel}
-          className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors"
+          className="flex-1 py-3"
         >
           Cancelar
-        </button>
-        <button 
+        </Button>
+        <Button 
           type="submit" 
+          variant="success"
           disabled={isSubmitting || !formData.peso}
-          className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center ${theme.submitBg} ${theme.submitHover}`}
+          isLoading={isSubmitting}
+          className="flex-1 py-3"
         >
-          {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
-        </button>
+          {initialData ? 'Actualizar' : 'Guardar'}
+        </Button>
       </div>
     </form>
   );

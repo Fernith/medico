@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { RecordatorioForm, type Recordatorio } from './RecordatorioForm';
@@ -51,9 +52,9 @@ export const RecordatoriosTabla: React.FC = () => {
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <BellRing className="w-5 h-5 text-indigo-500"/> Alertas Personalizadas
           </h2>
-          <button onClick={() => setIsAddOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-sm">
-            <Plus className="w-4 h-4" strokeWidth={3} /> Añadir
-          </button>
+          <Button onClick={() => setIsAddOpen(true)} colorTheme={{ bgNormal: 'bg-indigo-600', bgHover: 'hover:bg-indigo-700', textColor: 'text-white' }} className="px-4 py-2 text-sm shadow-sm" icon={<Plus className="w-4 h-4" strokeWidth={3} />}>
+            Añadir
+          </Button>
         </div>
         
         <div className="overflow-x-auto flex-1 custom-scrollbar">

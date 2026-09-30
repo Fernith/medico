@@ -39,14 +39,12 @@ const defaultThemes: Record<ButtonVariant, ButtonColorTheme> = {
     border: 'border border-transparent'
   },
   ghost: {
-    // Arreglo del problema visual: fondo blanco, borde gris, texto oscuro
     bgNormal: 'bg-white',
-    bgHover: 'hover:bg-gray-50',
+    bgHover: 'hover:bg-gray-100',
     textColor: 'text-gray-700',
     border: 'border border-gray-300'
   },
   success: {
-    // Arreglo del problema visual: fondo blanco, borde gris, texto oscuro
     bgNormal: 'bg-emerald-500',
     bgHover: 'hover:bg-emerald-600',
     textColor: 'text-white',
