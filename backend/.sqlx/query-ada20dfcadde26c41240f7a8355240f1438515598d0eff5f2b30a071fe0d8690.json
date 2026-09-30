@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "DELETE FROM historial_medicacion WHERE id=$1",
+  "query": "UPDATE historial_medicacion SET borrado = true WHERE id=$1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "07b29dff0c405b76bbc003c3d5a3d0983a3fcc41e13a050f5016ada4bd3e4eea"
+  "hash": "ada20dfcadde26c41240f7a8355240f1438515598d0eff5f2b30a071fe0d8690"
 }
