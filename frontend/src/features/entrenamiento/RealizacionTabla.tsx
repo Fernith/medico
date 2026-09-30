@@ -211,7 +211,7 @@ export const RealizacionTabla: React.FC = () => {
                       )}
 
                       {/* BOTÓN BORRADO FÍSICO */}
-                      <button onClick={() => setDeleteId(r.id)} className="text-slate-400 hover:text-red-500 transition-colors ml-2" title="Borrar Definitivamente"><Trash2 className="w-5 h-5 inline" /></button>
+                      <button onClick={() => setDeleteId(r.id)} className="text-slate-400 hover:text-red-500 transition-colors" title="Borrar Definitivamente"><Trash2 className="w-5 h-5 inline" /></button>
                     </td>
                   </tr>
                 );

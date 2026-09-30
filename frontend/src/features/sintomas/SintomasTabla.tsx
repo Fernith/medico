@@ -19,6 +19,7 @@ export interface OcurrenciaSintoma {
   id: string;
   sintoma_id: string;
   sintoma_nombre: string;
+  regla_medicion: string;
   fecha_inicio: string;
   fecha_fin: string | null;
   valor_registro: string | null;
@@ -155,7 +156,16 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
                     {o.notas && <div className="text-xs text-slate-500 truncate max-w-[200px]" title={o.notas}>{o.notas}</div>}
                   </td>
                   <td className="px-4 py-3 font-bold text-rose-700">
-                    {o.valor_registro === 'true' ? 'Presente' : o.valor_registro === 'false' ? 'Ausente' : (o.valor_registro || '-')}
+                    {
+                        o.valor_registro === 'true' ? 'Presente' : 
+                        o.valor_registro === 'false' ? 'Ausente' : 
+                        !o.valor_registro ? '-' :
+                        o.regla_medicion === 'escala_1_10' ? `${o.valor_registro}/10` :
+                        o.regla_medicion === 'conteo_episodios' ? (o.valor_registro === '1' ? '1 episodio' : `${o.valor_registro} episodios`) :
+                        o.regla_medicion === 'grados_celsius' ? `${o.valor_registro}ºC` :
+                        o.regla_medicion === 'cualitativa_3' ? (o.valor_registro === '1' ? 'Leve' : o.valor_registro === '2' ? 'Moderada' : 'Grave') :
+                        o.valor_registro
+                      }
                     </td>
                     <td className="px-4 py-3 text-slate-700 font-medium">
                     {o.localizaciones && o.localizaciones.length > 0 ? (

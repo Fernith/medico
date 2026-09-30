@@ -114,11 +114,11 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
       </div>
 
       {/* 3. BOTONES */}
-      <div className="flex justify-end pt-4 gap-3">
+      <div className="sticky bottom-[-1.25rem] bg-white p-5 border-t border-slate-100 flex gap-4 -mx-5 -mb-5 z-10 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
         {isReadOnly ? (
           <Button 
             onClick={onCancel}
-            className="w-full sm:w-auto text-lg px-8 py-4 rounded-xl shadow-lg"
+            className="flex-1 text-lg px-4 py-3 rounded-xl shadow-lg"
           >
             Salir
           </Button>
@@ -129,7 +129,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
                 onClick={onCancel}
                 variant="ghost"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto text-lg px-8 py-4 rounded-xl"
+                className="flex-1 text-lg px-4 py-3 rounded-xl"
               >
                 Cancelar
               </Button>
@@ -137,7 +137,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
             <Button 
               onClick={handleGuardar}
               disabled={!ocurrenciaData?.sintoma_id || isSubmitting}
-              className="w-full sm:w-auto text-lg px-8 py-4 rounded-xl shadow-lg"
+              className="flex-1 text-lg px-4 py-3 rounded-xl shadow-lg"
             >
               {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : 'Guardar Registro')}
             </Button>

@@ -201,9 +201,10 @@ pub async fn get_historial(
         SELECT 
             h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
             m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
-            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente
+            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente, h.borrado
         FROM historial_medicacion h
         JOIN medicamento m ON h.medicamento_id = m.id
+        WHERE h.borrado = false
         ORDER BY h.fecha_hora DESC
         "#
     ).fetch_all(&pool).await?;
@@ -226,7 +227,7 @@ pub async fn delete_historial_medicacion(
     Path(id): Path<Uuid>,
     State(pool): State<PgPool>,
 ) -> Result<Json<()>, AppError> {
-    sqlx::query!("DELETE FROM historial_medicacion WHERE id=$1", id)
+    sqlx::query!("UPDATE historial_medicacion SET borrado = true WHERE id=$1", id)
         .execute(&pool)
         .await?;
     Ok(Json(()))
@@ -309,12 +310,13 @@ pub async fn get_historial_rango(
         SELECT 
             h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
             m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
-            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente
+            h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente, h.borrado
         FROM historial_medicacion h
         JOIN medicamento m ON h.medicamento_id = m.id
         WHERE h.pendiente = true 
           AND h.fecha_hora >= $1 
           AND h.fecha_hora <= $2
+            AND h.borrado = false
         ORDER BY h.fecha_hora ASC
         "#,
         query.start, query.end

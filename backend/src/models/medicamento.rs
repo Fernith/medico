@@ -86,6 +86,7 @@ pub struct HistorialMedicacion {
     pub fecha_hora: DateTime<Utc>,
     pub cantidad_tomada: f64,
     pub pendiente: bool,
+    pub borrado: bool,
 }
 
 #[derive(Debug, Deserialize)]

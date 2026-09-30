@@ -1,10 +1,10 @@
-use crate::error::AppError;
+﻿use crate::error::AppError;
 use crate::models::sintomas::{CrearOcurrenciaPayload, Sintoma, OcurrenciaSintoma};
 use axum::{extract::State, Json};
 use sqlx::PgPool;
 use sqlx::types::Json as SqlxJson;
 
-// Obtener el catálogo maestro de síntomas (para el combo final)
+// Obtener el catÃ¡logo maestro de sÃ­ntomas (para el combo final)
 pub async fn get_sintomas(State(pool): State<PgPool>) -> Result<Json<Vec<Sintoma>>, AppError> {
     let result = sqlx::query_as::<_, Sintoma>(
         "SELECT id, nombre, categoria, regla_medicion FROM sintomas ORDER BY nombre ASC",
@@ -15,7 +15,7 @@ pub async fn get_sintomas(State(pool): State<PgPool>) -> Result<Json<Vec<Sintoma
     Ok(Json(result))
 }
 
-// Crear una nueva ocurrencia de síntoma
+// Crear una nueva ocurrencia de sÃ­ntoma
 pub async fn crear_ocurrencia(
     State(pool): State<PgPool>,
     Json(payload): Json<CrearOcurrenciaPayload>,
@@ -70,6 +70,7 @@ pub async fn listar_ocurrencias(
         SELECT 
             o.*,
             s.nombre as sintoma_nombre,
+            s.regla_medicion,
             COALESCE(
                 (
                     SELECT jsonb_agg(
@@ -101,7 +102,7 @@ pub async fn borrar_ocurrencia(
     axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     // Las localizaciones se borran en cascada si hay ON DELETE CASCADE.
-    // Si no lo hay, borramos explícitamente primero.
+    // Si no lo hay, borramos explÃ­citamente primero.
     sqlx::query("DELETE FROM ocurrencia_localizaciones WHERE ocurrencia_id = $1")
         .bind(id)
         .execute(&pool)

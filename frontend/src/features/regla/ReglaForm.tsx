@@ -167,7 +167,7 @@ export const ReglaForm: React.FC<ReglaFormProps> = ({ initialData, onSuccess, on
         <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
           Cancelar
         </button>
-        <button type="submit" disabled={isSubmitting || !formData.fecha_inicio} className={`flex-[2] px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm ${theme.submitBg} ${theme.submitHover}`}>
+        <button type="submit" disabled={isSubmitting || !formData.fecha_inicio} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center shadow-sm ${theme.submitBg} ${theme.submitHover}`}>
           {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : (formData.fecha_fin ? 'Finalizar Periodo' : 'Iniciar Periodo'))}
         </button>
       </div>

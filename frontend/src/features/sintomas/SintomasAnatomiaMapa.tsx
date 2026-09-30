@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ZoomIn, Layers, PersonStanding, RotateCcw, Trash2, Loader2, Home } from 'lucide-react';
 import { CATALOGO_ANATOMIA, type LocalizacionAnatomica } from '../../utils/anatomia';
 import { 
@@ -28,6 +28,7 @@ const NOMBRES_ZONA_ARCHIVO: Record<string, string> = {
   'Extremidad Superior': 'extremidad_superior',
   'Cabeza y Cuello': 'cabeza_cuello',
   'Tronco': 'tronco',
+  'Cráneo': 'craneo',
 };
 
 export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange, initialSelection, isReadOnly }) => {
@@ -230,12 +231,16 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange, initi
             )}
 
             <g transform="translate(1, 1) scale(1.16, 1.17)">
+              
+
+              
+
               {zonasVisibles.map((zona) => {
                 const sel = selecciones.find(s => s.localizacion_id === zona.id);
                 
                 const fillColor = sel 
                   ? (sel.es_irradiado ? 'rgba(251, 191, 36, 0.5)' : 'rgba(244, 63, 94, 0.5)') 
-                  : 'transparent'; 
+                  : 'rgba(99, 102, 241, 0.15)'; 
 
                 const pathData = ATLAS_ACTIVO[zona.nombre];
 
@@ -249,7 +254,7 @@ export const SintomasAnatomiaMapa: React.FC<Props> = ({ onSelectionChange, initi
                       <path 
                         d={pathData} 
                         fill={fillColor} 
-                        stroke={sel ? 'transparent' : 'rgba(203, 213, 225, 0.3)'}
+                        stroke={sel ? 'transparent' : 'rgba(99, 102, 241, 0.4)'}
                         strokeWidth="1" 
                       />
                     )}

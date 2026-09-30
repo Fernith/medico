@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+﻿use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Type};
 use uuid::Uuid;
@@ -108,6 +108,7 @@ pub struct OcurrenciaDetalleDTO {
     pub id: Uuid,
     pub sintoma_id: Uuid,
     pub sintoma_nombre: String,
+    pub regla_medicion: ReglaMedicionEnum,
     pub fecha_inicio: DateTime<Utc>,
     pub fecha_fin: Option<DateTime<Utc>>,
     pub valor_registro: Option<String>,
