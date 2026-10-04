@@ -181,8 +181,10 @@ export const RealizacionTabla: React.FC = () => {
                     <td className="px-4 py-3 text-center text-slate-700 font-bold">
                       {r.series ? `${r.series} x ` : ''}
                       {r.unidad_objetivo === 'seg' 
-                        ? (r.reps_min ? r.reps_min : '-')
-                        : (r.reps_min === r.reps_max && r.reps_min ? r.reps_min : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'}` : '-'))
+                        ? (r.reps_min ? `${r.reps_min} seg` : '-')
+                        : r.unidad_objetivo === 'min'
+                          ? (r.reps_min ? `${r.reps_min} min` : '-')
+                          : (r.reps_min === r.reps_max && r.reps_min ? `${r.reps_min} repes` : (r.reps_min || r.reps_max ? `${r.reps_min || '?'} - ${r.reps_max || '?'} repes` : '-'))
                       }
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -257,11 +259,11 @@ export const RealizacionTabla: React.FC = () => {
       )}
 
       {/* MODALES CONFIGURACIÓN */}
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Configurar Ejercicio" size="lg" colorTheme={modalTheme}>
+      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Configurar Ejercicio" size="lg" colorTheme={modalTheme} preventClose={true}>
         <RealizacionForm onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 
-      <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Configuración" size="lg" colorTheme={modalTheme}>
+      <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Configuración" size="lg" colorTheme={modalTheme} preventClose={true}>
         {editItem && <RealizacionForm initialData={editItem} onSuccess={() => setEditItem(null)} onCancel={() => setEditItem(null)} />}
       </Modal>
 

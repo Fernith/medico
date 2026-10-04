@@ -8,6 +8,7 @@ export interface ButtonColorTheme {
   bgHover: string;
   textColor: string;
   border?: string;
+  focusRing?: string;
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -24,31 +25,36 @@ const defaultThemes: Record<ButtonVariant, ButtonColorTheme> = {
     bgNormal: 'bg-pink-500',
     bgHover: 'hover:bg-pink-600',
     textColor: 'text-white',
-    border: 'border border-transparent'
+    border: 'border border-transparent',
+    focusRing: 'focus:ring-pink-500'
   },
   secondary: {
     bgNormal: 'bg-orange-100',
     bgHover: 'hover:bg-orange-200',
     textColor: 'text-orange-800',
-    border: 'border border-transparent'
+    border: 'border border-transparent',
+    focusRing: 'focus:ring-orange-500'
   },
   danger: {
     bgNormal: 'bg-red-500',
     bgHover: 'hover:bg-red-600',
     textColor: 'text-white',
-    border: 'border border-transparent'
+    border: 'border border-transparent',
+    focusRing: 'focus:ring-red-500'
   },
   ghost: {
     bgNormal: 'bg-white',
     bgHover: 'hover:bg-gray-100',
     textColor: 'text-gray-700',
-    border: 'border border-gray-300'
+    border: 'border border-gray-300',
+    focusRing: 'focus:ring-gray-400'
   },
   success: {
     bgNormal: 'bg-emerald-500',
     bgHover: 'hover:bg-emerald-600',
     textColor: 'text-white',
-    border: 'border border-transparent'
+    border: 'border border-transparent',
+    focusRing: 'focus:ring-emerald-500'
   }
 };
 
@@ -77,7 +83,8 @@ export const Button: React.FC<ButtonProps> = ({
     <button
       disabled={isDisabled}
       className={`
-        inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-1
+        inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1
+        ${theme.focusRing || 'focus:ring-pink-500'}
         ${sizeClasses[size]}
         ${theme.bgNormal} ${theme.textColor} ${theme.border || ''}
         ${!isDisabled ? theme.bgHover : ''}

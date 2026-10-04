@@ -24,7 +24,7 @@ export interface Modificador {
 
 export interface OcurrenciaData {
   sintoma_id: string;
-  fecha_inicio: string; // ISO 8601 (incluye fecha y hora)
+  fecha_inicio: string;
   valor_registro: string;
   caracteristica?: Caracteristica | '';
   frecuencia?: Frecuencia | '';

@@ -3,9 +3,11 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
 import { RutinaForm, type Rutina, type RutinaRealizacionDetalle } from './RutinaForm';
-import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, GripVertical, ChevronLeft, ChevronRight, Search, Filter, RefreshCw, Archive, Copy } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, Clock, Activity, Timer, GripVertical, ChevronLeft, ChevronRight, Search, Filter, RefreshCw, Archive, Copy } from 'lucide-react';
 import { DuplicarForm } from './DuplicarForm';
 import { apiFetch } from '../../api/client';
+import { calculateEstimatedTime } from '../../utils/ejerciciosCalculations';
+
 
 
 export const RutinasTabla: React.FC = () => {
@@ -214,6 +216,19 @@ export const RutinasTabla: React.FC = () => {
                               <div className="text-center text-slate-500 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">Esta rutina no tiene ejercicios planificados aún.</div>
                             ) : (
                               <div className="space-y-6 max-w-5xl mx-auto">
+                                {/* CABECERA CON TIEMPO ESTIMADO */}
+                                <div className="flex items-center justify-between bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100 shadow-sm">
+                                  <div className="flex items-center gap-3">
+                                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                                      <Timer className="w-5 h-5 text-indigo-500" />
+                                    </div>
+                                    <span className="font-bold text-indigo-900 text-sm">Tiempo Medio Estimado</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-indigo-600">~{calculateEstimatedTime(rutinaDetalles[rutina.id])}</span>
+                                    <span className="font-bold text-indigo-400 text-sm mt-1">min</span>
+                                  </div>
+                                </div>
                                 {['Calentamiento', 'Principal', 'Postentreno'].map(fase => {
                                   const ejerciciosFase = rutinaDetalles[rutina.id].filter(d => d.fase === fase);
                                   if (ejerciciosFase.length === 0) return null;

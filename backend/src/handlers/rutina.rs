@@ -72,6 +72,14 @@ pub async fn delete_rutina_fisico(
     .execute(&mut *tx)
     .await?;
 
+    // 1.5 Borramos los enlaces en la tabla pivote de ejercicios planificados
+    sqlx::query!(
+        "DELETE FROM rutina_realizacion WHERE rutina_id = $1",
+        id
+    )
+    .execute(&mut *tx)
+    .await?;
+
     // 2. Borramos la rutina físicamente
     sqlx::query!("DELETE FROM rutinas WHERE id=$1", id)
         .execute(&mut *tx)

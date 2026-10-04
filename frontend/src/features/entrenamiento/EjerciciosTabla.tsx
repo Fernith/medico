@@ -3,7 +3,7 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { EjercicioForm, type Ejercicio } from './EjercicioForm';
 import { Select } from '../../components/ui/Select';
-import { Plus, Edit2, Trash2, Image as ImageIcon, ZoomIn, X, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Image as ImageIcon, ZoomIn, X, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 
 
@@ -14,6 +14,7 @@ interface EjerciciosTablaProps {
 export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editItem, setEditItem] = useState<Ejercicio | null>(null);
+  const [viewItem, setViewItem] = useState<Ejercicio | null>(null);
   
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [reactivateId, setReactivateId] = useState<string | null>(null);
@@ -126,13 +127,14 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
                     </td>
                     <td className={`px-4 py-3 font-bold whitespace-nowrap ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
                       {e.nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
-                      {e.descripcion && <p className="text-xs font-medium text-slate-400 mt-1 line-clamp-1 max-w-[200px]">{e.descripcion}</p>}
+                      {e.descripcion && <p title={e.descripcion} className="text-xs font-medium text-slate-400 mt-1 line-clamp-1 max-w-[200px]">{e.descripcion}</p>}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap">
                       {e.tipo_entrenamiento_nombre ? <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wider border ${isActivo ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-slate-200 text-slate-500 border-slate-300'}`}>{e.tipo_entrenamiento_nombre}</span> : <span className="text-slate-300">-</span>}
                     </td>
                     <td className={`px-4 py-3 font-medium ${isActivo ? 'text-indigo-600' : 'text-slate-400'}`}>{e.grupos_nombres?.join(', ') || 'Ninguno'}</td>
                     <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
+                      <button onClick={() => setViewItem(e)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Ver"><Eye className="w-5 h-5 inline" /></button>
                       <button onClick={() => setEditItem(e)} className="text-slate-400 hover:text-indigo-500 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
                       {isActivo ? (
                         <button onClick={() => setDeleteId(e.id)} className="text-slate-400 hover:text-rose-500 transition-colors" title="Archivar"><Trash2 className="w-5 h-5 inline" /></button>
@@ -207,12 +209,16 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
         </div>
       )}
 
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Añadir al Diccionario" size="lg" colorTheme={modalTheme}>
+      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Añadir al Diccionario" size="lg" colorTheme={modalTheme} preventClose={true}>
         <EjercicioForm onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 
-      <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Ejercicio" size="lg" colorTheme={modalTheme}>
+      <Modal isOpen={!!editItem} onClose={() => setEditItem(null)} title="Editar Ejercicio" size="lg" colorTheme={modalTheme} preventClose={true}>
         {editItem && <EjercicioForm initialData={editItem} onSuccess={() => setEditItem(null)} onCancel={() => setEditItem(null)} />}
+      </Modal>
+
+      <Modal isOpen={!!viewItem} onClose={() => setViewItem(null)} title="Ver Ejercicio" size="lg" colorTheme={modalTheme}>
+        {viewItem && <EjercicioForm initialData={viewItem} onSuccess={() => setViewItem(null)} onCancel={() => setViewItem(null)} isReadOnly={true} />}
       </Modal>
 
       <ConfirmModal 

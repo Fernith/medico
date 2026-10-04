@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Type, AlignLeft, Image as ImageIcon, X } from 'lucide-react';
 import { Select } from '../../components/ui/Select';
@@ -54,9 +55,10 @@ interface EjercicioFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   colorTheme?: Partial<FormColorTheme>;
+  isReadOnly?: boolean;
 }
 
-export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuccess, onCancel, colorTheme = {} }) => {
+export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuccess, onCancel, colorTheme = {}, isReadOnly = false }) => {
   const theme = { ...defaultTheme, ...colorTheme };
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,10 +93,12 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
   }, []);
 
   const handleChange = (campo: string, valor: string | string[]) => {
+    if(isReadOnly) return;
     setFormData(prev => ({ ...prev, [campo]: valor }));
   };
 
   const toggleGrupo = (id: string) => {
+    if(isReadOnly) return;
     setFormData(prev => {
       const seleccionados = prev.grupos_ids.includes(id)
         ? prev.grupos_ids.filter(item => item !== id)
@@ -104,6 +108,7 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if(isReadOnly) return;
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -182,25 +187,23 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
             type="text" label="Nombre del Ejercicio" placeholder="Ej: Press de Banca"
             value={formData.nombre} onChange={(e) => handleChange('nombre', e.target.value)} 
             required colorTheme={theme.inputTheme} icon={<Type className="w-5 h-5" />}
-          />
-
-          <Input
-            type="text" label="Descripción o notas técnicas" placeholder="Ej: Mantener retracción escapular..."
-            value={formData.descripcion} onChange={(e) => handleChange('descripcion', e.target.value)}
-            colorTheme={theme.inputTheme} icon={<AlignLeft className="w-5 h-5" />}
+            disabled={isReadOnly}
           />
           
           <Select 
-            label="Tipo de Entrenamiento"
+            label={<span>Tipo de Entrenamiento <span className="text-gray-400 font-normal">(Opcional)</span></span> as any}
             placeholder="Seleccionar tipo..."
             options={tiposEntrenamiento.map(t => ({ value: t.id, label: t.nombre }))}
             value={formData.tipo_entrenamiento_id}
             onChange={(val) => handleChange('tipo_entrenamiento_id', val)}
+            disabled={isReadOnly}
           />
 
           {/* GRUPOS MUSCULARES */}
           <div className="space-y-3 mt-2">
-            <label className="block text-sm font-bold text-slate-700 ml-1">Grupos Musculares Implicados</label>
+            <label className="block text-sm font-bold text-slate-700 ml-1">
+              Grupos Musculares Implicados <span className="text-gray-400 font-normal">(Opcional)</span>
+            </label>
             
             <div className="space-y-4 pl-1">
               {Object.entries(gruposPorCategoria).map(([categoria, grupos]) => (
@@ -212,9 +215,10 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
                       return (
                         <button
                           key={grupo.id} type="button" onClick={() => toggleGrupo(grupo.id)}
+                          disabled={isReadOnly}
                           className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border ${
                             activo ? 'bg-indigo-100 border-indigo-500 text-indigo-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                          }`}
+                          } ${isReadOnly ? 'cursor-default opacity-80' : ''}`}
                         >
                           {grupo.nombre}
                         </button>
@@ -226,35 +230,60 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
             </div>
           </div>
 
+          <div className="space-y-1 mt-4">
+            <label className="block text-sm font-bold text-slate-700 mb-1 pl-1">
+              Descripción o notas técnicas <span className="text-gray-400 font-normal">(Opcional)</span>
+            </label>
+            <div className="relative flex items-start">
+              <div className={`absolute top-3 left-4 ${isReadOnly ? 'text-gray-400' : theme.inputTheme.iconColor} pointer-events-none`}>
+                <AlignLeft className="w-5 h-5" />
+              </div>
+              <textarea
+                value={formData.descripcion}
+                onChange={(e) => handleChange('descripcion', e.target.value)}
+                disabled={isReadOnly}
+                placeholder="Ej: Mantener retracción escapular..."
+                className={`w-full bg-white border rounded-xl shadow-sm transition-colors focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed pl-11 pr-4 py-3 ${theme.inputTheme.borderNormal} ${theme.inputTheme.borderFocus}`}
+                rows={3}
+              />
+            </div>
+          </div>
+
           {/* SUBIDA DE IMAGEN (OPCIONAL) */}
           <div className="space-y-2 mt-4">
             <div className="flex items-center justify-between ml-1">
-              <label className="block text-sm font-bold text-slate-700">Imagen o GIF de Referencia</label>
-              <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Opcional</span>
+              <label className="block text-sm font-bold text-slate-700">
+                Imagen o GIF de Referencia <span className="text-gray-400 font-normal">(Opcional)</span>
+              </label>
             </div>
             
             <div className="flex items-center gap-4">
-              <label className="flex items-center justify-center w-full max-w-[150px] h-32 px-4 transition bg-white border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-indigo-400 focus:outline-none">
-                <span className="flex items-center space-x-2">
-                  <ImageIcon className="w-6 h-6 text-slate-400" />
-                  <span className="font-medium text-slate-600 text-sm">Subir archivo</span>
-                </span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              </label>
+              {!isReadOnly && (
+                <label className="flex items-center justify-center w-full max-w-[150px] h-32 px-4 transition bg-white border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-indigo-400 focus:outline-none">
+                  <span className="flex items-center space-x-2">
+                    <ImageIcon className="w-6 h-6 text-slate-400" />
+                    <span className="font-medium text-slate-600 text-sm">Subir archivo</span>
+                  </span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isReadOnly} />
+                </label>
+              )}
 
-              {formData.imagen && (
+              {formData.imagen ? (
                 <div className="relative w-32 h-32 rounded-xl border border-slate-200 shadow-sm group">
                   <img src={formData.imagen} alt="Vista" className="object-cover w-full h-full rounded-xl bg-black/5" />
-                  {/* Botón para eliminar la imagen */}
-                  <button 
-                    type="button" 
-                    onClick={() => handleChange('imagen', '')}
-                    className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-rose-500 border border-slate-200 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Eliminar imagen"
-                  >
-                    <X className="w-4 h-4" strokeWidth={3} />
-                  </button>
+                  {!isReadOnly && (
+                    <button 
+                      type="button" 
+                      onClick={() => handleChange('imagen', '')}
+                      className="absolute -top-2 -right-2 bg-white text-slate-400 hover:text-rose-500 border border-slate-200 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Eliminar imagen"
+                    >
+                      <X className="w-4 h-4" strokeWidth={3} />
+                    </button>
+                  )}
                 </div>
+              ) : (
+                isReadOnly && <div className="text-sm text-slate-400 italic">No hay imagen</div>
               )}
             </div>
           </div>
@@ -263,12 +292,29 @@ export const EjercicioForm: React.FC<EjercicioFormProps> = ({ initialData, onSuc
       </div>
 
       <div className="flex gap-4">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
-          Cancelar
-        </button>
-        <button type="submit" disabled={isSubmitting || !formData.nombre} className={`flex-1 px-4 py-3 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex justify-center items-center ${theme.submitBg} ${theme.submitHover}`}>
-          {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
-        </button>
+        {isReadOnly ? (
+          <Button 
+            type="button" 
+            onClick={onCancel} 
+            colorTheme={{ bgNormal: theme.submitBg, bgHover: theme.submitHover, textColor: 'text-white', focusRing: 'focus:ring-indigo-500' }} 
+            className="w-full py-3"
+          >
+            Salir
+          </Button>
+        ) : (
+          <>
+            <Button variant="ghost" type="button" onClick={onCancel} className="flex-1 py-3">Cancelar</Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !formData.nombre} 
+              isLoading={isSubmitting} 
+              colorTheme={{ bgNormal: theme.submitBg, bgHover: theme.submitHover, textColor: 'text-white', focusRing: 'focus:ring-indigo-500' }} 
+              className="flex-1 py-3"
+            >
+              {initialData ? 'Actualizar' : 'Guardar'}
+            </Button>
+          </>
+        )}
       </div>
     </form>
   );
