@@ -273,19 +273,21 @@ export const RutinasTabla: React.FC = () => {
                                                       {ej.ejercicio_imagen && <img src={ej.ejercicio_imagen} alt="img" className={`w-8 h-8 rounded object-cover shadow-sm border border-slate-200 ${!isEjActivo && 'grayscale'}`} />}
                                                       <div>
                                                         <div className={`font-bold ${isEjActivo ? 'text-slate-700' : 'text-slate-500'}`}>
-                                                          {ej.ejercicio_nombre} {!isEjActivo && <span className="ml-1 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
+                                                          {ej.nombre || ej.ejercicio_nombre} {!isEjActivo && <span className="ml-1 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
                                                         </div>
                                                       </div>
                                                     </div>
                                                   </td>
                                                   <td className="px-4 py-2 text-center font-bold text-slate-600">
                                                     {ej.series ? `${ej.series} x ` : ''}
-                                                    {ej.unidad_objetivo === 'seg'
-                                                      ? (ej.reps_min ? ej.reps_min : '-')
-                                                      : (ej.reps_min === ej.reps_max && ej.reps_min 
-                                                          ? ej.reps_min 
-                                                          : (ej.reps_min || ej.reps_max ? `${ej.reps_min || '?'} - ${ej.reps_max || '?'}` : '-'))
-                                                    }
+                                                    {ej.unidad_objetivo === 'seg' || ej.unidad_objetivo === 'min'
+                                                        ? (ej.reps_min ? ej.reps_min : '-')
+                                                        : (!ej.reps_max 
+                                                            ? (ej.reps_min ? ej.reps_min : '-')
+                                                            : (ej.reps_min === ej.reps_max && ej.reps_min 
+                                                                ? ej.reps_min 
+                                                                : `${ej.reps_min || '?'} - ${ej.reps_max}`))
+                                                      }
                                                     {(ej.reps_min || ej.reps_max) && (
                                                       <span className="text-[11px] font-semibold text-slate-400 ml-1">
                                                         {ej.unidad_objetivo || 'reps'}

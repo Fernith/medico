@@ -159,14 +159,14 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-2">
-          <Input type="number" label={<span>Series <span className="text-gray-400 font-normal">(Opcional)</span></span> as any} placeholder="Ej: 4" value={formData.series} onChange={(e) => handleChange('series', e.target.value)} colorTheme={inputTheme} icon={<Hash className="w-5 h-5" />} />
+          <Input type="number" label="Series" required placeholder="Ej: 4" value={formData.series} onChange={(e) => handleChange('series', e.target.value)} colorTheme={inputTheme} icon={<Hash className="w-5 h-5" />} />
           <Input type="number" label={<span>Descanso (segundos) <span className="text-gray-400 font-normal">(Opcional)</span></span> as any} placeholder="Ej: 90" value={formData.descanso} onChange={(e) => handleChange('descanso', e.target.value)} colorTheme={inputTheme} icon={<Clock className="w-5 h-5" />} />
         </div>
 
         <div className={`grid ${formData.unidad_objetivo === 'seg' || formData.unidad_objetivo === 'min' ? 'grid-cols-2' : 'grid-cols-3'} gap-4`}>
           <Input 
             type="number" 
-            label={<span>{formData.unidad_objetivo === 'seg' ? "Tiempo (segundos)" : formData.unidad_objetivo === 'min' ? "Tiempo (minutos)" : "Reps Mínimas"} <span className="text-gray-400 font-normal">(Opcional)</span></span> as any} 
+            label={formData.unidad_objetivo === 'seg' ? "Tiempo (segundos)" : formData.unidad_objetivo === 'min' ? "Tiempo (minutos)" : "Reps Mínimas"} required 
             placeholder={formData.unidad_objetivo === 'seg' ? "Ej: 60" : formData.unidad_objetivo === 'min' ? "Ej: 15" : "Ej: 8"} 
             value={formData.reps_min} 
             onChange={(e) => handleChange('reps_min', e.target.value)} 
@@ -199,13 +199,16 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Input type="number" step="0.1" label={<span>Carga / Nivel <span className="text-gray-400 font-normal">(Opcional)</span></span> as any} placeholder="Ej: 60" value={formData.carga_actual} onChange={(e) => handleChange('carga_actual', e.target.value)} colorTheme={inputTheme} icon={<Hash className="w-5 h-5" />} />
+          <Input type="number" step="0.1" label={<span>Carga / Nivel <span className="text-gray-400 font-normal">(Opcional)</span></span> as any} placeholder="Ej: 60" value={formData.carga_actual} onChange={(e) => handleChange('carga_actual', e.target.value)} colorTheme={inputTheme} icon={<Hash className="w-5 h-5" />} disabled={formData.unidad_carga === 'peso corporal' || formData.unidad_carga === 'sin carga'} />
           <div className="space-y-1">
             <label className="block text-sm font-bold text-slate-700 ml-1">Tipo de Carga</label>
             <Select 
               value={formData.unidad_carga}
-              onChange={(val) => handleChange('unidad_carga', val)}
-              options={[ { value: 'kg', label: 'kg' }, { value: 'banda', label: 'banda (nivel)' }, { value: 'peso corporal', label: 'peso corporal' } ]}
+              onChange={(val) => {
+                if (val === 'peso corporal' || val === 'sin carga') handleChange('carga_actual', '');
+                handleChange('unidad_carga', val);
+              }}
+              options={[ { value: 'kg', label: 'kg' }, { value: 'banda', label: 'banda (nivel)' }, { value: 'peso corporal', label: 'peso corporal' }, { value: 'sin carga', label: 'Sin carga' } ]}
               icon={<Scale className="w-5 h-5" />} colorTheme={selectTheme}
             />
           </div>
@@ -215,7 +218,7 @@ export const RealizacionForm: React.FC<RealizacionFormProps> = ({ initialData, o
 
       <div className="flex gap-4 pt-4 border-t border-slate-100">
         <Button variant="ghost" type="button" onClick={onCancel} colorTheme={{ focusRing: 'focus:ring-slate-400' }} className="flex-1 py-3">Cancelar</Button>
-        <Button type="submit" disabled={isSubmitting || !formData.ejercicio_id || !formData.nombre} isLoading={isSubmitting} colorTheme={{ bgNormal: 'bg-indigo-600', bgHover: 'hover:bg-indigo-700', textColor: 'text-white', focusRing: 'focus:ring-indigo-500' }} className="flex-1 py-3 shadow-sm">
+        <Button type="submit" disabled={isSubmitting || !formData.ejercicio_id || !formData.nombre || !formData.series || !formData.reps_min} isLoading={isSubmitting} colorTheme={{ bgNormal: 'bg-indigo-600', bgHover: 'hover:bg-indigo-700', textColor: 'text-white', focusRing: 'focus:ring-indigo-500' }} className="flex-1 py-3 shadow-sm">
           {initialData ? 'Actualizar' : 'Guardar'}
         </Button>
       </div>

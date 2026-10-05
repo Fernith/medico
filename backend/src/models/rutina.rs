@@ -28,6 +28,7 @@ pub struct RutinaRealizacionDetalle {
     pub rutina_id: Uuid,
     pub realizacion_id: Uuid,
     pub ejercicio_id: Uuid,
+    pub nombre: Option<String>,
     pub fase: String,
     pub orden: i32,
     pub descanso_posterior: Option<i32>,

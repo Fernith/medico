@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Type, AlignLeft, Palette, Plus, Trash2, Clock, Activity } from 'lucide-react';
@@ -11,7 +12,7 @@ export interface Rutina { id: string; nombre: string; descripcion: string; color
 export interface RutinaRealizacionDetalle {
   id: string; rutina_id: string; realizacion_id: string; ejercicio_id: string;
   fase: string; orden: number; descanso_posterior: number | null;
-  ejercicio_nombre: string; ejercicio_imagen: string;
+  ejercicio_nombre: string; nombre: string, ejercicio_imagen: string;
   series: number | null; reps_min: number | null; reps_max: number | null; unidad_objetivo: string | null;
   carga_actual: number | null; unidad_carga: string | null; descanso: number | null;
   realizacion_activa: boolean;
@@ -189,10 +190,10 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({ initialData, onSuccess, 
       </div>
 
       <div className="flex gap-4 pt-4 border-t border-slate-100 bg-white/90 backdrop-blur pb-2">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancelar</button>
-        <button type="submit" disabled={isSubmitting || !formData.nombre} className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-          {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Rutina' : 'Guardar Rutina')}
-        </button>
+        <Button variant="ghost" type="button" onClick={onCancel} colorTheme={{ focusRing: 'focus:ring-slate-400' }} className="flex-1 py-3">Cancelar</Button>
+        <Button type="submit" disabled={isSubmitting || !formData.nombre} isLoading={isSubmitting} colorTheme={{ bgNormal: 'bg-indigo-600', bgHover: 'hover:bg-indigo-700', textColor: 'text-white', focusRing: 'focus:ring-indigo-500' }} className="flex-1 py-3 shadow-sm">
+          {initialData ? 'Actualizar' : 'Guardar'}
+        </Button>
       </div>
     </form>
   );

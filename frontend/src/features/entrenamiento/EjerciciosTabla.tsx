@@ -125,7 +125,7 @@ export const EjerciciosTabla: React.FC<EjerciciosTablaProps> = ({ ejercicios }) 
                         </button>
                       ) : (<div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><ImageIcon className="w-6 h-6" /></div>)}
                     </td>
-                    <td className={`px-4 py-3 font-bold whitespace-nowrap ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
+                    <td className={`px-4 py-3 font-bold min-w-[150px] max-w-[300px] whitespace-normal break-words ${isActivo ? 'text-slate-800' : 'text-slate-500'}`}>
                       {e.nombre} {!isActivo && <span className="ml-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">(Inactivo)</span>}
                       {e.descripcion && <p title={e.descripcion} className="text-xs font-medium text-slate-400 mt-1 line-clamp-1 max-w-[200px]">{e.descripcion}</p>}
                     </td>

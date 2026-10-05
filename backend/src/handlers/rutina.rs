@@ -116,7 +116,7 @@ pub async fn get_rutina_realizaciones(
         RutinaRealizacionDetalle,
         r#"
         SELECT 
-            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id,
+            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id, re.nombre as "nombre?",
             rr.fase::text as "fase!", rr.orden, rr.descanso_posterior,
             e.nombre as "ejercicio_nombre!", e.imagen as "ejercicio_imagen?",
             re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,
