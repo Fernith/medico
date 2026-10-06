@@ -35,6 +35,7 @@ pub struct RutinaRealizacionDetalle {
     pub ejercicio_nombre: String,
     pub ejercicio_imagen: Option<String>,
     pub ejercicio_descripcion: Option<String>,
+    pub equipamiento_nombre: Option<String>,
     pub series: Option<i32>,
     pub reps_min: Option<i32>,
     pub reps_max: Option<i32>,

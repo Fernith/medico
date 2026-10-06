@@ -116,12 +116,14 @@ pub async fn get_rutina_realizaciones(
             rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id, re.nombre as "nombre?",
             rr.fase::text as "fase!", rr.orden, rr.descanso_posterior,
             e.nombre as "ejercicio_nombre!", e.imagen as "ejercicio_imagen?", e.descripcion as "ejercicio_descripcion?",
+            eq.nombre as "equipamiento_nombre?",
             re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,
             re.activo as "realizacion_activa!",
             re.unidad_objetivo
         FROM rutina_realizacion rr
         JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id
         JOIN ejercicios e ON re.ejercicio_id = e.id
+        LEFT JOIN equipamiento eq ON re.equipamiento_id = eq.id
         WHERE rr.rutina_id = $1
         ORDER BY 
             CASE rr.fase 

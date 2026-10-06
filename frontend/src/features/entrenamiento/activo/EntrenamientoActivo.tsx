@@ -1,13 +1,58 @@
 import React, { useState, useEffect } from "react";
 import { X, Check, AlertTriangle } from "lucide-react";
 import { useEntrenamiento } from "./useEntrenamiento";
-import {
-  PasoSeleccion,
-  PasoResumenInicial,
-  PasoEntrenando,
-  PasoDescanso,
-  PasoFinalizado,
-} from "./Pasos";
+import { PasoSeleccion } from "./pasos/PasoSeleccion";
+import { PasoResumenInicial } from "./pasos/PasoResumenInicial";
+import { PasoEntrenando } from "./pasos/PasoEntrenando";
+import { PasoDescanso } from "./pasos/PasoDescanso";
+import { PasoFinalizado } from "./pasos/PasoFinalizado";
+
+export const getPhaseTheme = (fase: string) => {
+  switch (fase) {
+    case "Calentamiento":
+      return {
+        text: "text-orange-400",
+        stroke: "stroke-orange-400",
+        textLight: "text-orange-300",
+        bg: "bg-orange-600",
+        bgHover: "hover:bg-orange-500",
+        bgTransparent: "bg-orange-900/30",
+        border: "border-orange-400/50",
+        borderDim: "border-orange-500/30",
+        shadow: "shadow-[0_0_30px_rgba(249,115,22,0.3)]",
+        shadowLg: "shadow-[0_0_80px_rgba(249,115,22,0.15)]",
+        badgeBg: "bg-orange-600/90",
+      };
+    case "Postentreno":
+      return {
+        text: "text-cyan-400",
+        stroke: "stroke-cyan-400",
+        textLight: "text-cyan-300",
+        bg: "bg-cyan-600",
+        bgHover: "hover:bg-cyan-500",
+        bgTransparent: "bg-cyan-900/30",
+        border: "border-cyan-400/50",
+        borderDim: "border-cyan-500/30",
+        shadow: "shadow-[0_0_30px_rgba(6,182,212,0.3)]",
+        shadowLg: "shadow-[0_0_80px_rgba(6,182,212,0.15)]",
+        badgeBg: "bg-cyan-600/90",
+      };
+    default:
+      return {
+        text: "text-indigo-400",
+        stroke: "stroke-indigo-400",
+        textLight: "text-indigo-300",
+        bg: "bg-indigo-600",
+        bgHover: "hover:bg-indigo-500",
+        bgTransparent: "bg-indigo-900/30",
+        border: "border-indigo-400/50",
+        borderDim: "border-indigo-500/30",
+        shadow: "shadow-[0_0_30px_rgba(79,70,229,0.3)]",
+        shadowLg: "shadow-[0_0_80px_rgba(79,70,229,0.15)]",
+        badgeBg: "bg-indigo-600/90",
+      };
+  }
+};
 
 interface EntrenamientoActivoProps {
   onClose: () => void;

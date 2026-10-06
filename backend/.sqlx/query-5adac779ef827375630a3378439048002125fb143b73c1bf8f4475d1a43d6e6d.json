@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id, re.nombre as \"nombre?\",\n            rr.fase::text as \"fase!\", rr.orden, rr.descanso_posterior,\n            e.nombre as \"ejercicio_nombre!\", e.imagen as \"ejercicio_imagen?\", e.descripcion as \"ejercicio_descripcion?\",\n            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,\n            re.activo as \"realizacion_activa!\",\n            re.unidad_objetivo\n        FROM rutina_realizacion rr\n        JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id\n        JOIN ejercicios e ON re.ejercicio_id = e.id\n        WHERE rr.rutina_id = $1\n        ORDER BY \n            CASE rr.fase \n                WHEN 'Calentamiento'::fase_rutina THEN 1 \n                WHEN 'Principal'::fase_rutina THEN 2 \n                WHEN 'Postentreno'::fase_rutina THEN 3 \n            END,\n            rr.orden\n        ",
+  "query": "\n        SELECT \n            rr.id, rr.rutina_id, rr.realizacion_id, re.ejercicio_id, re.nombre as \"nombre?\",\n            rr.fase::text as \"fase!\", rr.orden, rr.descanso_posterior,\n            e.nombre as \"ejercicio_nombre!\", e.imagen as \"ejercicio_imagen?\", e.descripcion as \"ejercicio_descripcion?\",\n            eq.nombre as \"equipamiento_nombre?\",\n            re.series, re.reps_min, re.reps_max, re.carga_actual, re.unidad_carga, re.descanso,\n            re.activo as \"realizacion_activa!\",\n            re.unidad_objetivo\n        FROM rutina_realizacion rr\n        JOIN realizacion_ejercicio re ON rr.realizacion_id = re.id\n        JOIN ejercicios e ON re.ejercicio_id = e.id\n        LEFT JOIN equipamiento eq ON re.equipamiento_id = eq.id\n        WHERE rr.rutina_id = $1\n        ORDER BY \n            CASE rr.fase \n                WHEN 'Calentamiento'::fase_rutina THEN 1 \n                WHEN 'Principal'::fase_rutina THEN 2 \n                WHEN 'Postentreno'::fase_rutina THEN 3 \n            END,\n            rr.orden\n        ",
   "describe": {
     "columns": [
       {
@@ -60,41 +60,46 @@
       },
       {
         "ordinal": 11,
+        "name": "equipamiento_nombre?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
         "name": "series",
         "type_info": "Int4"
       },
       {
-        "ordinal": 12,
+        "ordinal": 13,
         "name": "reps_min",
         "type_info": "Int4"
       },
       {
-        "ordinal": 13,
+        "ordinal": 14,
         "name": "reps_max",
         "type_info": "Int4"
       },
       {
-        "ordinal": 14,
+        "ordinal": 15,
         "name": "carga_actual",
         "type_info": "Float8"
       },
       {
-        "ordinal": 15,
+        "ordinal": 16,
         "name": "unidad_carga",
         "type_info": "Text"
       },
       {
-        "ordinal": 16,
+        "ordinal": 17,
         "name": "descanso",
         "type_info": "Int4"
       },
       {
-        "ordinal": 17,
+        "ordinal": 18,
         "name": "realizacion_activa!",
         "type_info": "Bool"
       },
       {
-        "ordinal": 18,
+        "ordinal": 19,
         "name": "unidad_objetivo",
         "type_info": "Varchar"
       }
@@ -116,6 +121,7 @@
       false,
       true,
       true,
+      false,
       true,
       true,
       true,
@@ -126,5 +132,5 @@
       true
     ]
   },
-  "hash": "b86fc65a7060bed45fa8aa3376938e4401e07b11aaa6e886ec0030feef649c83"
+  "hash": "5adac779ef827375630a3378439048002125fb143b73c1bf8f4475d1a43d6e6d"
 }
