@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { calculateEstimatedTime } from "../../../utils/ejerciciosCalculations";
 import {
   Play,
   Timer,
@@ -6,8 +7,6 @@ import {
   Trophy,
   Dumbbell,
   FastForward,
-  List,
-  Flag,
   RotateCcw,
   Pause,
   SkipForward,
@@ -156,6 +155,7 @@ export const PasoSeleccion = ({ state, actions }: any) => {
 export const PasoResumenInicial = ({ state, actions }: any) => {
   const [isStarting, setIsStarting] = useState(false);
   const fasesOrder = ["Calentamiento", "Principal", "Postentreno"];
+  const tiempoMedio = calculateEstimatedTime(state.ejerciciosPlanificados);
 
   const handleStart = async () => {
     setIsStarting(true);
@@ -176,6 +176,9 @@ export const PasoResumenInicial = ({ state, actions }: any) => {
         </h1>
         <p className="text-indigo-400 font-bold mt-3 uppercase tracking-widest text-sm">
           {state.ejerciciosPlanificados.length} ejercicios planificados
+        </p>
+        <p className="text-slate-400 font-medium mt-1">
+          Tiempo estimado: {tiempoMedio} min
         </p>
       </div>
 
@@ -201,9 +204,12 @@ export const PasoResumenInicial = ({ state, actions }: any) => {
               <div className="space-y-4">
                 {ejerciciosFase.map(({ ej, idx }: any) => {
                   const isSeg = ej.unidad_objetivo === "seg";
+                  const isMin = ej.unidad_objetivo === "min";
                   const targetText = isSeg
                     ? `${ej.reps_min || "?"} seg`
-                    : `${ej.reps_min || "?"}${ej.reps_max && ej.reps_max !== ej.reps_min ? ` - ${ej.reps_max}` : ""} reps`;
+                    : isMin
+                      ? `${ej.reps_min || "?"} min`
+                      : `${ej.reps_min || "?"}${ej.reps_max && ej.reps_max !== ej.reps_min ? ` - ${ej.reps_max}` : ""} reps`;
 
                   return (
                     <div
@@ -310,6 +316,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   const theme = getPhaseTheme(ej.fase);
 
   const [targetEndTime, setTargetEndTime] = useState<number | null>(null);
+  const [fluidProgress, setFluidProgress] = useState(100);
 
   useEffect(() => {
     setCarga(ej.carga_actual?.toString() || "");
@@ -318,6 +325,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
       setIsPaused(false);
       setTimerValue(5);
       setTargetEndTime(Date.now() + 5000);
+      setFluidProgress(100);
     } else {
       setReps(ej.reps_min?.toString() || "");
     }
@@ -326,12 +334,26 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   useEffect(() => {
     if (!isTimeBased || isPaused || !targetEndTime) return;
 
-    const tick = () => {
-      const now = Date.now();
-      const left = Math.max(0, Math.ceil((targetEndTime - now) / 1000));
-      setTimerValue(left);
+    let animationFrameId: number;
 
-      if (left === 0) {
+    const updateTime = () => {
+      const now = Date.now();
+      const leftMs = Math.max(0, targetEndTime - now);
+      const leftSecs = Math.ceil(leftMs / 1000);
+
+      setTimerValue(leftSecs);
+
+      const totalTime =
+        timeMode === "prep"
+          ? 5
+          : ej.unidad_objetivo === "min"
+            ? (ej.reps_min || 0) * 60
+            : ej.reps_min || 0;
+      if (totalTime > 0) {
+        setFluidProgress((leftMs / (totalTime * 1000)) * 100);
+      }
+
+      if (leftMs === 0) {
         if (timeMode === "prep") {
           playBeep();
           setTimeMode("active");
@@ -341,21 +363,28 @@ export const PasoEntrenando = ({ state, actions }: any) => {
               : ej.reps_min || 0;
           setTimerValue(activeTime);
           setTargetEndTime(Date.now() + activeTime * 1000);
+          setFluidProgress(100);
         } else if (timeMode === "active") {
           playBeep();
           actions.completeSet(ej.reps_min?.toString() || "0", carga);
         }
+      } else {
+        animationFrameId = requestAnimationFrame(updateTime);
       }
     };
 
-    const intervalId = setInterval(tick, 1000);
+    animationFrameId = requestAnimationFrame(updateTime);
+
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") tick();
+      if (document.visibilityState === "visible") {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(updateTime);
+      }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearInterval(intervalId);
+      cancelAnimationFrame(animationFrameId);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [
@@ -383,6 +412,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
     setIsPaused(false);
     setTimerValue(5);
     setTargetEndTime(Date.now() + 5000);
+    setFluidProgress(100);
   };
 
   const formatDisplayTime = (secs: number) => {
@@ -393,16 +423,8 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   };
 
   const getStrokeDashoffset = () => {
-    const totalTime =
-      timeMode === "prep"
-        ? 5
-        : ej.unidad_objetivo === "min"
-          ? (ej.reps_min || 0) * 60
-          : ej.reps_min || 0;
-    if (totalTime === 0) return 0;
-    const progressPercent = (timerValue / totalTime) * 100;
     const strokeDasharray = 2 * Math.PI * 40;
-    return strokeDasharray * ((100 - progressPercent) / 100);
+    return strokeDasharray * ((100 - fluidProgress) / 100);
   };
 
   const nextExercise =
@@ -412,7 +434,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
     : "Último ejercicio de la rutina";
 
   return (
-    <div className="w-full flex flex-col flex-1 pb-32 animate-in slide-in-from-right-4 duration-300">
+    <div className="w-full flex flex-col flex-1 pb-24 animate-in slide-in-from-right-4 duration-300">
       <div className="w-full max-w-3xl mx-auto px-4 py-3 sticky top-[73px] z-20 bg-slate-900/95 backdrop-blur-md mb-2">
         <BarraProgreso
           ejercicios={state.ejerciciosPlanificados}
@@ -470,7 +492,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
           {isTimeBased ? (
             <div className="flex flex-col items-center gap-4 w-full">
               {/* Temporizador Circular */}
-              <div className="flex flex-col items-center justify-center relative w-28 h-28 mx-auto">
+              <div className="flex flex-col items-center justify-center relative w-36 h-36 mx-auto">
                 <svg
                   className="w-full h-full transform -rotate-90"
                   viewBox="0 0 100 100"
@@ -487,7 +509,7 @@ export const PasoEntrenando = ({ state, actions }: any) => {
                     cx="50"
                     cy="50"
                     r="40"
-                    className={`transition-all duration-1000 linear ${timeMode === "prep" ? "stroke-rose-500" : "stroke-indigo-500"}`}
+                    className={`${timeMode === "prep" ? "stroke-rose-500" : "stroke-indigo-500"}`}
                     strokeWidth="8"
                     fill="none"
                     strokeDasharray={2 * Math.PI * 40}
@@ -497,12 +519,12 @@ export const PasoEntrenando = ({ state, actions }: any) => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-widest ${timeMode === "prep" ? "text-rose-400" : "text-indigo-400"}`}
+                    className={`text-[11px] font-bold uppercase tracking-widest ${timeMode === "prep" ? "text-rose-400" : "text-indigo-400"}`}
                   >
                     {timeMode === "prep" ? "Prepárate" : "Tiempo"}
                   </span>
                   <span
-                    className={`text-xl font-black tabular-nums mt-0.5 ${timeMode === "prep" ? "text-rose-500" : "text-white"}`}
+                    className={`text-2xl font-black tabular-nums mt-0.5 ${timeMode === "prep" ? "text-rose-500" : "text-white"}`}
                   >
                     {formatDisplayTime(timerValue)}
                   </span>
@@ -639,16 +661,23 @@ export const PasoEntrenando = ({ state, actions }: any) => {
         </Button>
 
         {isTimeBased ? (
-          <div className="w-2/3 flex gap-2 items-center justify-end">
-            <button
+          <div className="w-2/3 flex gap-2 items-center">
+            <Button
+              className="px-0 flex-1 flex items-center justify-center"
+              colorTheme={{
+                bgNormal: "bg-slate-800",
+                bgHover: "hover:bg-slate-700",
+                textColor: "text-slate-300",
+                border: "border-slate-700",
+                focusRing: "focus:ring-indigo-500",
+              }}
               onClick={restartTimer}
-              className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex-shrink-0"
             >
               <RotateCcw className="w-5 h-5" />
-            </button>
+            </Button>
             <button
               onClick={togglePause}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 shadow-lg ${
+              className={`w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all flex-shrink-0 shadow-lg ${
                 isPaused
                   ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                   : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]"
@@ -661,8 +690,14 @@ export const PasoEntrenando = ({ state, actions }: any) => {
               )}
             </button>
             <Button
-              variant="success"
-              className="flex-1 ml-1"
+              className="px-0 flex-1 flex items-center justify-center"
+              colorTheme={{
+                bgNormal: "bg-slate-800",
+                bgHover: "hover:bg-slate-700",
+                textColor: "text-slate-300",
+                border: "border-slate-700",
+                focusRing: "focus:ring-indigo-500",
+              }}
               onClick={() =>
                 actions.completeSet(ej.reps_min?.toString() || "0", carga)
               }
@@ -696,43 +731,75 @@ export const PasoEntrenando = ({ state, actions }: any) => {
   );
 };
 export const PasoDescanso = ({ state, actions }: any) => {
-  const [endTime] = useState(() => Date.now() + state.timeLeft * 1000);
+  const [targetEndTime] = useState(() => Date.now() + state.timeLeft * 1000);
   const [displayTime, setDisplayTime] = useState(state.timeLeft);
+  const [fluidProgress, setFluidProgress] = useState(100);
 
   useEffect(() => {
-    if (state.timeLeft <= 0) {
-      playBeep();
-      actions.skipRest();
-      return;
-    }
+    if (!targetEndTime) return;
 
-    const tick = () => {
-      const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-      setDisplayTime(remaining);
-      if (remaining === 0) {
+    let animationFrameId: number;
+
+    const updateTime = () => {
+      const now = Date.now();
+      const leftMs = Math.max(0, targetEndTime - now);
+      const leftSecs = Math.ceil(leftMs / 1000);
+
+      setDisplayTime(leftSecs);
+
+      const totalTime = state.timeLeft;
+      if (totalTime > 0) {
+        setFluidProgress((leftMs / (totalTime * 1000)) * 100);
+      }
+
+      if (leftMs === 0) {
         playBeep();
         actions.skipRest();
+      } else {
+        animationFrameId = requestAnimationFrame(updateTime);
       }
     };
 
-    const timer = setInterval(tick, 1000);
+    animationFrameId = requestAnimationFrame(updateTime);
+
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") tick();
+      if (document.visibilityState === "visible") {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(updateTime);
+      }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearInterval(timer);
+      cancelAnimationFrame(animationFrameId);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [endTime]);
+  }, [targetEndTime, state.timeLeft, actions]);
 
-  const nextExercise = state.ejerciciosPlanificados[state.currentExerciseIndex];
+  const currentEj = state.ejerciciosPlanificados[state.currentExerciseIndex];
+  const setsHechos = currentEj
+    ? state.historial.filter(
+        (h: any) => h.rutina_realizacion_id === currentEj.id,
+      ).length
+    : 0;
+  const totalSeries = currentEj?.series || 1;
+  const isFinished = setsHechos >= totalSeries;
+
+  let nextExerciseIndex = state.currentExerciseIndex;
+  if (isFinished) {
+    nextExerciseIndex += 1;
+  }
+  const nextExercise = state.ejerciciosPlanificados[nextExerciseIndex];
   const nextText = nextExercise
     ? `Próximo: ${nextExercise.ejercicio_nombre}`
     : "Último ejercicio de la rutina";
 
   const theme = getPhaseTheme(nextExercise?.fase || "Principal");
+
+  const getStrokeDashoffset = () => {
+    const strokeDasharray = 2 * Math.PI * 40;
+    return strokeDasharray * ((100 - fluidProgress) / 100);
+  };
 
   return (
     <div className="w-full flex-1 flex flex-col pb-24 animate-in fade-in duration-300">
@@ -757,12 +824,34 @@ export const PasoDescanso = ({ state, actions }: any) => {
           </p>
         </div>
 
-        <div className="relative flex items-center justify-center">
-          <div
-            className={`w-72 h-72 rounded-full border-[12px] border-slate-800 flex items-center justify-center ${theme.shadowLg}`}
+        <div className="relative flex items-center justify-center w-72 h-72 mx-auto">
+          <svg
+            className="w-full h-full transform -rotate-90"
+            viewBox="0 0 100 100"
           >
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              className="stroke-slate-800"
+              strokeWidth="4"
+              fill="none"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              className={`${theme.text.replace("text-", "stroke-")}`}
+              strokeWidth="4"
+              fill="none"
+              strokeDasharray={2 * Math.PI * 40}
+              strokeDashoffset={getStrokeDashoffset()}
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span
-              className={`text-8xl font-black tracking-tighter ${theme.text} drop-shadow-md`}
+              className={`text-7xl font-black tabular-nums tracking-tighter ${theme.text} drop-shadow-md`}
             >
               {Math.floor(displayTime / 60)}:
               {(displayTime % 60).toString().padStart(2, "0")}
@@ -779,12 +868,6 @@ export const PasoDescanso = ({ state, actions }: any) => {
             className="px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-colors border border-slate-700 text-slate-300 shadow-lg"
           >
             Omitir Descanso <FastForward className="w-5 h-5" />
-          </button>
-          <button
-            onClick={actions.finishWorkoutEarly}
-            className="text-slate-400 hover:text-rose-400 font-bold px-4 py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
-          >
-            <Flag className="w-5 h-5" /> Finalizar Entrenamiento
           </button>
         </div>
       </div>

@@ -1,31 +1,40 @@
-import React from 'react';
-import { X } from 'lucide-react';
-import { type RutinaRealizacionDetalle } from '../RutinaForm';
-import { type SetHistorial } from './useEntrenamiento';
+import React from "react";
+import { X } from "lucide-react";
+import { type RutinaRealizacionDetalle } from "../RutinaForm";
+import { type SetHistorial } from "./useEntrenamiento";
 
 export const playBeep = () => {
   try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContext =
+      window.AudioContext || (window as any).webkitAudioContext;
     const ctx = new AudioContext();
     const playTone = (start: number, dur: number, freq: number) => {
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
-      osc.type = 'sine';
+      osc.type = "sine";
       osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
       gainNode.gain.setValueAtTime(0, ctx.currentTime + start);
-      gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + start + 0.02);
+      gainNode.gain.linearRampToValueAtTime(
+        0.5,
+        ctx.currentTime + start + 0.02,
+      );
       gainNode.gain.setValueAtTime(0.5, ctx.currentTime + start + dur - 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + start + dur,
+      );
       osc.connect(gainNode);
       gainNode.connect(ctx.destination);
       osc.start(ctx.currentTime + start);
       osc.stop(ctx.currentTime + start + dur);
     };
-    playTone(0.0, 0.15, 880); 
-    playTone(0.3, 0.15, 880); 
-    playTone(0.6, 0.15, 880); 
-    playTone(0.9, 0.60, 1200); 
-  } catch (e) { console.warn("Audio bloqueado", e); }
+    playTone(0.0, 0.15, 880);
+    playTone(0.3, 0.15, 880);
+    playTone(0.6, 0.15, 880);
+    playTone(0.9, 0.6, 1200);
+  } catch (e) {
+    console.warn("Audio bloqueado", e);
+  }
 };
 
 interface BarraProgresoProps {
@@ -34,88 +43,142 @@ interface BarraProgresoProps {
   currentIndex: number;
 }
 
-export const BarraProgreso: React.FC<BarraProgresoProps> = ({ ejercicios, historial, currentIndex }) => {
+export const BarraProgreso: React.FC<BarraProgresoProps> = ({
+  ejercicios,
+  historial,
+  currentIndex,
+}) => {
   return (
     <div className="w-full flex gap-1.5 px-2 py-1">
       {ejercicios.map((ej, idx) => {
-        const done = historial.filter(h => h.rutina_realizacion_id === ej.id).length;
+        const done = historial.filter(
+          (h) => h.rutina_realizacion_id === ej.id,
+        ).length;
         const total = ej.series || 1;
         const isCompleted = done >= total;
         const isActive = idx === currentIndex;
-        
-        let bgColor = 'bg-slate-700/50'; 
+
+        let bgColor = "bg-slate-700/50";
         if (isActive) {
-          if (ej.fase === 'Calentamiento') bgColor = 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]';
-          else if (ej.fase === 'Postentreno') bgColor = 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]';
-          else bgColor = 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]';
-        } 
-        else if (isCompleted) {
-          bgColor = 'bg-emerald-500';
+          if (ej.fase === "Calentamiento")
+            bgColor = "bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]";
+          else if (ej.fase === "Postentreno")
+            bgColor = "bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]";
+          else bgColor = "bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]";
+        } else if (isCompleted) {
+          bgColor = "bg-emerald-500";
         }
 
-        return <div key={`${ej.id}-${idx}`} className={`h-1.5 flex-1 rounded-full ${bgColor} transition-all duration-300`} />;
+        return (
+          <div
+            key={`${ej.id}-${idx}`}
+            className={`h-1.5 flex-1 rounded-full ${bgColor} transition-all duration-300`}
+          />
+        );
       })}
     </div>
   );
 };
 
-export const ModalListadoRutina: React.FC<{ isOpen: boolean, onClose: () => void, state: any, actions: any }> = ({ isOpen, onClose, state, actions }) => {
+export const ModalListadoRutina: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  state: any;
+  actions: any;
+}> = ({ isOpen, onClose, state, actions }) => {
   if (!isOpen) return null;
-  
-  const fasesOrder = ['Calentamiento', 'Principal', 'Postentreno'];
+
+  const fasesOrder = ["Calentamiento", "Principal", "Postentreno"];
 
   return (
     <div className="fixed inset-0 z-[10000] bg-slate-900/90 backdrop-blur-md flex justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-slate-800 w-full max-w-lg rounded-[2rem] p-6 flex flex-col max-h-[85vh] shadow-2xl border border-slate-700">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-black text-2xl text-white">Tu Rutina</h3>
-          <button onClick={onClose} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors text-slate-300"><X className="w-6 h-6"/></button>
+          <button
+            onClick={onClose}
+            className="p-2 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors text-slate-300"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
         <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 pb-4">
-          
           {/* RENDERIZADO AGRUPADO POR FASES */}
-          {fasesOrder.map(faseNombre => {
+          {fasesOrder.map((faseNombre) => {
             const ejerciciosFase = state.ejerciciosPlanificados
               .map((ej: any, originalIdx: number) => ({ ej, originalIdx }))
               .filter((item: any) => item.ej.fase === faseNombre);
 
             if (ejerciciosFase.length === 0) return null;
 
-            let titleColor = 'text-indigo-400';
-            if (faseNombre === 'Calentamiento') titleColor = 'text-orange-400';
-            if (faseNombre === 'Postentreno') titleColor = 'text-cyan-400';
+            let titleColor = "text-indigo-400";
+            if (faseNombre === "Calentamiento") titleColor = "text-orange-400";
+            if (faseNombre === "Postentreno") titleColor = "text-cyan-400";
 
             return (
               <div key={faseNombre} className="mb-6 last:mb-0">
-                <h4 className={`text-xs font-black uppercase tracking-widest mb-3 ml-2 ${titleColor}`}>
+                <h4
+                  className={`text-xs font-black uppercase tracking-widest mb-3 ml-2 ${titleColor}`}
+                >
                   {faseNombre}
                 </h4>
                 <div className="space-y-3">
                   {ejerciciosFase.map(({ ej, originalIdx }: any) => {
-                    const setsHechos = state.historial.filter((h: SetHistorial) => h.rutina_realizacion_id === ej.id).length;
+                    const setsHechos = state.historial.filter(
+                      (h: SetHistorial) => h.rutina_realizacion_id === ej.id,
+                    ).length;
                     const total = ej.series || 1;
                     const isCompleted = setsHechos >= total;
                     const isActive = originalIdx === state.currentExerciseIndex;
 
-                    let activeClass = 'border-indigo-500 bg-indigo-500/10';
+                    let activeClass = "border-indigo-500 bg-indigo-500/10";
                     if (isActive) {
-                      if (ej.fase === 'Calentamiento') activeClass = 'border-orange-500 bg-orange-500/10';
-                      else if (ej.fase === 'Postentreno') activeClass = 'border-cyan-500 bg-cyan-500/10';
+                      if (ej.fase === "Calentamiento")
+                        activeClass = "border-orange-500 bg-orange-500/10";
+                      else if (ej.fase === "Postentreno")
+                        activeClass = "border-cyan-500 bg-cyan-500/10";
                     }
 
                     // Formateo del texto de series/reps
-                    const isSeg = ej.unidad_objetivo === 'seg';
-                    const targetText = isSeg 
-                      ? `${ej.reps_min || '?'} seg` 
-                      : `${ej.reps_min || '?'}${ej.reps_max && ej.reps_max !== ej.reps_min ? ` - ${ej.reps_max}` : ''} reps`;
+                    const isSeg = ej.unidad_objetivo === "seg";
+                    const isMin = ej.unidad_objetivo === "min";
+                    const targetText = isSeg
+                      ? `${ej.reps_min || "?"} seg`
+                      : isMin
+                        ? `${ej.reps_min || "?"} min`
+                        : `${ej.reps_min || "?"}${ej.reps_max && ej.reps_max !== ej.reps_min ? ` - ${ej.reps_max}` : ""} reps`;
 
                     return (
-                      <button key={`${ej.id}-${originalIdx}`} onClick={() => { actions.jumpToExercise(originalIdx); onClose(); }} className={`w-full text-left p-4 rounded-2xl flex items-center gap-4 transition-all border ${isActive ? activeClass : isCompleted ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-slate-700 bg-slate-900/50 hover:bg-slate-700 hover:border-slate-500'}`}>
-                        {ej.ejercicio_imagen ? <img src={ej.ejercicio_imagen} className="w-14 h-14 rounded-xl object-cover bg-black/50" /> : <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700"><span className="text-slate-500 font-bold">{originalIdx + 1}</span></div>}
+                      <button
+                        key={`${ej.id}-${originalIdx}`}
+                        onClick={() => {
+                          actions.jumpToExercise(originalIdx);
+                          onClose();
+                        }}
+                        className={`w-full text-left p-4 rounded-2xl flex items-center gap-4 transition-all border ${isActive ? activeClass : isCompleted ? "border-emerald-500/30 bg-emerald-500/5" : "border-slate-700 bg-slate-900/50 hover:bg-slate-700 hover:border-slate-500"}`}
+                      >
+                        {ej.ejercicio_imagen ? (
+                          <img
+                            src={ej.ejercicio_imagen}
+                            className="w-14 h-14 rounded-xl object-cover bg-black/50"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
+                            <span className="text-slate-500 font-bold">
+                              {originalIdx + 1}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex-1">
-                          <p className="font-bold text-white line-clamp-1">{ej.ejercicio_nombre}</p>
-                          <p className={`text-sm font-medium mt-0.5 ${isCompleted ? 'text-emerald-400' : 'text-slate-400'}`}>
-                            {setsHechos} / {total} series <span className="opacity-50 mx-1">|</span> {targetText}
+                          <p className="font-bold text-white line-clamp-1">
+                            {ej.ejercicio_nombre}
+                          </p>
+                          <p
+                            className={`text-sm font-medium mt-0.5 ${isCompleted ? "text-emerald-400" : "text-slate-400"}`}
+                          >
+                            {setsHechos} / {total} series{" "}
+                            <span className="opacity-50 mx-1">|</span>{" "}
+                            {targetText}
                           </p>
                         </div>
                       </button>
@@ -125,7 +188,6 @@ export const ModalListadoRutina: React.FC<{ isOpen: boolean, onClose: () => void
               </div>
             );
           })}
-
         </div>
       </div>
     </div>
