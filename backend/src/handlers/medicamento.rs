@@ -227,9 +227,12 @@ pub async fn delete_historial_medicacion(
     Path(id): Path<Uuid>,
     State(pool): State<PgPool>,
 ) -> Result<Json<()>, AppError> {
-    sqlx::query!("UPDATE historial_medicacion SET borrado = true WHERE id=$1", id)
-        .execute(&pool)
-        .await?;
+    sqlx::query!(
+        "UPDATE historial_medicacion SET borrado = true WHERE id=$1",
+        id
+    )
+    .execute(&pool)
+    .await?;
     Ok(Json(()))
 }
 

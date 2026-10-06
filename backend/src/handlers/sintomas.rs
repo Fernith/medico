@@ -1,8 +1,8 @@
-﻿use crate::error::AppError;
-use crate::models::sintomas::{CrearOcurrenciaPayload, Sintoma, OcurrenciaSintoma};
+use crate::error::AppError;
+use crate::models::sintomas::{CrearOcurrenciaPayload, OcurrenciaSintoma, Sintoma};
 use axum::{extract::State, Json};
-use sqlx::PgPool;
 use sqlx::types::Json as SqlxJson;
+use sqlx::PgPool;
 
 // Obtener el catÃ¡logo maestro de sÃ­ntomas (para el combo final)
 pub async fn get_sintomas(State(pool): State<PgPool>) -> Result<Json<Vec<Sintoma>>, AppError> {
@@ -130,7 +130,11 @@ pub async fn actualizar_ocurrencia(
     // Modificadores a JSONB
     let modificadores_json = match serde_json::to_value(&payload.modificadores) {
         Ok(v) => v,
-        Err(_) => return Err(AppError::Internal("Error serializando modificadores".into())),
+        Err(_) => {
+            return Err(AppError::Internal(
+                "Error serializando modificadores".into(),
+            ))
+        }
     };
 
     let res = sqlx::query(
@@ -139,7 +143,7 @@ pub async fn actualizar_ocurrencia(
         SET sintoma_id = $1, fecha_inicio = $2, valor_registro = $3, notas = $4,
             caracteristica = $5, frecuencia = $6, modificadores = $7, created_at = NOW()
         WHERE id = $8
-        "#
+        "#,
     )
     .bind(payload.sintoma_id)
     .bind(payload.fecha_inicio)
@@ -180,5 +184,7 @@ pub async fn actualizar_ocurrencia(
 
     tx.commit().await?;
 
-    Ok(Json(serde_json::json!({ "msg": "Actualizado correctamente" })))
+    Ok(Json(
+        serde_json::json!({ "msg": "Actualizado correctamente" }),
+    ))
 }
