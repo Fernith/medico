@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Timer, FastForward } from "lucide-react";
 import { playBeep, BarraProgreso } from "../UIComponents";
 import { getPhaseTheme } from "../EntrenamientoActivo";
