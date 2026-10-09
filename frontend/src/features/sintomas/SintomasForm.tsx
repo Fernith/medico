@@ -140,7 +140,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
               disabled={isSubmitting || !ocurrenciaData?.sintoma_id}
               className="flex-1 py-3"
             >
-              {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar Registro' : 'Guardar')}
+              {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
             </Button>
           </>
         )}
