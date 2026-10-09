@@ -10,6 +10,7 @@ import {
   Trash2,
   Clock,
   Activity,
+  Loader2,
 } from "lucide-react";
 import { type RealizacionEjercicio } from "./RealizacionForm";
 import { apiFetch } from "../../api/client";
@@ -186,6 +187,9 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({
   onCancel,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(
+    initialData ? true : false,
+  );
   const [realizaciones, setRealizaciones] = useState<RealizacionEjercicio[]>(
     [],
   );
@@ -202,38 +206,42 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      const resReal = await apiFetch("/api/realizaciones");
-      if (resReal.ok) {
-        const dataReal = await resReal.json();
-        setRealizaciones(dataReal);
+      try {
+        const resReal = await apiFetch("/api/realizaciones");
+        if (resReal.ok) {
+          const dataReal = await resReal.json();
+          setRealizaciones(dataReal);
 
-        if (initialData) {
-          const resRut = await apiFetch(
-            `/api/rutinas/${initialData.id}/realizaciones`,
-          );
-          if (resRut.ok) {
-            const detalles: RutinaRealizacionDetalle[] = await resRut.json();
-            const nuevasFases: Record<string, ItemFase[]> = {
-              Calentamiento: [],
-              Principal: [],
-              Postentreno: [],
-            };
+          if (initialData) {
+            const resRut = await apiFetch(
+              `/api/rutinas/${initialData.id}/realizaciones`,
+            );
+            if (resRut.ok) {
+              const detalles: RutinaRealizacionDetalle[] = await resRut.json();
+              const nuevasFases: Record<string, ItemFase[]> = {
+                Calentamiento: [],
+                Principal: [],
+                Postentreno: [],
+              };
 
-            detalles.forEach((d) => {
-              if (nuevasFases[d.fase]) {
-                nuevasFases[d.fase].push({
-                  tempId: d.id,
-                  realizacion_id: d.realizacion_id,
-                  ejercicio_nombre: d.ejercicio_nombre,
-                  descanso_posterior: d.descanso_posterior
-                    ? d.descanso_posterior.toString()
-                    : "",
-                });
-              }
-            });
-            setFases(nuevasFases);
+              detalles.forEach((d) => {
+                if (nuevasFases[d.fase]) {
+                  nuevasFases[d.fase].push({
+                    tempId: d.id,
+                    realizacion_id: d.realizacion_id,
+                    ejercicio_nombre: d.ejercicio_nombre,
+                    descanso_posterior: d.descanso_posterior
+                      ? d.descanso_posterior.toString()
+                      : "",
+                  });
+                }
+              });
+              setFases(nuevasFases);
+            }
           }
         }
+      } finally {
+        setIsLoadingData(false);
       }
     };
     fetchData();
@@ -323,6 +331,17 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({
       [fase]: prev[fase].filter((i) => i.tempId !== tempId),
     }));
 
+  if (isLoadingData) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-4" />
+        <p className="text-slate-600 font-medium">
+          Cargando datos de la rutina...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -389,7 +408,7 @@ export const RutinaForm: React.FC<RutinaFormProps> = ({
         ))}
       </div>
 
-      <div className="flex gap-4 pt-4 border-t border-slate-100 bg-white/90 backdrop-blur pb-2">
+      <div className="sticky bottom-[-1.25rem] bg-white p-4 border-t border-slate-100 flex gap-4 -mx-2 -mb-5 z-10 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] mt-auto">
         <Button
           variant="ghost"
           type="button"

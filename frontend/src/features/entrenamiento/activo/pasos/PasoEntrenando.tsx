@@ -12,6 +12,7 @@ import {
 import { ModalListadoRutina, playBeep, BarraProgreso } from "../UIComponents";
 import { Button } from "../../../../components/ui/Button";
 import { getPhaseTheme } from "../EntrenamientoActivo";
+import { useBackgroundTimer } from "../hooks";
 
 export const PasoEntrenando = ({ state, actions }: any) => {
   const [showList, setShowList] = useState(false);
@@ -76,71 +77,47 @@ export const PasoEntrenando = ({ state, actions }: any) => {
     }
   }, [ej.id, currentSerie, isTimeBased]);
 
-  useEffect(() => {
+  const updateTime = () => {
     if (!isTimeBased || isPaused || !targetEndTime) return;
+    const now = Date.now();
+    const leftMs = Math.max(0, targetEndTime - now);
+    const leftSecs = Math.ceil(leftMs / 1000);
 
-    let animationFrameId: number;
+    setTimerValue(leftSecs);
 
-    const updateTime = () => {
-      const now = Date.now();
-      const leftMs = Math.max(0, targetEndTime - now);
-      const leftSecs = Math.ceil(leftMs / 1000);
+    const totalTime =
+      timeMode === "prep"
+        ? 5
+        : ej.unidad_objetivo === "min"
+          ? (ej.reps_min || 0) * 60
+          : ej.reps_min || 0;
+    if (totalTime > 0) {
+      setFluidProgress((leftMs / (totalTime * 1000)) * 100);
+    }
 
-      setTimerValue(leftSecs);
-
-      const totalTime =
-        timeMode === "prep"
-          ? 5
-          : ej.unidad_objetivo === "min"
+    if (leftMs === 0) {
+      if (timeMode === "prep") {
+        playBeep();
+        setTimeMode("active");
+        const activeTime =
+          ej.unidad_objetivo === "min"
             ? (ej.reps_min || 0) * 60
             : ej.reps_min || 0;
-      if (totalTime > 0) {
-        setFluidProgress((leftMs / (totalTime * 1000)) * 100);
+        setTimerValue(activeTime);
+        setTargetEndTime(Date.now() + activeTime * 1000);
+        setFluidProgress(100);
+      } else if (timeMode === "active") {
+        playBeep();
+        actions.completeSet(ej.reps_min?.toString() || "0", carga);
       }
+    }
+  };
 
-      if (leftMs === 0) {
-        if (timeMode === "prep") {
-          playBeep();
-          setTimeMode("active");
-          const activeTime =
-            ej.unidad_objetivo === "min"
-              ? (ej.reps_min || 0) * 60
-              : ej.reps_min || 0;
-          setTimerValue(activeTime);
-          setTargetEndTime(Date.now() + activeTime * 1000);
-          setFluidProgress(100);
-        } else if (timeMode === "active") {
-          playBeep();
-          actions.completeSet(ej.reps_min?.toString() || "0", carga);
-        }
-      } else {
-        animationFrameId = requestAnimationFrame(updateTime);
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(updateTime);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = requestAnimationFrame(updateTime);
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [
-    isTimeBased,
-    isPaused,
-    targetEndTime,
-    timeMode,
-    ej.unidad_objetivo,
-    ej.reps_min,
-    carga,
-  ]);
+  useBackgroundTimer(
+    updateTime,
+    Boolean(isTimeBased && !isPaused && targetEndTime),
+    250,
+  );
 
   const togglePause = () => {
     if (isPaused) {

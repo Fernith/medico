@@ -2,52 +2,33 @@ import { useState, useEffect } from "react";
 import { Timer, FastForward } from "lucide-react";
 import { playBeep, BarraProgreso } from "../UIComponents";
 import { getPhaseTheme } from "../EntrenamientoActivo";
+import { useBackgroundTimer } from "../hooks";
 
 export const PasoDescanso = ({ state, actions }: any) => {
   const [targetEndTime] = useState(() => Date.now() + state.timeLeft * 1000);
   const [displayTime, setDisplayTime] = useState(state.timeLeft);
   const [fluidProgress, setFluidProgress] = useState(100);
 
-  useEffect(() => {
+  const updateTime = () => {
     if (!targetEndTime) return;
+    const now = Date.now();
+    const leftMs = Math.max(0, targetEndTime - now);
+    const leftSecs = Math.ceil(leftMs / 1000);
 
-    let animationFrameId: number;
+    setDisplayTime(leftSecs);
 
-    const updateTime = () => {
-      const now = Date.now();
-      const leftMs = Math.max(0, targetEndTime - now);
-      const leftSecs = Math.ceil(leftMs / 1000);
+    const totalTime = state.timeLeft;
+    if (totalTime > 0) {
+      setFluidProgress((leftMs / (totalTime * 1000)) * 100);
+    }
 
-      setDisplayTime(leftSecs);
+    if (leftMs === 0) {
+      playBeep();
+      actions.skipRest();
+    }
+  };
 
-      const totalTime = state.timeLeft;
-      if (totalTime > 0) {
-        setFluidProgress((leftMs / (totalTime * 1000)) * 100);
-      }
-
-      if (leftMs === 0) {
-        playBeep();
-        actions.skipRest();
-      } else {
-        animationFrameId = requestAnimationFrame(updateTime);
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(updateTime);
-
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = requestAnimationFrame(updateTime);
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [targetEndTime, state.timeLeft, actions]);
+  useBackgroundTimer(updateTime, Boolean(targetEndTime), 250);
 
   const currentEj = state.ejerciciosPlanificados[state.currentExerciseIndex];
   const setsHechos = currentEj

@@ -28,7 +28,10 @@ export const EstadisticasDashboard: React.FC = () => {
   return (
     <div className="space-y-6 overflow-hidden"> 
       
-      {/* SECCIÓN 1: PIE CHARTS Y DÍAS DE LA SEMANA */}
+      <div className="w-full">
+        <CalendarioSelector calendarioRutinas={calendarioRutinas} />
+      </div>
+      
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <EstadisticasPieCharts 
           data={pieChartsData} 
@@ -42,15 +45,8 @@ export const EstadisticasDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* SECCIÓN 2: CALENDARIO INTERACTIVO */}
-      <div className="w-full">
-        <CalendarioSelector calendarioRutinas={calendarioRutinas} />
-      </div>
-
-      {/* SECCIÓN 3: GRÁFICA MESES */}
       <EstadisticasMeses data={entrenosPorMes} />
 
-      {/* SECCIÓN 4: TABLA DE PROGRESIÓN */}
       <EstadisticasProgresion data={progresionEjercicios} />
       
     </div>
