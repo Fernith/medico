@@ -86,7 +86,7 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
     <div className="flex flex-col gap-8">
       
       {/* 1. MÓDULO VISUAL: MAPA ANATÓMICO */}
-      <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-rose-100">
+      <div className="bg-white p-6 sm:p-8 rounded-[2rem] shadow-sm border border-teal-100">
         <h2 className="text-xl font-black text-slate-800 mb-2">Localización del Síntoma</h2>
         <p className="text-sm text-slate-500 mb-8 leading-relaxed">
           Selecciona la zona afectada. Haz <b>un clic</b> para marcar el foco principal, y <b>dos clics</b> para indicar que el dolor se irradia a esa zona.
@@ -120,6 +120,11 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
           <Button 
             onClick={onCancel}
             className="flex-1 py-3"
+            colorTheme={{
+              bgNormal: 'bg-teal-700',
+              bgHover: 'hover:bg-teal-800',
+              textColor: 'text-white'
+            }}
           >
             Salir
           </Button>
@@ -139,6 +144,11 @@ export const SintomasForm: React.FC<Props> = ({ initialData, onSuccess, onCancel
               onClick={handleGuardar}
               disabled={isSubmitting || !ocurrenciaData?.sintoma_id}
               className="flex-1 py-3"
+              colorTheme={{
+                bgNormal: 'bg-teal-700',
+                bgHover: 'hover:bg-teal-800',
+                textColor: 'text-white'
+              }}
             >
               {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
             </Button>

@@ -16,10 +16,19 @@ export interface TimelineItem {
 export const useTimeline = () => {
   const [medicamentos, setMedicamentos] = useState<HistorialMedicacion[]>([]);
   const [sintomas, setSintomas] = useState<OcurrenciaSintoma[]>([]);
+  
+  // Catálogos para los filtros
+  const [catalogoCategorias, setCatalogoCategorias] = useState<{id: string, nombre: string}[]>([]);
+  const [catalogoSintomas, setCatalogoSintomas] = useState<{id: string, nombre: string}[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filtros
-  const [filtroTipo, setFiltroTipo] = useState<'todos' | 'medicamentos' | 'sintomas'>('todos');
+  // Filtros Avanzados
+  const [showAllMed, setShowAllMed] = useState(true);
+  const [showAllSin, setShowAllSin] = useState(true);
+  const [selectedCategorias, setSelectedCategorias] = useState<string[]>([]);
+  const [selectedSintomas, setSelectedSintomas] = useState<string[]>([]);
+  
   const [navDate, setNavDate] = useState<string>('');
 
   // Paginación infinita
@@ -31,9 +40,11 @@ export const useTimeline = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [resMed, resSin] = await Promise.all([
+        const [resMed, resSin, resCatMed, resCatSin] = await Promise.all([
           apiFetch('/api/historial-medicacion'),
-          apiFetch('/api/sintomas/ocurrencias')
+          apiFetch('/api/sintomas/ocurrencias'),
+          apiFetch('/api/categorias-medicamentos'),
+          apiFetch('/api/sintomas/catalogo')
         ]);
         
         if (resMed.ok) {
@@ -43,6 +54,12 @@ export const useTimeline = () => {
         if (resSin.ok) {
           const sins: OcurrenciaSintoma[] = await resSin.json();
           setSintomas(sins);
+        }
+        if (resCatMed.ok) {
+          setCatalogoCategorias(await resCatMed.json());
+        }
+        if (resCatSin.ok) {
+          setCatalogoSintomas(await resCatSin.json());
         }
       } catch (e) {
         console.error(e);
@@ -56,8 +73,20 @@ export const useTimeline = () => {
   const items = useMemo(() => {
     const combined: TimelineItem[] = [];
     
-    if (filtroTipo === 'todos' || filtroTipo === 'medicamentos') {
+    // Si showAllMed es false y selectedCategorias está vacío, no mostramos medicamentos
+    const shouldShowMeds = showAllMed || selectedCategorias.length > 0;
+    
+    if (shouldShowMeds) {
       medicamentos.forEach(m => {
+        // Filtrar por categoría
+        // Nota: m no tiene categoria_id, pero podemos filtrar por categoria_nombre.
+        // Mejor: the history DTO in backend doesn't have categoria_id. 
+        // Let's filter by categoria_nombre.
+        if (!showAllMed && selectedCategorias.length > 0) {
+           const catNombre = m.categoria_nombre || 'Sin categoría';
+           if (!selectedCategorias.includes(catNombre)) return;
+        }
+
         combined.push({
           id: `med-${m.id}`,
           type: 'medicamento',
@@ -67,8 +96,14 @@ export const useTimeline = () => {
       });
     }
 
-    if (filtroTipo === 'todos' || filtroTipo === 'sintomas') {
+    const shouldShowSins = showAllSin || selectedSintomas.length > 0;
+    
+    if (shouldShowSins) {
       sintomas.forEach(s => {
+        if (!showAllSin && selectedSintomas.length > 0) {
+           if (!selectedSintomas.includes(s.sintoma_id)) return;
+        }
+
         combined.push({
           id: `sin-${s.id}`,
           type: 'sintoma',
@@ -80,7 +115,7 @@ export const useTimeline = () => {
 
     // Ordenar del más actual al más antiguo
     return combined.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [medicamentos, sintomas, filtroTipo]);
+  }, [medicamentos, sintomas, showAllMed, showAllSin, selectedCategorias, selectedSintomas]);
 
   // Agrupar por fecha local
   const groupedItems = useMemo(() => {
@@ -174,8 +209,16 @@ export const useTimeline = () => {
 
   return {
     isLoading,
-    filtroTipo,
-    setFiltroTipo,
+    showAllMed,
+    setShowAllMed,
+    showAllSin,
+    setShowAllSin,
+    selectedCategorias,
+    setSelectedCategorias,
+    selectedSintomas,
+    setSelectedSintomas,
+    catalogoCategorias,
+    catalogoSintomas,
     navDate,
     setNavDate,
     visibleGroups,

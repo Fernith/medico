@@ -62,7 +62,7 @@ export const Navbar = () => {
   }
 
   const saludItems = [
-    { path: '/medicamentos', icon: Pill, label: 'Medicamentos', activeColor: 'text-blue-600 bg-blue-50' },
+    { path: '/medicamentos', icon: Pill, label: 'Medicamentos', activeColor: 'text-teal-600 bg-teal-50' },
     { path: '/sintomas', icon: Stethoscope, label: 'Síntomas', activeColor: 'text-teal-600 bg-teal-50' },
     { path: '/timeline', icon: Activity, label: 'Timeline', activeColor: 'text-indigo-600 bg-indigo-50' },
   ];
@@ -132,7 +132,7 @@ export const Navbar = () => {
 
             {/* DROPDOWN SALUD */}
             <div className="relative" ref={saludRef}>
-              <button onClick={() => { setIsSaludDropdownOpen(!isSaludDropdownOpen); setIsEjercicioDropdownOpen(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 ${isSaludActive || isSaludDropdownOpen ? 'text-rose-600 bg-rose-50' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'}`}>
+              <button onClick={() => { setIsSaludDropdownOpen(!isSaludDropdownOpen); setIsEjercicioDropdownOpen(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 ${isSaludActive ? (saludItems.find(i => location.pathname === i.path)?.activeColor || 'text-slate-800 bg-slate-100') : (isSaludDropdownOpen ? 'text-slate-800 bg-slate-100' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700')}`}>
                 <HeartPulse className="w-5 h-5" strokeWidth={isSaludActive ? 2.5 : 2} />
                 <span className="text-sm">Clínico</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${isSaludDropdownOpen ? 'rotate-180' : ''}`} />

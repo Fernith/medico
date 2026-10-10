@@ -101,7 +101,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
       {/* HEADER CONTROLES */}
       <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="bg-rose-100 p-2 rounded-xl text-rose-600">
+          <div className="bg-teal-100 p-2 rounded-xl text-teal-600">
             <Activity className="w-6 h-6" />
           </div>
           <div>
@@ -111,7 +111,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
         </div>
 
         <div className="flex w-full sm:w-auto gap-3">
-          <div className="relative flex-1 sm:w-64 flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus-within:border-rose-400 focus-within:ring-4 focus-within:ring-rose-50 transition-all">
+          <div className="relative flex-1 sm:w-64 flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus-within:border-teal-400 focus-within:ring-4 focus-within:ring-teal-50 transition-all">
             <Search className="w-4 h-4 text-slate-400 shrink-0" />
             <input 
               type="text" 
@@ -129,7 +129,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
             <tr>
-              <th className="px-4 py-3 font-semibold cursor-pointer hover:text-rose-600 transition-colors" onClick={() => setSortDesc(!sortDesc)}>
+              <th className="px-4 py-3 font-semibold cursor-pointer hover:text-teal-600 transition-colors" onClick={() => setSortDesc(!sortDesc)}>
                 <div className="flex items-center gap-1">Fecha <ArrowUpDown className="w-3 h-3" /></div>
               </th>
               <th className="px-4 py-3 font-semibold">Síntoma</th>
@@ -155,7 +155,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
                     <div className="font-bold text-slate-800">{o.sintoma_nombre}</div>
                     {o.notas && <div className="text-xs text-slate-500 truncate max-w-[200px]" title={o.notas}>{o.notas}</div>}
                   </td>
-                  <td className="px-4 py-3 font-bold text-rose-700">
+                  <td className="px-4 py-3 font-bold text-teal-700">
                     {
                         o.valor_registro === 'true' ? 'Presente' : 
                         o.valor_registro === 'false' ? 'Ausente' : 
@@ -171,7 +171,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
                     {o.localizaciones && o.localizaciones.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {o.localizaciones.map((loc, i) => (
-                          <span key={i} className={`px-2 py-0.5 rounded-md text-xs border whitespace-nowrap ${loc.es_irradiado ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+                          <span key={i} className={`px-2 py-0.5 rounded-md text-xs border whitespace-nowrap ${loc.es_irradiado ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
                             {getNombreLocalizacion(loc.localizacion_id)}
                             {loc.lado ? ` (${loc.lado})` : ''}
                             {loc.es_irradiado ? ' ⚡' : ''}
@@ -181,7 +181,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
                     ) : <span className="text-slate-400 italic text-xs">Sin ubicación</span>}
                   </td>
                   <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                    <button onClick={() => onView(o)} className="text-slate-400 hover:text-indigo-600 transition-colors" title="Ver"><Eye className="w-5 h-5 inline" /></button>                      <button onClick={() => onEdit(o)} className="text-slate-400 hover:text-rose-600 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
+                    <button onClick={() => onView(o)} className="text-slate-400 hover:text-teal-600 transition-colors" title="Ver"><Eye className="w-5 h-5 inline" /></button>                      <button onClick={() => onEdit(o)} className="text-slate-400 hover:text-teal-600 transition-colors" title="Editar"><Edit2 className="w-5 h-5 inline" /></button>
                     <button onClick={() => onDelete(o.id)} className="text-slate-400 hover:text-red-500 transition-colors" title="Borrar"><Trash2 className="w-5 h-5 inline" /></button>
                   </td>
                 </tr>
@@ -199,7 +199,7 @@ export const SintomasTabla: React.FC<Props> = ({ onView, onEdit, onDelete }) => 
             <select 
               value={itemsPerPage} 
               onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }} 
-              className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-rose-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
+              className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 outline-none focus:border-teal-500 font-medium shadow-sm hover:border-slate-300 transition-colors cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={15}>15</option>

@@ -1,8 +1,35 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Clock, Calendar, X, ArrowUpCircle, ArrowDownCircle, Thermometer, Plus, Minus } from 'lucide-react';
-import { Select } from '../../components/ui/Select';
+import { Select, type SelectColorTheme } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Input, type InputColorTheme } from '../../components/ui/Input';
+
+const tealInputTheme: InputColorTheme = {
+  borderNormal: 'border-teal-200 hover:border-teal-300',
+  borderFocus: 'focus:ring-teal-500 focus:border-teal-500',
+  borderError: 'border-red-500 focus:ring-red-500 focus:border-red-500',
+  iconColor: 'text-teal-600',
+  labelColor: 'text-slate-700',
+  helperTextColor: 'text-slate-500'
+};
+
+const tealSelectTheme: SelectColorTheme = {
+  borderNormal: 'border-teal-200',
+  borderActive: 'border-teal-400 ring-4 ring-teal-50',
+  borderHover: 'hover:border-teal-300 hover:shadow-md',
+  textSelected: 'text-teal-900',
+  textPlaceholder: 'text-slate-400',
+  iconColor: 'text-teal-600',
+  dropdownBg: 'bg-white',
+  dropdownBorder: 'border-teal-100',
+  optionSelectedBg: 'bg-teal-50',
+  optionSelectedText: 'text-teal-900',
+  optionHoverBg: 'hover:bg-teal-50/50',
+  optionHoverText: 'text-teal-800',
+  checkIcon: 'text-teal-600'
+};
+
+
 
 // Tipos que reflejan la base de datos
 export type ReglaMedicion = 'escala_1_10' | 'grados_celsius' | 'presencia_booleana' | 'texto_libre' | 'cualitativa_3' | 'conteo_episodios';
@@ -185,7 +212,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
         
         {/* FECHA Y HORA (AHORA ARRIBA) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-          <Input
+          <Input colorTheme={tealInputTheme}
             disabled={isReadOnly}
             type="date"
             label="Fecha de inicio"
@@ -193,7 +220,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
             value={localDate}
             onChange={(e) => handleDateTimeChange(e.target.value, localTime)}
           />
-          <Input
+          <Input colorTheme={tealInputTheme}
             disabled={isReadOnly}
             type="time"
             label="Hora de inicio"
@@ -205,9 +232,9 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
 
         {/* CATÁLOGO MAESTRO */}
         <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 mt-2">
-          <Activity className="w-4 h-4 text-indigo-500" /> Identificación del Síntoma
+          <Activity className="w-4 h-4 text-teal-500" /> Identificación del Síntoma
         </h3>
-        <Select
+        <Select colorTheme={tealSelectTheme}
           disabled={isReadOnly}
           label="Catálogo de Síntomas"
           options={sintomasFiltrados.map(s => ({ value: s.id, label: s.nombre }))}
@@ -221,13 +248,13 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
 
       {/* 2. REGLA DE MEDICIÓN (Dinámico) */}
       {sintomaSeleccionado && (
-        <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 animate-in fade-in slide-in-from-top-2">
-          <h3 className="font-bold text-indigo-900 text-sm mb-4">Medición ({sintomaSeleccionado.nombre})</h3>
+        <div className="bg-teal-50 p-5 rounded-2xl border border-teal-100 animate-in fade-in slide-in-from-top-2">
+          <h3 className="font-bold text-teal-900 text-sm mb-4">Medición ({sintomaSeleccionado.nombre})</h3>
           
                     {sintomaSeleccionado.regla_medicion === 'cualitativa_3' && (
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-bold text-indigo-800">
-                Intensidad: <span className="text-xl text-indigo-600">{data.valor_registro === '1' ? 'Leve' : data.valor_registro === '2' ? 'Moderado' : 'Grave'}</span>
+              <label className="text-sm font-bold text-teal-800">
+                Intensidad: <span className="text-xl text-teal-600">{data.valor_registro === '1' ? 'Leve' : data.valor_registro === '2' ? 'Moderado' : 'Grave'}</span>
               </label>
               <input 
                 type="range" 
@@ -235,9 +262,9 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                 value={data.valor_registro || '1'}
                 onChange={(e) => handleChange('valor_registro', e.target.value)}
                 disabled={isReadOnly}
-                className="w-full accent-indigo-600 h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
+                className="w-full accent-teal-600 h-2 bg-teal-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
               />
-              <div className="flex justify-between text-xs text-indigo-600 font-medium">
+              <div className="flex justify-between text-xs text-teal-600 font-medium">
                 <span>Leve (1)</span>
                 <span>Moderado (2)</span>
                 <span>Grave (3)</span>
@@ -247,8 +274,8 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
 
           {sintomaSeleccionado.regla_medicion === 'escala_1_10' && (
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-bold text-indigo-800">
-                Intensidad: <span className="text-xl text-indigo-600">{data.valor_registro || '0'}</span> / 10
+              <label className="text-sm font-bold text-teal-800">
+                Intensidad: <span className="text-xl text-teal-600">{data.valor_registro || '0'}</span> / 10
               </label>
               <input 
                 disabled={isReadOnly}
@@ -256,9 +283,9 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                 min="1" max="10" step="1"
                 value={data.valor_registro || '1'}
                 onChange={(e) => handleChange('valor_registro', e.target.value)}
-                className="w-full accent-indigo-600 h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-teal-600 h-2 bg-teal-200 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-xs text-indigo-600 font-medium">
+              <div className="flex justify-between text-xs text-teal-600 font-medium">
                 <span>Leve (1)</span>
                 <span>Moderado (5)</span>
                 <span>Insoportable (10)</span>
@@ -277,12 +304,12 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                     if (!isNaN(current) && current > 0) handleChange('valor_registro', (current - 1).toString());
                   }}
                   disabled={isReadOnly}
-                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                  className="bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
                 >
                   <Minus className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
-                  <Input
+                  <Input colorTheme={tealInputTheme}
                     type="number"
                     step="1"
                     icon={<Activity className="w-4 h-4" />}
@@ -299,7 +326,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                     if (!isNaN(current)) handleChange('valor_registro', (current + 1).toString());
                   }}
                   disabled={isReadOnly}
-                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                  className="bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -318,12 +345,12 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                     const current = parseFloat(data.valor_registro || '38.0');
                     if (!isNaN(current)) handleChange('valor_registro', (current - 0.1).toFixed(1));
                   }}
-                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <Minus className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
-                  <Input
+                  <Input colorTheme={tealInputTheme}
             disabled={isReadOnly}
                     type="number"
                     step="0.1"
@@ -340,7 +367,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                     const current = parseFloat(data.valor_registro || '38.0');
                     if (!isNaN(current)) handleChange('valor_registro', (current + 0.1).toFixed(1));
                   }}
-                  className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 p-3 rounded-xl shadow-sm transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -350,33 +377,33 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
 
           {sintomaSeleccionado.regla_medicion === 'presencia_booleana' && (
             <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-teal-200 hover:bg-teal-100 transition-colors">
                 <input 
                   disabled={isReadOnly}
                   type="radio" 
                   name="presencia" 
                   checked={data.valor_registro === 'true'}
                   onChange={() => handleChange('valor_registro', 'true')}
-                  className="accent-indigo-600"
+                  className="accent-teal-600"
                 />
-                <span className="text-sm font-bold text-indigo-900">Presente</span>
+                <span className="text-sm font-bold text-teal-900">Presente</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-teal-200 hover:bg-teal-100 transition-colors">
                 <input 
                   disabled={isReadOnly}
                   type="radio" 
                   name="presencia" 
                   checked={data.valor_registro === 'false'}
                   onChange={() => handleChange('valor_registro', 'false')}
-                  className="accent-indigo-600"
+                  className="accent-teal-600"
                 />
-                <span className="text-sm font-bold text-indigo-900">Ausente</span>
+                <span className="text-sm font-bold text-teal-900">Ausente</span>
               </label>
             </div>
           )}
 
           {sintomaSeleccionado.regla_medicion === 'texto_libre' && (
-            <Input
+            <Input colorTheme={tealInputTheme}
             disabled={isReadOnly}
               label="Descripción de la medida"
               value={data.valor_registro}
@@ -392,7 +419,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
         <h3 className="font-bold text-slate-800 text-sm">Detalles Clínicos (Opcional)</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
+          <Select colorTheme={tealSelectTheme}
           disabled={isReadOnly}
             label="Característica"
             options={CARACTERISTICAS_OPCIONES}
@@ -401,7 +428,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
             placeholder="¿Cómo se siente?"
             clearable
           />
-          <Select
+          <Select colorTheme={tealSelectTheme}
           disabled={isReadOnly}
             label="Frecuencia"
             options={FRECUENCIA_OPCIONES}
@@ -419,7 +446,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
           {/* COMBOBOX DE SUGERENCIAS */}
           <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <div className="flex-1 relative">
-              <Input
+              <Input colorTheme={tealInputTheme}
             disabled={isReadOnly}
                 placeholder="Ej: Masticar"
                 value={nuevoModificador}
@@ -449,7 +476,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
                               setNuevoModificador(sug);
                               setShowSugerencias(false);
                             }}
-                            className="px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-900 cursor-pointer transition-colors"
+                            className="px-4 py-2 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-900 cursor-pointer transition-colors"
                           >
                             {sug}
                           </li>
@@ -513,7 +540,7 @@ export const SintomasOcurrenciaForm: React.FC<Props> = ({ onDataChange, zonasSel
           <label className="block text-sm font-bold text-slate-700 mb-1">Notas Adicionales</label>
           <textarea
             disabled={isReadOnly}
-            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-400 min-h-[80px]"
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all placeholder:text-slate-400 min-h-[80px]"
             placeholder="Apunta cualquier otro detalle relevante..."
             value={data.notas}
             onChange={(e) => handleChange('notas', e.target.value)}

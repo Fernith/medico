@@ -47,7 +47,7 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   const medicionTheme: Partial<ModalColorTheme> = { titleColor: 'text-rose-900', headerBorder: 'border-rose-100', closeIconHover: 'hover:text-rose-500', modalBorder: 'border-rose-400', };
   const reglaTheme: Partial<ModalColorTheme> = { titleColor: 'text-purple-900', headerBorder: 'border-pink-100', closeIconHover: 'hover:text-pink-500', modalBorder: 'border-pink-400', };
   const medicacionTheme: Partial<ModalColorTheme> = { titleColor: 'text-teal-900', headerBorder: 'border-teal-100', closeIconHover: 'hover:text-teal-500', modalBorder: 'border-teal-400' };
-  const sintomasTheme: Partial<ModalColorTheme> = { titleColor: 'text-rose-900', headerBorder: 'border-rose-100', closeIconHover: 'hover:text-rose-500', modalBorder: 'border-rose-400' };
+  const sintomasTheme: Partial<ModalColorTheme> = { titleColor: 'text-teal-900', headerBorder: 'border-teal-100', closeIconHover: 'hover:text-teal-500', modalBorder: 'border-teal-800' };
 
   const currentTheme = 
     activeTab === 'peso' ? pesoTheme : 
@@ -57,12 +57,12 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo Registro" preventClose={true} colorTheme={currentTheme} size='lg'>
-      <div className="flex bg-slate-100 p-1 rounded-xl mb-6 transition-colors">
-        <button onClick={() => setActiveTab('peso')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'peso' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Peso</button>
-        <button onClick={() => setActiveTab('medicion')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicion' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medidas</button>
-        <button onClick={() => setActiveTab('regla')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'regla' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Regla</button>
+      <div className="flex bg-slate-100 p-1 rounded-xl mb-6 transition-colors overflow-x-auto custom-scrollbar">
+        <button onClick={() => setActiveTab('peso')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'peso' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Peso</button>
+        <button onClick={() => setActiveTab('medicion')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicion' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medidas</button>
+        <button onClick={() => setActiveTab('regla')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'regla' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Regla</button>
         <button onClick={() => setActiveTab('medicacion')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicacion' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medicación</button>
-        <button onClick={() => setActiveTab('sintomas')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'sintomas' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Síntomas</button>
+        <button onClick={() => setActiveTab('sintomas')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'sintomas' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Síntomas</button>
       </div>
 
       <div className="transition-opacity duration-300">
