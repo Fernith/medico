@@ -113,10 +113,7 @@ export const MedicamentosPage: React.FC = () => {
               </div>
 
               <div className="w-full space-y-4 pt-6 border-t border-slate-200">
-                <div className="flex items-center gap-2 text-slate-600 mb-2">
-                  <Archive className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-bold text-lg">Catálogo Maestro</h3>
-                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
                     <MedicamentosTabla medicamentos={medicamentos} />

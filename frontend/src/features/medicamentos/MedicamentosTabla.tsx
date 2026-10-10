@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Edit2, Trash2, Pill, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit2, Trash2, Pill, Plus, Search, ChevronLeft, ChevronRight, Archive } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { MedicamentoForm, type Medicamento } from './MedicamentoForm';
@@ -43,7 +43,7 @@ export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ m
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-teal-100 overflow-hidden h-full flex flex-col">
         <div className="p-4 bg-teal-50/50 border-b border-teal-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-          <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2"><Pill className="w-5 h-5 text-teal-500" /> Catálogo de Medicamentos</h2>
+          <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2"><Archive className="w-5 h-5 text-teal-600" /> Catálogo Maestro</h2>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
             {/* BUSCADOR */}
@@ -145,7 +145,7 @@ export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ m
         )}
       </div>
 
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Medicamento" : "Añadir Medicamento"} colorTheme={modalTheme}>
+      <Modal isOpen={isAddOpen} preventClose onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Medicamento" : "Añadir Medicamento"} colorTheme={modalTheme}>
         <MedicamentoForm initialData={editingItem} onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 

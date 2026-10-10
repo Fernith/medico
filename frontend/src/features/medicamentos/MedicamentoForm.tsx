@@ -91,7 +91,7 @@ export const MedicamentoForm: React.FC<MedicamentoFormProps> = ({ initialData, o
 
       <Input label="Notas (opcional)" placeholder="Ej: Evitar tomar con el estómago vacío" value={formData.notas} onChange={(e) => handleChange('notas', e.target.value)} colorTheme={inputTheme} icon={<FileText className="w-5 h-5" />} />
       
-      <div className="flex gap-4 pt-4 border-t border-slate-100">
+      <div className="flex gap-4 pt-4 pb-2 border-t border-slate-100 bg-white sticky bottom-0 z-10 mt-auto">
           <Button type="button" variant="ghost" onClick={onCancel} className="flex-1 py-3">Cancelar</Button>
           <Button type="submit" disabled={isSubmitting || !formData.nombre} isLoading={isSubmitting} colorTheme={buttonTheme} className="flex-1 py-3">{initialData ? 'Actualizar' : 'Guardar'}</Button>
         </div>

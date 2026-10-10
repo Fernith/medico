@@ -201,7 +201,7 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
         )}
       </div>
 
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Planificación" : "Nueva Planificación"} colorTheme={modalTheme} size="lg">
+      <Modal isOpen={isAddOpen} preventClose onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Planificación" : "Nueva Planificación"} colorTheme={modalTheme} size="lg">
         <MedicacionActivaForm initialData={editingItem} medicamentos={medicamentos} onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 

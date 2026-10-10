@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Edit2, Trash2, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle2, ArrowUpDown, X } from 'lucide-react';
+import { Edit2, Trash2, Search, Filter, ChevronLeft, ChevronRight, Clock, CheckCircle2, ArrowUpDown, X, SlidersHorizontal, Calendar, Ban } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
+import { Input } from '../../components/ui/Input';
 import { HistorialMedicacionForm, type HistorialMedicacion } from './HistorialMedicacionForm';
 import { MedicacionToast, type ToastData } from '../medicamentos/MedicacionToast';
 import { apiFetch } from '../../api/client';
@@ -19,6 +20,13 @@ export const HistorialMedicacionesTabla: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [sortDesc, setSortDesc] = useState(true);
+  
+  // Advanced filters state
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilterType, setAdvancedFilterType] = useState<'ninguno' | 'rango' | 'dias'>('ninguno');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [dias, setDias] = useState<number | ''>('');
   
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,20 +81,37 @@ export const HistorialMedicacionesTabla: React.FC = () => {
     let list = historial.filter(h => {
       const cumpleEstado = filtroEstado === 'todos' || (filtroEstado === 'pendientes' && h.pendiente) || (filtroEstado === 'tomados' && !h.pendiente);
       const cumpleBusqueda = h.medicamento_nombre.toLowerCase().includes(searchTerm.toLowerCase());
-      return cumpleEstado && cumpleBusqueda;
+      
+      let cumpleFechas = true;
+      if (advancedFilterType === 'rango') {
+         if (fechaInicio) {
+            if (new Date(h.fecha_hora) < new Date(fechaInicio)) cumpleFechas = false;
+         }
+         if (fechaFin) {
+            const fFin = new Date(fechaFin);
+            fFin.setHours(23, 59, 59, 999);
+            if (new Date(h.fecha_hora) > fFin) cumpleFechas = false;
+         }
+      } else if (advancedFilterType === 'dias' && typeof dias === 'number') {
+         const pastDate = new Date();
+         pastDate.setDate(pastDate.getDate() - dias);
+         if (new Date(h.fecha_hora) < pastDate) cumpleFechas = false;
+      }
+
+      return cumpleEstado && cumpleBusqueda && cumpleFechas;
     });
     list.sort((a, b) => {
       const diff = new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime();
       return sortDesc ? diff : -diff;
     });
     return list;
-  }, [historial, filtroEstado, searchTerm, sortDesc]);
+  }, [historial, filtroEstado, searchTerm, sortDesc, advancedFilterType, fechaInicio, fechaFin, dias]);
 
   const totalPages = Math.ceil(historialProcesado.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = historialProcesado.slice(startIndex, startIndex + itemsPerPage);
 
-  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm, itemsPerPage]);
+  React.useEffect(() => { setCurrentPage(1); }, [filtroEstado, searchTerm, itemsPerPage, advancedFilterType, fechaInicio, fechaFin, dias]);
 
   const modalTheme = { titleColor: 'text-teal-900', headerBorder: 'border-teal-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-teal-600', modalBorder: 'border-teal-400' };
 
@@ -94,8 +119,25 @@ export const HistorialMedicacionesTabla: React.FC = () => {
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-teal-100 overflow-hidden flex flex-col">
         <div className="p-4 bg-teal-50/50 border-b border-teal-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-          <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2">Historial de Tomas</h2>
+          <div className="flex justify-between items-center w-full xl:w-auto">
+            <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2">Historial de Tomas</h2>
+            <button 
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
+              className={`xl:hidden p-2 border rounded-lg shadow-sm transition-colors ${showAdvancedFilters ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-600 border-teal-200 hover:bg-teal-50'}`}
+              title="Filtros avanzados"
+            >
+                <SlidersHorizontal className="w-5 h-5" />
+            </button>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+            <button 
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} 
+              className={`hidden xl:flex items-center gap-2 p-2 px-3 border rounded-xl shadow-sm transition-colors ${showAdvancedFilters ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-600 border-teal-200 hover:bg-teal-50'}`}
+              title="Filtros avanzados"
+            >
+                <SlidersHorizontal className="w-5 h-5" />
+            </button>
             <div className="relative w-full sm:w-64 flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus-within:border-teal-400 focus-within:ring-4 focus-within:ring-teal-50 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input 
@@ -116,7 +158,76 @@ export const HistorialMedicacionesTabla: React.FC = () => {
           </div>
         </div>
 
-        {/* CORRECCIÓN: Eliminado min-h-[300px] */}
+        {showAdvancedFilters && (
+          <div className="p-4 bg-slate-50 border-b border-slate-200 animate-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2 bg-slate-200/50 p-1 rounded-xl w-max">
+                <button 
+                   title="Ninguno"
+                   onClick={() => setAdvancedFilterType('ninguno')}
+                   className={`p-2 rounded-lg transition-all ${advancedFilterType === 'ninguno' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                ><Ban className="w-5 h-5"/></button>
+                <button 
+                   title="Entre fechas"
+                   onClick={() => setAdvancedFilterType('rango')}
+                   className={`p-2 rounded-lg transition-all ${advancedFilterType === 'rango' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                ><Calendar className="w-5 h-5"/></button>
+                <button 
+                   title="Últimos Días"
+                   onClick={() => setAdvancedFilterType('dias')}
+                   className={`p-2 rounded-lg transition-all ${advancedFilterType === 'dias' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                ><Clock className="w-5 h-5"/></button>
+              </div>
+
+              {advancedFilterType === 'rango' && (
+                <div className="flex flex-row items-end gap-2 sm:gap-4 w-full animate-in fade-in">
+                  <button 
+                    onClick={() => { setFechaInicio(''); setFechaFin(''); }}
+                    title="Borrar fechas"
+                    disabled={!fechaInicio && !fechaFin}
+                    className="shrink-0 flex items-center justify-center h-[38px] w-[38px] bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:bg-white disabled:hover:border-slate-200 transition-colors shadow-sm"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <div className="flex flex-row gap-2 sm:gap-4 flex-1">
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                       <label className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide truncate">Inicio</label>
+                       <input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-1.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-700 font-medium outline-none focus:border-teal-500 shadow-sm h-[38px]" />
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                       <label className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide truncate">Fin</label>
+                       <input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-1.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-700 font-medium outline-none focus:border-teal-500 shadow-sm h-[38px]" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {advancedFilterType === 'dias' && (
+                <div className="flex items-center gap-3 animate-in fade-in">
+                  <div className="w-52">
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      label="Días a mostrar (hasta hoy)"
+                      value={dias} 
+                      onChange={e => setDias(e.target.value === '' ? '' : Number(e.target.value))} 
+                      placeholder="Ej: 30" 
+                      clearable
+                      onClear={() => setDias('')}
+                      className="!py-[7px] text-sm h-[38px]" 
+                      colorTheme={{ 
+                        labelColor: 'text-xs font-bold text-slate-600 uppercase tracking-wide ml-0 pl-0 mb-1.5', 
+                        borderNormal: 'border-slate-200', 
+                        borderFocus: 'focus:border-teal-500 focus:ring-teal-500' 
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto flex-1 custom-scrollbar">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
