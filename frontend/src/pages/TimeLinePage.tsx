@@ -4,23 +4,15 @@ import { Activity } from 'lucide-react';
 
 const TimeLinePage: React.FC = () => {
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden">
-      <div className="p-4 sm:p-6 lg:p-8 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-              <Activity className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Timeline</h1>
-              <p className="text-slate-500 text-sm mt-1">Línea temporal de tus tomas de medicación y síntomas</p>
-            </div>
-          </div>
-        </div>
+    <div className="h-[calc(100vh-10rem)] flex flex-col w-full max-w-5xl mx-auto space-y-4 animate-in fade-in duration-500 pb-4">
+      {/* TÍTULO */}
+      <div className="flex items-center gap-3 border-b-2 border-indigo-200 pb-4 shrink-0 mt-2">
+        <Activity className="w-10 h-10 text-indigo-600" />
+        <h1 className="text-3xl font-bold text-slate-800">Línea Temporal</h1>
       </div>
       
-      {/* Scroll area, using full height minus header */}
-      <div className="flex-1 overflow-hidden">
+      {/* Contenedor del scroll */}
+      <div className="flex-1 overflow-hidden bg-white rounded-xl shadow-sm border border-slate-200">
         <TimelineScroll />
       </div>
     </div>
@@ -28,4 +20,3 @@ const TimeLinePage: React.FC = () => {
 };
 
 export default TimeLinePage;
-

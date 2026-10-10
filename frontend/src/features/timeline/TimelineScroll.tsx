@@ -1,158 +1,46 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { apiFetch } from '../../api/client';
-import { type HistorialMedicacion } from '../medicamentos/HistorialMedicacionForm';
+import React from 'react';
+import { Calendar, Loader2 } from 'lucide-react';
+import { useTimeline } from './useTimeline';
+import { CATALOGO_ANATOMIA } from '../../utils/anatomia';
 import { type OcurrenciaSintoma } from '../sintomas/SintomasTabla';
-import { Activity, Calendar } from 'lucide-react';
 
-type TimelineItemType = 'medicamento' | 'sintoma';
+const getNombreLocalizacion = (id: string) => {
+  const loc = CATALOGO_ANATOMIA.find(c => c.id === id);
+  return loc ? loc.nombre : id;
+};
 
-export interface TimelineItem {
-  id: string;
-  type: TimelineItemType;
-  date: Date;
-  medicamento?: HistorialMedicacion;
-  sintoma?: OcurrenciaSintoma;
-}
+const getSintomaValor = (o: OcurrenciaSintoma) => {
+  if (o.valor_registro === 'true') return 'Presente';
+  if (o.valor_registro === 'false') return 'Ausente';
+  if (!o.valor_registro) return '-';
+  if (o.regla_medicion === 'escala_1_10') return `${o.valor_registro}/10`;
+  if (o.regla_medicion === 'conteo_episodios') return o.valor_registro === '1' ? '1 episodio' : `${o.valor_registro} episodios`;
+  if (o.regla_medicion === 'grados_celsius') return `${o.valor_registro}ºC`;
+  if (o.regla_medicion === 'cualitativa_3') return o.valor_registro === '1' ? 'Leve' : o.valor_registro === '2' ? 'Moderada' : 'Grave';
+  return o.valor_registro;
+};
 
 export const TimelineScroll: React.FC = () => {
-  const [medicamentos, setMedicamentos] = useState<HistorialMedicacion[]>([]);
-  const [sintomas, setSintomas] = useState<OcurrenciaSintoma[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Filtros
-  const [filtroTipo, setFiltroTipo] = useState<'todos' | 'medicamentos' | 'sintomas'>('todos');
-  const [navDate, setNavDate] = useState<string>('');
-
-  // Paginación infinita
-  const [visibleCount, setVisibleCount] = useState(20);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [resMed, resSin] = await Promise.all([
-          apiFetch('/api/historial-medicacion'),
-          apiFetch('/api/sintomas/ocurrencias')
-        ]);
-        
-        if (resMed.ok) {
-          const meds: HistorialMedicacion[] = await resMed.json();
-          setMedicamentos(meds.filter(m => !m.pendiente));
-        }
-        if (resSin.ok) {
-          const sins: OcurrenciaSintoma[] = await resSin.json();
-          setSintomas(sins);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const items = useMemo(() => {
-    const combined: TimelineItem[] = [];
-    
-    if (filtroTipo === 'todos' || filtroTipo === 'medicamentos') {
-      medicamentos.forEach(m => {
-        combined.push({
-          id: `med-${m.id}`,
-          type: 'medicamento',
-          date: new Date(m.fecha_hora),
-          medicamento: m,
-        });
-      });
-    }
-
-    if (filtroTipo === 'todos' || filtroTipo === 'sintomas') {
-      sintomas.forEach(s => {
-        combined.push({
-          id: `sin-${s.id}`,
-          type: 'sintoma',
-          date: new Date(s.fecha_inicio),
-          sintoma: s,
-        });
-      });
-    }
-
-    // Ordenar del más actual al más antiguo
-    return combined.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [medicamentos, sintomas, filtroTipo]);
-
-  // Agrupar por fecha local
-  const groupedItems = useMemo(() => {
-    const groups: { [key: string]: TimelineItem[] } = {};
-    items.forEach(item => {
-      // YYYY-MM-DD para agrupar localmente sin desfase horario
-      const dateKey = `${item.date.getFullYear()}-${String(item.date.getMonth() + 1).padStart(2, '0')}-${String(item.date.getDate()).padStart(2, '0')}`;
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(item);
-    });
-    
-    // Sort groups desc
-    const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-    return sortedKeys.map(key => ({
-      date: key,
-      items: groups[key]
-    }));
-  }, [items]);
-
-  // Efecto para scroll infinito
-  const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    
-    // Si estamos a 100px del final
-    if (scrollHeight - scrollTop - clientHeight < 100) {
-      setVisibleCount(prev => Math.min(prev + 20, items.length));
-    }
-  };
-
-  // Efecto para navegar a una fecha
-  useEffect(() => {
-    if (!navDate || !scrollContainerRef.current) return;
-    
-    // Encontrar el elemento más cercano (o el grupo)
-    // El id del grupo es `group-${dateKey}`
-    
-    const [year, month, day] = navDate.split('-');
-    const searchDateStr = `${year}-${month}-${day}`;
-    
-    // Buscamos el grupo exacto, o si no, el primer grupo que sea menor o igual (como está ordenado desc, buscamos el primero que sea <= searchDateStr)
-    let targetGroup = groupedItems.find(g => g.date <= searchDateStr);
-    
-    if (targetGroup) {
-      const el = document.getElementById(`group-${targetGroup.date}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else if (groupedItems.length > 0) {
-      // Si no hay ninguno menor, vamos al último (más antiguo)
-      const last = groupedItems[groupedItems.length - 1];
-      const el = document.getElementById(`group-${last.date}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  }, [navDate, groupedItems]);
-
-  const visibleGroups = useMemo(() => {
-    let count = 0;
-    const result = [];
-    for (const group of groupedItems) {
-      if (count >= visibleCount) break;
-      const groupItems = group.items.slice(0, visibleCount - count);
-      result.push({ ...group, items: groupItems });
-      count += groupItems.length;
-    }
-    return result;
-  }, [groupedItems, visibleCount]);
+  const {
+    isLoading,
+    filtroTipo,
+    setFiltroTipo,
+    navDate,
+    setNavDate,
+    visibleGroups,
+    scrollContainerRef,
+    handleScroll,
+    hasMore,
+    isFetchingMore,
+  } = useTimeline();
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Cargando línea temporal...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-slate-500 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p>Cargando línea temporal...</p>
+      </div>
+    );
   }
 
   const formatHora = (d: Date) => {
@@ -166,31 +54,26 @@ export const TimelineScroll: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
+    <div className="flex flex-col h-full relative">
       {/* Zona de filtros (Sticky top) */}
-      <div className="bg-white border-b border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 z-10 shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
-          <Activity className="w-5 h-5 text-indigo-500" />
-          <h2 className="text-lg font-semibold text-slate-800">Línea Temporal</h2>
-        </div>
-        
-        <div className="flex items-center gap-4 w-full sm:w-auto">
+      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4 z-10 shrink-0">
+        <div className="flex items-center gap-4 w-full sm:w-auto ml-auto">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-400" />
             <input 
               type="date" 
               value={navDate}
               onChange={e => setNavDate(e.target.value)}
-              className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
             />
           </div>
           
           <select
             value={filtroTipo}
             onChange={e => setFiltroTipo(e.target.value as any)}
-            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm bg-white"
           >
-            <option value="todos">Todos (Med y Sín)</option>
+            <option value="todos">Todos</option>
             <option value="medicamentos">Solo Medicamentos</option>
             <option value="sintomas">Solo Síntomas</option>
           </select>
@@ -201,80 +84,88 @@ export const TimelineScroll: React.FC = () => {
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide"
+        className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide bg-slate-50/50"
         style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
       >
         <div className="max-w-4xl mx-auto relative">
-          {/* Línea central */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-200 -translate-x-1/2"></div>
-          
           {visibleGroups.map(group => (
-            <div key={group.date} id={`group-${group.date}`} className="mb-8 relative">
+            <div key={group.date} id={`group-${group.date}`} className="mb-10 relative">
               {/* Etiqueta de Fecha */}
-              <div className="flex justify-center mb-6 relative z-10">
-                <div className="bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-full text-sm font-medium text-slate-600 capitalize">
+              <div className="flex justify-center mb-6 sticky top-0 z-20">
+                <div className="bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600 capitalize flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-slate-400" />
                   {getFormatedDate(group.date)}
                 </div>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {group.items.map(item => {
                   if (item.type === 'medicamento' && item.medicamento) {
                     const m = item.medicamento;
-                    const color = m.categoria_color || '#3b82f6'; // fallback blue
+                    const color = m.categoria_color || '#3b82f6';
+                    
+                    const isDosis = ['Polvo', 'Líquido', 'Crema', 'Inyectable'].includes(m.formato);
+                    const dosisTotal = m.cantidad_tomada * m.dosis_base;
+                    const tomaDisplay = isDosis 
+                      ? `${m.cantidad_tomada} Dosis de ${dosisTotal} ${m.unidad_dosis}` 
+                      : `${m.cantidad_tomada} ${m.formato}(s) (${dosisTotal} ${m.unidad_dosis})`;
+
                     return (
-                      <div key={item.id} className="flex justify-start items-center w-full relative">
-                        <div className="w-1/2 pr-8 flex justify-end">
-                          <div 
-                            className="bg-white p-3 rounded-lg shadow-sm border-l-4 max-w-sm w-full flex items-center justify-between"
-                            style={{ borderLeftColor: color }}
-                          >
-                            <div className="flex flex-col gap-1 w-full">
-                              <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
-                                <span>{formatHora(item.date)}</span>
-                                <span className="px-2 py-0.5 rounded-full bg-slate-100" style={{ color: color }}>
-                                  {m.categoria_nombre || 'Sin categoría'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-end mt-1">
-                                <span className="font-semibold text-slate-800">{m.medicamento_nombre}</span>
-                                <span className="text-sm font-medium text-slate-600 bg-slate-50 px-2 py-0.5 rounded">
-                                  {m.cantidad_tomada} {m.unidad_dosis}
-                                </span>
-                              </div>
-                            </div>
+                      <div key={item.id} className="flex justify-start w-full relative">
+                        <div 
+                          className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border-l-4 w-[85%] sm:w-[75%] flex flex-col gap-1.5 hover:shadow-md transition-shadow"
+                          style={{ borderLeftColor: color }}
+                        >
+                          <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+                            <span className="flex items-center gap-1.5 font-bold text-slate-700">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}></span>
+                              {formatHora(item.date)}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md font-semibold bg-slate-50" style={{ color: color }}>
+                              {m.categoria_nombre || 'Sin categoría'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-end mt-1">
+                            <span className="font-extrabold text-slate-800 text-base">{m.medicamento_nombre}</span>
+                            <span className="text-sm font-bold text-slate-400">
+                              {tomaDisplay}
+                            </span>
                           </div>
                         </div>
-                        {/* Punto central */}
-                        <div className="absolute left-1/2 w-3 h-3 rounded-full border-2 border-white -translate-x-1/2 z-10" style={{ backgroundColor: color }}></div>
                       </div>
                     );
                   } else if (item.type === 'sintoma' && item.sintoma) {
                     const s = item.sintoma;
-                    // Format from right to left: hora, sintoma, intensidad y localizacion
-                    const locs = s.localizaciones && s.localizaciones.length > 0 
-                      ? s.localizaciones.map(l => l.localizacion_id).join(', ') 
-                      : '';
+                    const valorDisplay = getSintomaValor(s);
+                      
                     return (
-                      <div key={item.id} className="flex justify-end items-center w-full relative">
-                        <div className="w-1/2 pl-8 flex justify-start">
-                          <div className="bg-red-50 p-3 rounded-lg shadow-sm border border-red-100 max-w-sm w-full flex items-center justify-between">
-                            <div className="flex flex-col gap-1 w-full text-right">
-                              <div className="flex justify-between items-center text-xs text-red-400 font-medium flex-row-reverse">
-                                <span>{formatHora(item.date)}</span>
-                                <span className="text-red-500 font-semibold truncate max-w-[150px]">{s.sintoma_nombre}</span>
-                              </div>
-                              <div className="flex justify-between items-end mt-1 flex-row-reverse">
-                                <span className="font-medium text-red-900">{s.valor_registro || '-'}</span>
-                                <span className="text-xs text-red-700 max-w-[200px] truncate" title={locs}>
-                                  {locs}
-                                </span>
-                              </div>
+                      <div key={item.id} className="flex justify-end w-full relative">
+                        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border-r-4 border-rose-500 w-[85%] sm:w-[75%] flex flex-col gap-1.5 hover:shadow-md transition-shadow">
+                          {/* Arriba: localizaciones y la hora */}
+                          <div className="flex justify-between items-start text-xs font-medium">
+                            <div className="flex flex-wrap gap-1">
+                              {s.localizaciones && s.localizaciones.length > 0 ? (
+                                s.localizaciones.map((loc, i) => (
+                                  <span key={i} className={`px-2 py-0.5 rounded-md text-xs border whitespace-nowrap ${loc.es_irradiado ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+                                    {getNombreLocalizacion(loc.localizacion_id)}
+                                    {loc.lado ? ` (${loc.lado})` : ''}
+                                  </span>
+                                ))
+                              ) : <span className="text-slate-400 italic text-xs">Sin ubicación</span>}
                             </div>
+                            <span className="flex items-center gap-1.5 font-bold text-slate-400 whitespace-nowrap ml-2">
+                              {formatHora(item.date)}
+                              <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                            </span>
+                          </div>
+                          {/* Abajo: síntomas e intensidad */}
+                          <div className="flex justify-between items-end mt-2">
+                            <span className="font-extrabold text-slate-800 text-base">{s.sintoma_nombre}</span>
+                            <span className="text-sm font-bold text-rose-600">
+                              {valorDisplay}
+                            </span>
                           </div>
                         </div>
-                        {/* Punto central */}
-                        <div className="absolute left-1/2 w-3 h-3 rounded-full bg-red-400 border-2 border-white -translate-x-1/2 z-10"></div>
                       </div>
                     );
                   }
@@ -287,6 +178,12 @@ export const TimelineScroll: React.FC = () => {
           {visibleGroups.length === 0 && (
             <div className="text-center text-slate-500 py-12">
               No hay eventos para mostrar con los filtros actuales.
+            </div>
+          )}
+
+          {isFetchingMore && hasMore && visibleGroups.length > 0 && (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
           )}
         </div>
