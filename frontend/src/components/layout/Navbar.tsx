@@ -64,6 +64,7 @@ export const Navbar = () => {
   const saludItems = [
     { path: '/medicamentos', icon: Pill, label: 'Medicamentos', activeColor: 'text-blue-600 bg-blue-50' },
     { path: '/sintomas', icon: Stethoscope, label: 'Síntomas', activeColor: 'text-teal-600 bg-teal-50' },
+    { path: '/timeline', icon: Activity, label: 'Timeline', activeColor: 'text-indigo-600 bg-indigo-50' },
   ];
 
   const ejercicioItems = [

@@ -10,6 +10,7 @@ import { AjustesPage } from './pages/AjustesPage';
 import { UsuarioPage } from './pages/UsuarioPage';
 import { MedicamentosPage } from './pages/MedicamentosPage';
 import { SintomasPage } from './pages/SintomasPage';
+import TimeLinePage from './pages/TimeLinePage';
 import { GlobalAddButton } from './components/layout/GlobalAddButton';
 import { EntrenamientoPage } from './pages/EntrenamientoPage';
 import { PasosPage } from './pages/PasosPage';
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/entrenamiento" element={<EntrenamientoPage />} />
                 <Route path="/medicamentos" element={<MedicamentosPage />} />
                 <Route path="/sintomas" element={<SintomasPage />} />
+                <Route path="/timeline" element={<TimeLinePage />} />
                 <Route path="/ajustes" element={<AjustesPage />} />
                 <Route path="/usuario" element={<UsuarioPage />} />
                 <Route path="/pasos" element={<PasosPage />} />

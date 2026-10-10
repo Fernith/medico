@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pill, Settings2, History, Archive, BarChart3 , Loader2} from 'lucide-react';
+import { Pill, Settings2, History, BarChart3, Loader2 } from 'lucide-react';
 import { type Medicamento } from '../features/medicamentos/MedicamentoForm';
 import { type MedicacionActiva } from '../features/medicamentos/MedicacionActivaForm';
 import { MedicamentosTabla } from '../features/medicamentos/MedicamentosTabla';

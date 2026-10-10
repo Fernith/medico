@@ -80,6 +80,8 @@ pub struct HistorialMedicacion {
     pub id: Uuid,
     pub medicamento_id: Uuid,
     pub medicamento_nombre: String,
+    pub categoria_nombre: Option<String>,
+    pub categoria_color: Option<String>,
     pub formato: String,
     pub dosis_base: f64,
     pub unidad_dosis: String,

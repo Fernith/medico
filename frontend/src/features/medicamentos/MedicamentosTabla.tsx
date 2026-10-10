@@ -145,7 +145,7 @@ export const MedicamentosTabla: React.FC<{ medicamentos: Medicamento[] }> = ({ m
         )}
       </div>
 
-      <Modal isOpen={isAddOpen} preventClose onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Medicamento" : "Añadir Medicamento"} colorTheme={modalTheme}>
+      <Modal isOpen={isAddOpen} preventClose size='lg' onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Medicamento" : "Añadir Medicamento"} colorTheme={modalTheme}>
         <MedicamentoForm initialData={editingItem} onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 

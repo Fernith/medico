@@ -200,10 +200,12 @@ pub async fn get_historial(
         r#"
         SELECT 
             h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
+            c.nombre as "categoria_nombre?", c.color as "categoria_color?",
             m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
             h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente, h.borrado
         FROM historial_medicacion h
         JOIN medicamento m ON h.medicamento_id = m.id
+        LEFT JOIN categoria_medicamento c ON m.categoria_id = c.id
         WHERE h.borrado = false
         ORDER BY h.fecha_hora DESC
         "#
@@ -312,10 +314,12 @@ pub async fn get_historial_rango(
         r#"
         SELECT 
             h.id, h.medicamento_id, m.nombre as "medicamento_nombre!",
+            c.nombre as "categoria_nombre?", c.color as "categoria_color?",
             m.formato::text as "formato!", m.dosis::float8 as "dosis_base!", m.unidad_dosis as "unidad_dosis!",
             h.fecha_hora, h.cantidad_tomada::float8 as "cantidad_tomada!", h.pendiente, h.borrado
         FROM historial_medicacion h
         JOIN medicamento m ON h.medicamento_id = m.id
+        LEFT JOIN categoria_medicamento c ON m.categoria_id = c.id
         WHERE h.pendiente = true 
           AND h.fecha_hora >= $1 
           AND h.fecha_hora <= $2

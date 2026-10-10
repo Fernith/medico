@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            h.id, h.medicamento_id, m.nombre as \"medicamento_nombre!\",\n            m.formato::text as \"formato!\", m.dosis::float8 as \"dosis_base!\", m.unidad_dosis as \"unidad_dosis!\",\n            h.fecha_hora, h.cantidad_tomada::float8 as \"cantidad_tomada!\", h.pendiente, h.borrado\n        FROM historial_medicacion h\n        JOIN medicamento m ON h.medicamento_id = m.id\n        WHERE h.pendiente = true \n          AND h.fecha_hora >= $1 \n          AND h.fecha_hora <= $2\n            AND h.borrado = false\n        ORDER BY h.fecha_hora ASC\n        ",
+  "query": "\n        SELECT \n            h.id, h.medicamento_id, m.nombre as \"medicamento_nombre!\",\n            c.nombre as \"categoria_nombre?\", c.color as \"categoria_color?\",\n            m.formato::text as \"formato!\", m.dosis::float8 as \"dosis_base!\", m.unidad_dosis as \"unidad_dosis!\",\n            h.fecha_hora, h.cantidad_tomada::float8 as \"cantidad_tomada!\", h.pendiente, h.borrado\n        FROM historial_medicacion h\n        JOIN medicamento m ON h.medicamento_id = m.id\n        LEFT JOIN categoria_medicamento c ON m.categoria_id = c.id\n        WHERE h.borrado = false\n        ORDER BY h.fecha_hora DESC\n        ",
   "describe": {
     "columns": [
       {
@@ -20,47 +20,56 @@
       },
       {
         "ordinal": 3,
+        "name": "categoria_nombre?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "categoria_color?",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
         "name": "formato!",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 6,
         "name": "dosis_base!",
         "type_info": "Float8"
       },
       {
-        "ordinal": 5,
+        "ordinal": 7,
         "name": "unidad_dosis!",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 6,
+        "ordinal": 8,
         "name": "fecha_hora",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 9,
         "name": "cantidad_tomada!",
         "type_info": "Float8"
       },
       {
-        "ordinal": 8,
+        "ordinal": 10,
         "name": "pendiente",
         "type_info": "Bool"
       },
       {
-        "ordinal": 9,
+        "ordinal": 11,
         "name": "borrado",
         "type_info": "Bool"
       }
     ],
     "parameters": {
-      "Left": [
-        "Timestamptz",
-        "Timestamptz"
-      ]
+      "Left": []
     },
     "nullable": [
+      false,
+      false,
       false,
       false,
       false,
@@ -73,5 +82,5 @@
       false
     ]
   },
-  "hash": "2c1a1fd825549727e7005a6b72162aef7d24e8f07df262d362670fb2b502e5e1"
+  "hash": "9d838d5ca5ec72dbec815e5b7e1fe00f237c21ab69188a85fa272ab1b73b89fc"
 }

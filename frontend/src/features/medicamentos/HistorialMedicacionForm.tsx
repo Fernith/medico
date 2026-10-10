@@ -9,6 +9,7 @@ import { apiFetch } from '../../api/client';
 
 export interface HistorialMedicacion {
   id: string; medicamento_id: string; medicamento_nombre: string;
+  categoria_nombre?: string; categoria_color?: string;
   formato: string; dosis_base: number; unidad_dosis: string;
   fecha_hora: string; cantidad_tomada: number; pendiente: boolean;
 }
