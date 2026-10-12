@@ -1,9 +1,13 @@
 pub mod ajustes;
+pub mod alergia;
+pub mod antecedente;
 pub mod ejercicio;
 pub mod google_fit;
+pub mod habito;
 pub mod medicamento;
 pub mod medicion;
 pub mod pasos;
+pub mod patologia;
 pub mod pesos;
 pub mod recordatorio;
 pub mod regla;

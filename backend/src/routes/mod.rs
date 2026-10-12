@@ -7,8 +7,8 @@ use sqlx::PgPool;
 
 // Importamos todos nuestros Handlers
 use crate::handlers::{
-    ajustes, ejercicio, google_fit, medicamento, medicion, pasos, pesos, recordatorio, regla,
-    rutina, sintomas, sueno, usuario,
+    ajustes, alergia, antecedente, ejercicio, google_fit, habito, medicamento, medicion, pasos,
+    patologia, pesos, recordatorio, regla, rutina, sintomas, sueno, usuario,
 };
 
 pub fn construir_router(pool: PgPool) -> Router {
@@ -66,6 +66,38 @@ pub fn construir_router(pool: PgPool) -> Router {
         .route(
             "/api/usuario",
             get(usuario::listar_usuario).put(usuario::guardar_usuario),
+        )
+        // ALERGIAS E INTOLERANCIAS
+        .route(
+            "/api/alergias",
+            get(alergia::get_alergias).post(alergia::create_alergia),
+        )
+        .route(
+            "/api/alergias/:id",
+            put(alergia::update_alergia).delete(alergia::delete_alergia),
+        )
+        // PATOLOGÍAS
+        .route(
+            "/api/patologias",
+            get(patologia::get_patologias).post(patologia::create_patologia),
+        )
+        .route(
+            "/api/patologias/:id",
+            put(patologia::update_patologia).delete(patologia::delete_patologia),
+        )
+        // ANTECEDENTES FAMILIARES
+        .route(
+            "/api/antecedentes",
+            get(antecedente::get_antecedentes).post(antecedente::create_antecedente),
+        )
+        .route(
+            "/api/antecedentes/:id",
+            put(antecedente::update_antecedente).delete(antecedente::delete_antecedente),
+        )
+        // HÁBITOS Y TÓXICOS BASALES
+        .route(
+            "/api/habitos-toxicos",
+            get(habito::get_habitos).put(habito::guardar_habitos),
         )
         // ENTRENAMIENTO (Ejercicios, Grupos y Equipamientos)
         .route(
