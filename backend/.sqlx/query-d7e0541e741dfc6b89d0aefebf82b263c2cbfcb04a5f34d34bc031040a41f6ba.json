@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE pesos \n                SET grasa_corporal = $1::FLOAT8, creado_en = NOW() \n                WHERE fecha = $2 AND grasa_corporal IS DISTINCT FROM $1::FLOAT8\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Float8",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d7e0541e741dfc6b89d0aefebf82b263c2cbfcb04a5f34d34bc031040a41f6ba"
+}

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT \n            id, \n            fecha, \n            peso::FLOAT8 as \"peso!\", \n            en_ayunas,\n            AVG(peso) OVER (\n                ORDER BY fecha ASC \n                ROWS BETWEEN 3 PRECEDING AND CURRENT ROW\n            )::FLOAT8 as promedio\n        FROM pesos \n        ORDER BY fecha DESC\n        ",
+  "query": "\n        SELECT \n            id, \n            fecha, \n            peso::FLOAT8 as \"peso!\", \n            en_ayunas,\n            AVG(peso) OVER (\n                ORDER BY fecha ASC \n                ROWS BETWEEN 3 PRECEDING AND CURRENT ROW\n            )::FLOAT8 as promedio,\n            grasa_corporal::FLOAT8 as grasa_corporal\n        FROM pesos \n        ORDER BY fecha DESC\n        ",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "promedio",
         "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "grasa_corporal",
+        "type_info": "Float8"
       }
     ],
     "parameters": {
@@ -37,8 +42,9 @@
       false,
       false,
       false,
-      null
+      null,
+      true
     ]
   },
-  "hash": "d1a3952df489d799c98f281fb554b14c3d5467c3847d989e02020864e78dcd8f"
+  "hash": "5694c14f7206ab7eba5b10b6ed2d0d65066ba952e923c8c8f8b0d93eccd58d99"
 }

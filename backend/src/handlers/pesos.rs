@@ -20,7 +20,8 @@ pub async fn listar_pesos(State(pool): State<PgPool>) -> Result<Json<Vec<PesoEnt
             AVG(peso) OVER (
                 ORDER BY fecha ASC 
                 ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
-            )::FLOAT8 as promedio
+            )::FLOAT8 as promedio,
+            grasa_corporal::FLOAT8 as grasa_corporal
         FROM pesos 
         ORDER BY fecha DESC
         "#
@@ -36,10 +37,11 @@ pub async fn crear_peso(
     Json(payload): Json<CreatePesoDto>,
 ) -> Result<StatusCode, AppError> {
     sqlx::query!(
-        "INSERT INTO pesos (fecha, peso, en_ayunas) VALUES ($1, $2::FLOAT8, $3)",
+        "INSERT INTO pesos (fecha, peso, en_ayunas, grasa_corporal) VALUES ($1, $2::FLOAT8, $3, $4::FLOAT8)",
         payload.fecha,
         payload.peso,
-        payload.en_ayunas
+        payload.en_ayunas,
+        payload.grasa_corporal
     )
     .execute(&pool)
     .await?;
@@ -56,18 +58,20 @@ pub async fn modificar_peso(
         PesoEntity,
         r#"
         UPDATE pesos 
-        SET fecha = $1, peso = $2::FLOAT8, en_ayunas = $3 
-        WHERE id = $4 
+        SET fecha = $1, peso = $2::FLOAT8, en_ayunas = $3, grasa_corporal = $4::FLOAT8 
+        WHERE id = $5 
         RETURNING 
             id, 
             fecha, 
             peso::FLOAT8 as "peso!", 
             en_ayunas,
-            NULL::FLOAT8 as promedio -- Le pasamos NULL para satisfacer al struct de Rust
+            NULL::FLOAT8 as promedio, -- Le pasamos NULL para satisfacer al struct de Rust
+            grasa_corporal::FLOAT8 as grasa_corporal
         "#,
         payload.fecha,
         payload.peso,
         payload.en_ayunas,
+        payload.grasa_corporal,
         id
     )
     .fetch_one(&pool)

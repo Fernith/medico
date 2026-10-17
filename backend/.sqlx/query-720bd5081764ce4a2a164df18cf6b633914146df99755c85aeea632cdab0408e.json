@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO pesos (fecha, peso, grasa_corporal, en_ayunas, creado_en)\n                VALUES ($1, $2::FLOAT8, $3::FLOAT8, $4, NOW())\n                ON CONFLICT (fecha) DO UPDATE SET\n                    peso = EXCLUDED.peso,\n                    grasa_corporal = COALESCE(EXCLUDED.grasa_corporal, pesos.grasa_corporal),\n                    en_ayunas = EXCLUDED.en_ayunas,\n                    creado_en = NOW()\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Float8",
+        "Float8",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "720bd5081764ce4a2a164df18cf6b633914146df99755c85aeea632cdab0408e"
+}

@@ -14,9 +14,16 @@ pub async fn login_google() -> Redirect {
     let client_id = env::var("GOOGLE_CLIENT_ID").unwrap_or_default();
     let redirect_uri = env::var("GOOGLE_REDIRECT_URI").unwrap_or_default();
 
-    // Aquí pedimos los 2 permisos clave: Sueño y Pasos (Activity)
     let url = format!(
-        "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=https://www.googleapis.com/auth/fitness.sleep.read%20https://www.googleapis.com/auth/fitness.activity.read&access_type=offline&prompt=consent",
+        "https://accounts.google.com/o/oauth2/v2/auth?\
+        client_id={}&\
+        redirect_uri={}&\
+        response_type=code&\
+        scope=https://www.googleapis.com/auth/fitness.activity.read%20\
+            https://www.googleapis.com/auth/fitness.sleep.read%20\
+            https://www.googleapis.com/auth/fitness.body.read&\
+        access_type=offline&\
+        prompt=consent",
         client_id, redirect_uri
     );
 

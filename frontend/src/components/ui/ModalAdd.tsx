@@ -17,14 +17,14 @@ interface ModalAddProps {
 type TabType = 'peso' | 'medicion' | 'regla' | 'medicacion' | 'sintomas';
 
 export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('peso');
+  const [activeTab, setActiveTab] = useState<TabType>('medicion');
   
   // NUEVO ESTADO: Ciclo en curso
   const [cicloActivo, setCicloActivo] = useState<Ciclo | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab('peso');
+      setActiveTab('medicion');
     }
   }, [isOpen]);
 
@@ -58,11 +58,11 @@ export const ModalAdd: React.FC<ModalAddProps> = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo Registro" preventClose={true} colorTheme={currentTheme} size='lg'>
       <div className="flex bg-slate-100 p-1 rounded-xl mb-6 transition-colors overflow-x-auto custom-scrollbar">
-        <button onClick={() => setActiveTab('peso')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'peso' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Peso</button>
         <button onClick={() => setActiveTab('medicion')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicion' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medidas</button>
         <button onClick={() => setActiveTab('regla')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'regla' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Regla</button>
         <button onClick={() => setActiveTab('medicacion')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'medicacion' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Medicación</button>
         <button onClick={() => setActiveTab('sintomas')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'sintomas' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Síntomas</button>
+        <button onClick={() => setActiveTab('peso')} className={`flex-1 min-w-[80px] py-2 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === 'peso' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Peso</button>
       </div>
 
       <div className="transition-opacity duration-300">
