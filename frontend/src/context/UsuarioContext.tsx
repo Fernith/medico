@@ -5,6 +5,7 @@ export interface DatosUsuario {
   altura: string;
   sexo: string;
   nacimiento: string;
+  ocupacion: string;
 }
 
 interface UsuarioContextType {
@@ -19,7 +20,8 @@ export const UsuarioProvider = ({ children }: { children: React.ReactNode }) => 
   const [datosUsuario, setDatosUsuario] = useState<DatosUsuario>({
     altura: '',
     sexo: '',
-    nacimiento: ''
+    nacimiento: '',
+    ocupacion: ''
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,7 +32,8 @@ export const UsuarioProvider = ({ children }: { children: React.ReactNode }) => 
         setDatosUsuario({
           altura: data.altura || '',
           sexo: data.sexo || '',
-          nacimiento: data.nacimiento || ''
+          nacimiento: data.nacimiento || '',
+          ocupacion: data.ocupacion || ''
         });
       })
       .catch(console.error)

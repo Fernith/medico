@@ -3,10 +3,10 @@ import { Edit2, Trash2, Pause, Play, Activity, Plus, Search, Filter, ChevronLeft
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { Select } from '../../components/ui/Select';
+import { Button, type ButtonColorTheme } from '../../components/ui/Button';
 import { MedicacionActivaForm, type MedicacionActiva } from './MedicacionActivaForm';
 import { type Medicamento } from './MedicamentoForm';
 import { apiFetch } from '../../api/client';
-
 
 interface Props { activas: MedicacionActiva[]; medicamentos: Medicamento[]; }
 
@@ -37,8 +37,17 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
     } catch (err) { console.error(err); }
   };
 
-  const formatearFecha = (isoString: string) => {
+  const formatearFecha = (isoString?: string | null) => {
+    if (!isoString) return '-';
     return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(isoString));
+  };
+
+  const tealButtonTheme: ButtonColorTheme = {
+    bgNormal: 'bg-teal-600',
+    bgHover: 'hover:bg-teal-700',
+    textColor: 'text-white',
+    border: 'border border-transparent',
+    focusRing: 'focus:ring-teal-500'
   };
 
   const modalTheme = { titleColor: 'text-teal-900', headerBorder: 'border-teal-100', closeIconColor: 'text-slate-400', closeIconHover: 'hover:text-teal-600', modalBorder: 'border-teal-400' };
@@ -64,14 +73,14 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-teal-100 overflow-hidden h-full flex flex-col">
         <div className="p-4 bg-teal-50/50 border-b border-teal-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-          <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2"><Activity className="w-5 h-5 text-teal-600" /> Planificación de Tomas</h2>
+          <h2 className="text-lg font-bold text-teal-800 shrink-0 flex items-center gap-2"><Activity className="w-5 h-5 text-teal-600" /> Medicaciones activas</h2>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
             {/* BUSCADOR */}
             <div className="relative w-full sm:w-64 flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm focus-within:border-teal-400 focus-within:ring-4 focus-within:ring-teal-50 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input 
-                type="text" placeholder="Buscar planificación..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                type="text" placeholder="Buscar medicación..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-transparent text-sm font-medium text-slate-700 focus:outline-none px-2"
               />
             </div>
@@ -79,15 +88,20 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
             {/* SELECTOR DE ESTADO */}
             <div className="w-full sm:w-48">
               <Select 
-                value={filtroEstado} onChange={(val) => setFiltroEstado(val as any)}
+                value={filtroEstado} onChange={(val) => setFiltroEstado(val as 'activos' | 'inactivos' | 'todos')}
                 options={[ { value: 'activos', label: 'Solo Activos' }, { value: 'inactivos', label: 'Solo Pausados' }, { value: 'todos', label: 'Mostrar Todos' } ]}
                 icon={<Filter className="w-4 h-4 text-slate-500" />} colorTheme={selectTheme}
               />
             </div>
 
-            <button onClick={() => { setEditingItem(null); setIsAddOpen(true); }} className="flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition-all shadow-sm hover:shadow-teal-500/30 w-full sm:w-auto" style={{ height: '42px' }}>
-              <Plus className="w-4 h-4" strokeWidth={3} /> <span>Planificar</span>
-            </button>
+            <Button
+              onClick={() => { setEditingItem(null); setIsAddOpen(true); }}
+              colorTheme={tealButtonTheme}
+              icon={<Plus className="w-4 h-4" strokeWidth={3} />}
+              className="w-full sm:w-auto h-[42px] px-4 text-sm font-bold shadow-sm hover:shadow-teal-500/30"
+            >
+              Añadir
+            </Button>
           </div>
         </div>
 
@@ -134,10 +148,20 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
                       }
                     </td>
                     
-                    <td className="px-4 py-3 text-slate-600 font-medium align-top pt-4">{act.frecuencia}</td>
+                    <td className="px-4 py-3 text-slate-600 font-medium align-top pt-4">
+                      {act.frecuencia === 'Segun necesidad' ? 'Según necesidad' : act.frecuencia}
+                    </td>
                     <td className="px-4 py-3 text-xs text-slate-500 align-top pt-4">
-                      <div><span className="font-semibold text-slate-700">De:</span> {formatearFecha(act.fecha_inicio)}</div>
-                      <div><span className="font-semibold text-slate-700">A:</span> {act.fecha_fin ? formatearFecha(act.fecha_fin) : 'Indefinido'}</div>
+                      {act.frecuencia === 'Segun necesidad' || !act.fecha_inicio ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                          A petición
+                        </span>
+                      ) : (
+                        <>
+                          <div><span className="font-semibold text-slate-700">De:</span> {formatearFecha(act.fecha_inicio)}</div>
+                          <div><span className="font-semibold text-slate-700">A:</span> {act.fecha_fin ? formatearFecha(act.fecha_fin) : 'Indefinido'}</div>
+                        </>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap align-top pt-4">
                       <button onClick={() => handleToggle(act.id)} className={`transition-colors ${act.activo ? 'text-slate-400 hover:text-amber-500' : 'text-slate-400 hover:text-emerald-500'}`} title={act.activo ? 'Pausar' : 'Reanudar'}>
@@ -201,14 +225,14 @@ export const MedicacionesActivasTabla: React.FC<Props> = ({ activas, medicamento
         )}
       </div>
 
-      <Modal isOpen={isAddOpen} preventClose onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Planificación" : "Nueva Planificación"} colorTheme={modalTheme} size="lg">
+      <Modal isOpen={isAddOpen} preventClose onClose={() => setIsAddOpen(false)} title={editingItem ? "Editar Medicación Activa" : "Nueva Medicación Activa"} colorTheme={modalTheme} size="lg">
         <MedicacionActivaForm initialData={editingItem} medicamentos={medicamentos} onSuccess={() => setIsAddOpen(false)} onCancel={() => setIsAddOpen(false)} />
       </Modal>
 
       <ConfirmModal 
         isOpen={!!deleteId} onCancel={() => setDeleteId(null)} onConfirm={handleDelete}
-        title="Borrar Planificación" 
-        description="⚠️ ¡ATENCIÓN! ¿Seguro que deseas eliminar esta planificación de tomas? Esta acción no se puede deshacer (el historial de tomas realizadas se conservará)."
+        title="Borrar Medicación Activa" 
+        description="⚠️ ¡ATENCIÓN! ¿Seguro que deseas eliminar esta medicación activa? Esta acción no se puede deshacer (el historial de tomas realizadas se conservará)."
         variant="danger" confirmText="Borrar definitivamente"
       />
     </>

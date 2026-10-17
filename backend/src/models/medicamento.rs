@@ -56,7 +56,7 @@ pub struct MedicacionActiva {
     pub unidad_dosis: String,
     pub frecuencia: String,
     pub cantidad: f64,
-    pub fecha_inicio: DateTime<Utc>,
+    pub fecha_inicio: Option<DateTime<Utc>>,
     pub fecha_fin: Option<DateTime<Utc>>,
     pub anotaciones: Option<String>,
     pub activo: bool,
@@ -67,7 +67,7 @@ pub struct MedicacionActivaPayload {
     pub medicamento_id: Uuid,
     pub frecuencia: String,
     pub cantidad: f64,
-    pub fecha_inicio: DateTime<Utc>,
+    pub fecha_inicio: Option<DateTime<Utc>>,
     pub fecha_fin: Option<DateTime<Utc>>,
     pub anotaciones: Option<String>,
 }

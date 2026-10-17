@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, type InputColorTheme } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { useUsuario, type DatosUsuario } from '../../context/UsuarioContext';
-import { Calendar } from 'lucide-react';
+import { Calendar, Briefcase } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 const indigoInputTheme: Partial<InputColorTheme> = {
@@ -29,7 +29,8 @@ export const UsuarioDatosForm: React.FC = () => {
   const [formData, setFormData] = useState<DatosUsuario>({
     altura: '',
     sexo: 'masculino',
-    nacimiento: ''
+    nacimiento: '',
+    ocupacion: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +41,8 @@ export const UsuarioDatosForm: React.FC = () => {
       setFormData({
         altura: datosUsuario.altura || '',
         sexo: datosUsuario.sexo || 'masculino',
-        nacimiento: datosUsuario.nacimiento || ''
+        nacimiento: datosUsuario.nacimiento || '',
+        ocupacion: datosUsuario.ocupacion || ''
       });
     }
   }, [datosUsuario, isLoading]);
@@ -54,7 +56,7 @@ export const UsuarioDatosForm: React.FC = () => {
     }
   }, [mensaje]);
 
-  const handleChange = (campo: keyof DatosUsuario, valor: any) => {
+  const handleChange = (campo: keyof DatosUsuario, valor: string) => {
     setFormData(prev => ({ ...prev, [campo]: valor }));
     setMensaje(null);
   };
@@ -125,6 +127,16 @@ export const UsuarioDatosForm: React.FC = () => {
           required 
           colorTheme={indigoInputTheme}
           icon={<Calendar className="w-5 h-5" />}
+        />
+
+        <Input 
+          label="Trabajo / Ocupación" 
+          type="text" 
+          placeholder="Ej: Ingeniero de software"
+          value={formData.ocupacion} 
+          onChange={(e) => handleChange('ocupacion', e.target.value)} 
+          colorTheme={indigoInputTheme}
+          icon={<Briefcase className="w-5 h-5" />}
         />
       </div>
 

@@ -124,7 +124,7 @@ pub async fn get_medicaciones_activas(
             ma.fecha_inicio, ma.fecha_fin, ma.anotaciones, ma.activo
         FROM medicacion_activa ma
         JOIN medicamento m ON ma.medicamento_id = m.id
-        ORDER BY ma.activo DESC, ma.fecha_inicio DESC
+        ORDER BY ma.activo DESC, ma.fecha_inicio DESC NULLS LAST
         "#
     )
     .fetch_all(&pool)

@@ -66,6 +66,15 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
     let limit_utc = fin_hoy_spain.and_utc() - offset_spain;
 
     for plan in planes {
+        // Las pautas a demanda / según necesidad no generan tomas programadas en el calendario
+        if plan.frecuencia == "Segun necesidad" {
+            continue;
+        }
+
+        let Some(fecha_inicio) = plan.fecha_inicio else {
+            continue;
+        };
+
         // Traducción de la Frecuencia a horas matemáticas
         let horas = match plan.frecuencia.as_str() {
             "Cada 6 horas" => 6,
@@ -73,7 +82,7 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
             "Cada 12 horas" => 12,
             "Diaria" => 24,
             "Semanal" => 168,
-            _ => 24, // Fallback por seguridad
+            _ => continue, // Fallback por seguridad: no genera tomas periódicas
         };
 
         // 3. Buscar la última toma para ESTE medicamento generada DESPUÉS del inicio del plan
@@ -84,7 +93,7 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
             WHERE medicamento_id = $1 AND fecha_hora >= $2
             "#,
             plan.medicamento_id,
-            plan.fecha_inicio
+            fecha_inicio
         )
         .fetch_one(pool)
         .await
@@ -94,7 +103,7 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
         // Si hay una última toma, le sumamos la frecuencia. Si no, empezamos desde fecha_inicio
         let mut next_dose = match last_toma {
             Some(last) => last + chrono::Duration::hours(horas),
-            None => plan.fecha_inicio,
+            None => fecha_inicio,
         };
 
         let mut plan_finished = false;
@@ -132,9 +141,8 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
         }
 
         // 5. Apagado automático del plan si la fecha caducó
-        if plan_finished
-            || (plan.fecha_fin.is_some() && chrono::Utc::now() > plan.fecha_fin.unwrap())
-        {
+        let ha_caducado = plan.fecha_fin.map_or(false, |fin| chrono::Utc::now() > fin);
+        if plan_finished || ha_caducado {
             sqlx::query!(
                 "UPDATE medicacion_activa SET activo = false WHERE id = $1",
                 plan.id
