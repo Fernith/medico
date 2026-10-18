@@ -8,8 +8,17 @@ interface MedidasGraficaProps {
   sexo: 'Masculino' | 'Femenino';
 }
 
+interface PuntoMedidasGrafica {
+  timestamp: number;
+  ice?: number;
+  icc?: number;
+  cm_cintura?: number | null;
+  cm_cadera?: number | null;
+  altura: number;
+}
+
 // 1. Tarjeta Elegante Compartida
-const MedidasInfoCard = ({ data, isTooltip = false }: { data: any, isTooltip?: boolean }) => {
+const MedidasInfoCard = ({ data, isTooltip = false }: { data: PuntoMedidasGrafica | null, isTooltip?: boolean }) => {
   if (!data) return null;
   
   return (
@@ -35,12 +44,37 @@ const MedidasInfoCard = ({ data, isTooltip = false }: { data: any, isTooltip?: b
           </div>
         )}
       </div>
+
+      <div className="flex justify-between items-center w-full max-w-[280px] mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-500">
+        <div>
+          <span className="font-semibold text-slate-400 block text-[9px] uppercase tracking-wider">Cintura</span>
+          <span className="font-bold text-slate-700">{data.cm_cintura != null ? `${data.cm_cintura} cm` : '-'}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-slate-400 block text-[9px] uppercase tracking-wider">Cadera</span>
+          <span className="font-bold text-slate-700">{data.cm_cadera != null ? `${data.cm_cadera} cm` : '-'}</span>
+        </div>
+        <div>
+          <span className="font-semibold text-slate-400 block text-[9px] uppercase tracking-wider">Altura</span>
+          <span className="font-bold text-slate-700">{data.altura != null ? `${data.altura} cm` : '-'}</span>
+        </div>
+      </div>
     </div>
   );
 };
 
+interface TooltipPayloadItem {
+  payload: PuntoMedidasGrafica;
+}
+
+interface SyncTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  onUpdate: (data: PuntoMedidasGrafica) => void;
+}
+
 // 2. El "Caballo de Troya"
-const SyncTooltip = ({ active, payload, onUpdate }: any) => {
+const SyncTooltip = ({ active, payload, onUpdate }: SyncTooltipProps) => {
   useEffect(() => {
     if (active && payload && payload.length) {
       onUpdate(payload[0].payload);
@@ -58,13 +92,18 @@ const SyncTooltip = ({ active, payload, onUpdate }: any) => {
 };
 
 export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, sexo }) => {
-  const [selectedData, setSelectedData] = useState<any | null>(null);
+  const [selectedData, setSelectedData] = useState<PuntoMedidasGrafica | null>(null);
 
   const { chartData, yMin, yMax } = useMemo(() => {
     if (!data || data.length === 0) return { chartData: [], yMin: 0.3, yMax: 1.2 };
     
-    const procesado = [...data].reverse().map(d => {
-      const punto: any = { timestamp: new Date(d.fecha).getTime() };
+    const procesado: PuntoMedidasGrafica[] = [...data].reverse().map(d => {
+      const punto: PuntoMedidasGrafica = {
+        timestamp: new Date(d.fecha).getTime(),
+        cm_cintura: d.cm_cintura,
+        cm_cadera: d.cm_cadera,
+        altura: altura,
+      };
       if (d.cm_cintura) {
         punto.ice = calcularICE(d.cm_cintura, altura);
         if (d.cm_cadera) {
@@ -98,8 +137,8 @@ export const MedidasGrafica: React.FC<MedidasGraficaProps> = ({ data, altura, se
     }
   }, [chartData]);
 
-  const handleUpdate = useCallback((newData: any) => {
-    setSelectedData((prev: any) => {
+  const handleUpdate = useCallback((newData: PuntoMedidasGrafica) => {
+    setSelectedData((prev) => {
       if (!prev || prev.timestamp !== newData.timestamp) return newData;
       return prev;
     });

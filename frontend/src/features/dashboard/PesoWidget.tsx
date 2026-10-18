@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { calcularIMC } from '../../utils/pesoCalculations';
+import { calcularIMC, type PesoDB } from '../../utils/pesoCalculations';
 import { ChevronRight } from 'lucide-react';
 import { apiFetch } from '../../api/client';
 import { useUsuario } from '../../context/UsuarioContext';
 
 export const PesoWidget = () => {
-  const [ultimoPeso, setUltimoPeso] = useState<number | null>(null);
+  const [ultimoRegistro, setUltimoRegistro] = useState<PesoDB | null>(null);
   const { datosUsuario } = useUsuario();
   const altura = Number(datosUsuario.altura) || 180;
   
@@ -14,15 +14,17 @@ export const PesoWidget = () => {
     // 1. Llamada para traer el último peso
     apiFetch('/api/pesos')
       .then(res => res.json())
-      .then(data => {
+      .then((data: PesoDB[]) => {
         if (data && data.length > 0) {
-          const last = data.sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
-          setUltimoPeso(last.peso);
+          const last = [...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+          setUltimoRegistro(last);
         }
       })
       .catch(console.error);
   }, []);
 
+  const ultimoPeso = ultimoRegistro?.peso ?? null;
+  const ultimaGrasa = ultimoRegistro?.grasa_corporal ?? null;
   const imc = ultimoPeso ? calcularIMC(ultimoPeso, altura) : null;
 
   const renderContent = () => {
@@ -41,11 +43,11 @@ export const PesoWidget = () => {
           Último peso:
         </span>
         <span className="text-5xl font-black text-emerald-900">
-          {ultimoPeso} <span className="text-2xl">kg</span>
+          {ultimoPeso.toFixed(2)} <span className="text-2xl">kg</span>
         </span>
         {imc && (
           <span className="text-xs text-emerald-500 font-medium text-center mt-2 px-2">
-            IMC: {imc}
+            IMC: {imc}{ultimaGrasa != null ? ` - GC: ${ultimaGrasa.toFixed(2)}%` : ''}
           </span>
         )}
       </div>

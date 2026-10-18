@@ -50,6 +50,7 @@ export const PesosTabla: React.FC<PesosTablaProps> = ({ pesos }) => {
               <tr>
                 <th className="px-4 py-3 font-semibold">Fecha</th>
                 <th className="px-4 py-3 font-semibold">Peso</th>
+                <th className="px-4 py-3 font-semibold">Grasa Corporal</th>
                 <th className="px-4 py-3 font-semibold text-center">Ayunas</th>
                 <th className="px-4 py-3 font-semibold text-right">Acciones</th>
               </tr>
@@ -60,7 +61,10 @@ export const PesosTabla: React.FC<PesosTablaProps> = ({ pesos }) => {
                   <td className="px-4 py-3 font-medium text-slate-700">
                     {new Date(p.fecha).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 font-bold text-emerald-600">{p.peso} kg</td>
+                  <td className="px-4 py-3 font-bold text-emerald-600">{p.peso.toFixed(2)} kg</td>
+                  <td className="px-4 py-3 font-medium text-slate-600">
+                    {p.grasa_corporal != null ? `${p.grasa_corporal.toFixed(2)} %` : <span className="text-slate-300">-</span>}
+                  </td>
                   
                   <td className="px-4 py-3 text-center text-lg" title={p.en_ayunas ? 'En ayunas' : 'No en ayunas'}>
                     {p.en_ayunas ? '☀️' : <span className="text-slate-300">-</span>}
@@ -90,7 +94,7 @@ export const PesosTabla: React.FC<PesosTablaProps> = ({ pesos }) => {
               ))}
               {pesos.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-slate-500">
+                  <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
                     No hay pesos registrados todavía.
                   </td>
                 </tr>

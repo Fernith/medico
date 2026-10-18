@@ -7,8 +7,12 @@ interface PesoGraficaProps {
   altura: number;
 }
 
+interface PesoPuntoGrafica extends PesoDB {
+  timestamp: number;
+}
+
 // 1. Tarjeta Elegante Compartida
-const PesoInfoCard = ({ data, isTooltip = false }: { data: any, isTooltip?: boolean }) => {
+const PesoInfoCard = ({ data, isTooltip = false }: { data: PesoPuntoGrafica | null, isTooltip?: boolean }) => {
   if (!data) return null;
 
   return (
@@ -24,13 +28,13 @@ const PesoInfoCard = ({ data, isTooltip = false }: { data: any, isTooltip?: bool
         {data.peso !== undefined && (
           <div className="flex-1 bg-slate-50 rounded-2xl p-3 border border-slate-200/60">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Peso Real</p>
-            <p className="text-2xl font-black text-slate-700 leading-none">{data.peso.toFixed(1)} <span className="text-xs font-bold text-slate-400">kg</span></p>
+            <p className="text-2xl font-black text-slate-700 leading-none">{data.peso.toFixed(2)} <span className="text-xs font-bold text-slate-400">kg</span></p>
           </div>
         )}
         {data.promedio !== undefined && (
           <div className="flex-1 bg-emerald-50/80 rounded-2xl p-3 border border-emerald-100/50">
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Promedio</p>
-            <p className="text-2xl font-black text-emerald-600 leading-none">{data.promedio.toFixed(1)} <span className="text-xs font-bold text-emerald-400">kg</span></p>
+            <p className="text-2xl font-black text-emerald-600 leading-none">{data.promedio.toFixed(2)} <span className="text-xs font-bold text-emerald-400">kg</span></p>
           </div>
         )}
       </div>
@@ -38,8 +42,18 @@ const PesoInfoCard = ({ data, isTooltip = false }: { data: any, isTooltip?: bool
   );
 };
 
+interface TooltipPayloadItem {
+  payload: PesoPuntoGrafica;
+}
+
+interface SyncTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  onUpdate: (data: PesoPuntoGrafica) => void;
+}
+
 // 2. El "Caballo de Troya"
-const SyncTooltip = ({ active, payload, onUpdate }: any) => {
+const SyncTooltip = ({ active, payload, onUpdate }: SyncTooltipProps) => {
   useEffect(() => {
     if (active && payload && payload.length) {
       onUpdate(payload[0].payload);
@@ -57,12 +71,12 @@ const SyncTooltip = ({ active, payload, onUpdate }: any) => {
 };
 
 export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
-  const [selectedData, setSelectedData] = useState<any | null>(null);
+  const [selectedData, setSelectedData] = useState<PesoPuntoGrafica | null>(null);
 
   const { chartData, yMin, yMax } = useMemo(() => {
     if (!data || data.length === 0) return { chartData: [], yMin: 0, yMax: 0 };
 
-    const cronologico = [...data].reverse().map(d => ({
+    const cronologico: PesoPuntoGrafica[] = [...data].reverse().map(d => ({
       ...d,
       timestamp: new Date(d.fecha).getTime(),
     }));
@@ -84,8 +98,8 @@ export const PesoGrafica: React.FC<PesoGraficaProps> = ({ data, altura }) => {
     }
   }, [chartData]);
 
-  const handleUpdate = useCallback((newData: any) => {
-    setSelectedData((prev: any) => {
+  const handleUpdate = useCallback((newData: PesoPuntoGrafica) => {
+    setSelectedData((prev) => {
       if (!prev || prev.timestamp !== newData.timestamp) return newData;
       return prev;
     });

@@ -4,18 +4,19 @@ export interface PesoDB {
   fecha: string;
   en_ayunas: boolean;
   promedio?: number;
+  grasa_corporal?: number | null;
 }
 
 // IMC = Peso(kg) / Altura(m)^2
 export const calcularIMC = (peso: number, alturaCm: number): number => {
   const alturaM = alturaCm / 100;
-  return Number((peso / (alturaM * alturaM)).toFixed(1));
+  return Number((peso / (alturaM * alturaM)).toFixed(2));
 };
 
 // Peso = IMC * Altura(m)^2
 export const calcularPesoParaIMC = (imc: number, alturaCm: number): number => {
   const alturaM = alturaCm / 100;
-  return Number((imc * (alturaM * alturaM)).toFixed(1));
+  return Number((imc * (alturaM * alturaM)).toFixed(2));
 };
 
 // NUEVO: Añadida la descripción para los Tooltips del Widget

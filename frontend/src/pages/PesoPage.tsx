@@ -35,15 +35,15 @@ export const PesoPage: React.FC = () => {
 
       if (resPes.ok)
         setPesos(
-          (await resPes.json()).sort(
-            (a: any, b: any) =>
+          ((await resPes.json()) as PesoDB[]).sort(
+            (a, b) =>
               new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
           ),
         );
       if (resMed.ok)
         setMediciones(
-          (await resMed.json()).sort(
-            (a: any, b: any) =>
+          ((await resMed.json()) as MedicionDB[]).sort(
+            (a, b) =>
               new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
           ),
         );
@@ -56,8 +56,9 @@ export const PesoPage: React.FC = () => {
 
   useEffect(() => {
     fetchAllData();
-    const handleRegistro = (e: any) => {
-      if (e.detail === "peso" || e.detail === "medicion") fetchAllData();
+    const handleRegistro = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail === "peso" || customEvent.detail === "medicion") fetchAllData();
     };
     window.addEventListener("registroAgregado", handleRegistro);
     return () => window.removeEventListener("registroAgregado", handleRegistro);

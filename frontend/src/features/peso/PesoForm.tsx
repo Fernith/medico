@@ -47,11 +47,12 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     peso: initialData ? initialData.peso.toString() : '',
+    grasa_corporal: initialData?.grasa_corporal != null ? initialData.grasa_corporal.toString() : '',
     fecha: initialData ? initialData.fecha.split('T')[0] : hoy,
     en_ayunas: initialData ? initialData.en_ayunas : true,
   });
 
-  const handleChange = (campo: string, valor: any) => {
+  const handleChange = (campo: string, valor: string | boolean) => {
     setFormData(prev => ({ ...prev, [campo]: valor }));
   };
 
@@ -64,6 +65,7 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
     try {
       const payload = {
         peso: parseFloat(formData.peso),
+        grasa_corporal: formData.grasa_corporal ? parseFloat(formData.grasa_corporal) : null,
         fecha: formData.fecha,
         en_ayunas: formData.en_ayunas
       };
@@ -95,7 +97,7 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
   return (
     <form onSubmit={handleSubmit} className="flex flex-col">
       <div className="space-y-6 mb-8">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Input 
             label="Fecha" 
             type="date" 
@@ -107,14 +109,25 @@ export const PesoForm: React.FC<PesoFormProps> = ({ initialData, onSuccess, onCa
           <Input 
             label="Peso (kg)" 
             type="number" 
-            step="0.1" 
-            placeholder="Ej: 70.5" 
+            step="0.01" 
+            placeholder="Ej: 70.50" 
             value={formData.peso} 
             onChange={(e) => handleChange('peso', e.target.value)} 
             clearable
             onClear={() => handleChange('peso', '')}
             required 
             colorTheme={theme.inputTheme} // <--- Pasamos el sub-tema esmeralda
+          />
+          <Input 
+            label="Grasa Corporal (%)" 
+            type="number" 
+            step="0.01" 
+            placeholder="Ej: 18.50" 
+            value={formData.grasa_corporal} 
+            onChange={(e) => handleChange('grasa_corporal', e.target.value)} 
+            clearable
+            onClear={() => handleChange('grasa_corporal', '')}
+            colorTheme={theme.inputTheme}
           />
         </div>
 
