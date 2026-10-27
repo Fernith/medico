@@ -83,7 +83,7 @@ export const AlergiaForm: React.FC<AlergiaFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!sustancia.trim()) {
       setError('Por favor indica la sustancia o alérgeno.');

@@ -126,7 +126,7 @@ export const HabitosToxicosForm: React.FC<HabitosToxicosFormProps> = ({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSaving(true);
     setError(null);

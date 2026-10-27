@@ -52,9 +52,9 @@ export const UsuarioProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   return (
-    <UsuarioContext.Provider value={{ datosUsuario, actualizarDatos, isLoading }}>
+    <UsuarioContext value={{ datosUsuario, actualizarDatos, isLoading }}>
       {children}
-    </UsuarioContext.Provider>
+    </UsuarioContext>
   );
 };
 

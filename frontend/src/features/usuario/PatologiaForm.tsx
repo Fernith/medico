@@ -73,7 +73,7 @@ export const PatologiaForm: React.FC<PatologiaFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!nombre.trim()) {
       setError('Por favor indica el nombre de la patología.');

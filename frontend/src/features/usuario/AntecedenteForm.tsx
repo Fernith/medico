@@ -82,7 +82,7 @@ export const AntecedenteForm: React.FC<AntecedenteFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!enfermedad.trim()) {
       setError('Por favor indica la enfermedad o evento médico.');

@@ -18,7 +18,7 @@ export const PromptConsultaForm: React.FC<PromptConsultaFormProps> = ({
 }) => {
   const [consulta, setConsulta] = useState(DEFAULT_CONSULTA);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     onGenerar(consulta);
   };

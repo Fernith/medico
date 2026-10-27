@@ -44,7 +44,7 @@ export const RecordatorioForm: React.FC<RecordatorioFormProps> = ({ initialData,
     if (initialData) setFormData(initialData);
   }, [initialData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);

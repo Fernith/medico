@@ -73,7 +73,7 @@ const FaseBuilder: React.FC<{
     const real = realizaciones.find((r) => r.id === selId);
     if (!real) return;
     onAdd({
-      tempId: Math.random().toString(36).substr(2, 9),
+      tempId: Math.random().toString(36).substring(2, 11),
       realizacion_id: selId,
       ejercicio_nombre: real.ejercicio_nombre,
       descanso_posterior: descanso,

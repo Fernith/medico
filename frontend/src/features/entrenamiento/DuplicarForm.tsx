@@ -13,7 +13,7 @@ export const DuplicarForm: React.FC<DuplicarFormProps> = ({ initialName, onConfi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!nombre.trim()) {
       setError("El nombre no puede estar vacío");

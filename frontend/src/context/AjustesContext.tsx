@@ -34,9 +34,9 @@ export const AjustesProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   return (
-    <AjustesContext.Provider value={{ ajustes, actualizarAjuste }}>
+    <AjustesContext value={{ ajustes, actualizarAjuste }}>
       {children}
-    </AjustesContext.Provider>
+    </AjustesContext>
   );
 };
 

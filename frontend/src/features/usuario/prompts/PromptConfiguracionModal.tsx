@@ -32,7 +32,7 @@ export const PromptConfiguracionModal: React.FC<PromptConfiguracionModalProps> =
     setMensajeExito(null);
   };
 
-  const handleGuardar = (e: React.FormEvent) => {
+  const handleGuardar = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     guardarValoresBasalesStorage(valores);
     setMensajeExito('Parámetros basales guardados correctamente.');
