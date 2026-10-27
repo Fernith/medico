@@ -6,15 +6,22 @@ import { PatologiasTabla } from '../features/usuario/PatologiasTabla';
 import { AntecedentesTabla } from '../features/usuario/AntecedentesTabla';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
-import { Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Sparkles, SlidersHorizontal, Filter } from 'lucide-react';
 import { PromptConsultaForm } from '../features/usuario/prompts/PromptConsultaForm';
 import { VerPromptModal } from '../features/usuario/prompts/VerPromptModal';
 import { PromptConfiguracionModal } from '../features/usuario/prompts/PromptConfiguracionModal';
+import { PromptFiltrosForm } from '../features/usuario/prompts/PromptFiltrosForm';
 import { PromptClinicoGenerator } from '../features/usuario/prompts/PromptClinicoGenerator';
+import {
+  type ModuloPromptKey,
+  PROMPT_MODULAR_VARIABLES_VACIAS,
+  renderPromptModular,
+} from '../features/usuario/prompts/promptModularTemplate';
 import { compilarVariablesPrompt } from '../utils/promptCalculations';
 
 export const UsuarioPage: React.FC = () => {
   const [isConsultaModalOpen, setIsConsultaModalOpen] = useState(false);
+  const [isFiltrosModalOpen, setIsFiltrosModalOpen] = useState(false);
   const [isVerPromptOpen, setIsVerPromptOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isGenerando, setIsGenerando] = useState(false);
@@ -51,6 +58,30 @@ export const UsuarioPage: React.FC = () => {
     }
   };
 
+  const handleGenerarPromptModular = async (
+    motivo: string,
+    modulosActivos: Record<ModuloPromptKey, boolean>
+  ) => {
+    setIsFiltrosModalOpen(false);
+    setIsGenerando(true);
+
+    try {
+      // Ensamblar el prompt modular con la plantilla de variables
+      const variables = {
+        ...PROMPT_MODULAR_VARIABLES_VACIAS,
+        motivoConsulta: motivo,
+      };
+
+      const textoFinal = renderPromptModular(variables, modulosActivos);
+      setPromptGenerado(textoFinal);
+      setIsVerPromptOpen(true);
+    } catch (error) {
+      console.error('Error al generar el prompt modular con filtros:', error);
+    } finally {
+      setIsGenerando(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-24">
       
@@ -76,13 +107,29 @@ export const UsuarioPage: React.FC = () => {
             icon={<SlidersHorizontal className="w-4 h-4 text-indigo-600" />}
             className="w-full sm:w-auto font-medium px-4 py-2.5 border-indigo-200 text-indigo-900 hover:bg-indigo-50"
           >
-            Datos basales del prompt
+            Modificar datos prompt
           </Button>
 
           <Button
             type="button"
             onClick={() => setIsConsultaModalOpen(true)}
-            icon={<Sparkles className="w-5 h-5" />}
+            icon={<Sparkles className="w-4 h-4 text-indigo-600" />}
+            colorTheme={{
+              bgNormal: 'bg-indigo-50 hover:bg-indigo-100',
+              bgHover: 'hover:bg-indigo-100',
+              textColor: 'text-indigo-900',
+              border: 'border border-indigo-200',
+              focusRing: 'focus:ring-indigo-500',
+            }}
+            className="w-full sm:w-auto font-bold px-5 py-2.5 shadow-xs"
+          >
+            Consulta rápida
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => setIsFiltrosModalOpen(true)}
+            icon={<Filter className="w-5 h-5" />}
             colorTheme={{
               bgNormal: 'bg-indigo-600',
               bgHover: 'hover:bg-indigo-700',
@@ -91,7 +138,7 @@ export const UsuarioPage: React.FC = () => {
             }}
             className="w-full sm:w-auto shadow-md hover:shadow-indigo-500/20 font-bold px-6 py-2.5"
           >
-            Crear prompt
+            Prompt con filtros
           </Button>
         </div>
 
@@ -144,6 +191,22 @@ export const UsuarioPage: React.FC = () => {
       >
         <PromptConfiguracionModal
           onCerrar={() => setIsConfigModalOpen(false)}
+        />
+      </Modal>
+
+      {/* MODAL 4: PROMPT MODULAR CON FILTROS */}
+      <Modal
+        isOpen={isFiltrosModalOpen}
+        onClose={() => setIsFiltrosModalOpen(false)}
+        title="Generar Prompt Clínico con Filtros"
+        size="xl"
+        preventClose={true}
+        colorTheme={modalTheme}
+      >
+        <PromptFiltrosForm
+          onGenerar={handleGenerarPromptModular}
+          onCancel={() => setIsFiltrosModalOpen(false)}
+          isLoading={isGenerando}
         />
       </Modal>
 

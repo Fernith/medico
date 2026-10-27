@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../../components/ui/Button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
 interface PromptConsultaFormProps {
   onGenerar: (consulta: string) => void;
@@ -26,13 +26,27 @@ export const PromptConsultaForm: React.FC<PromptConsultaFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex flex-col space-y-2">
-        <label
-          htmlFor="entrada-consulta"
-          className="text-sm font-bold text-slate-700 flex items-center gap-1.5"
-        >
-          <span>Entrada de la consulta / Motivo clínico</span>
-          <span className="text-indigo-500 font-normal text-xs">(Editable)</span>
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label
+            htmlFor="entrada-consulta"
+            className="text-sm font-bold text-slate-700 flex items-center gap-1.5"
+          >
+            <span>Entrada de la consulta / Motivo clínico</span>
+            <span className="text-indigo-500 font-normal text-xs">(Editable)</span>
+          </label>
+
+          {consulta.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setConsulta('')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-500 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg transition-colors cursor-pointer"
+              title="Borrar todo el texto"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Borrar texto</span>
+            </button>
+          )}
+        </div>
         <p className="text-xs text-slate-500">
           Describe tu consulta actual, síntomas recientes, resultados analíticos o preguntas preventivas para la IA clínica.
         </p>
