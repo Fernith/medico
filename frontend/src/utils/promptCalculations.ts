@@ -318,3 +318,18 @@ export const compilarVariablesPrompt = async (
   return variables;
 };
 
+// ============================================================================
+// EXPORTACIÓN DE MÓDULOS DEL PROMPT MODULAR
+// (Lógica modularizada dentro de src/utils/prompts/)
+// ============================================================================
+export { compilarModulo1Biometrico } from './prompts/modulo1BiometricoCalculations';
+export { compilarModulo2ComposicionCorporal } from './prompts/modulo2ComposicionCalculations';
+export { compilarModulo3ActividadPasos } from './prompts/modulo3PasosCalculations';
+export { compilarModulo4Entrenamiento } from './prompts/modulo4EntrenamientoCalculations';
+export { compilarModulo5Sueno } from './prompts/modulo5SuenoCalculations';
+export { compilarModulo6CicloMenstrual } from './prompts/modulo6CicloMenstrualCalculations';
+export { compilarModulo7Farmacologia } from './prompts/modulo7FarmacologiaCalculations';
+export { compilarModulo8Habitos } from './prompts/modulo8HabitosCalculations';
+export { compilarModulo9Antecedentes } from './prompts/modulo9AntecedentesCalculations';
+export { compilarModulo10Sintomas } from './prompts/modulo10SintomasCalculations';
+

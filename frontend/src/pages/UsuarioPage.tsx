@@ -14,10 +14,26 @@ import { PromptFiltrosForm } from '../features/usuario/prompts/PromptFiltrosForm
 import { PromptClinicoGenerator } from '../features/usuario/prompts/PromptClinicoGenerator';
 import {
   type ModuloPromptKey,
+  type TipoPromptModular,
+  type FiltrosModulo7Farmacologia,
+  type FiltrosModulo9Antecedentes,
+  type FiltrosModulo10Sintomas,
   PROMPT_MODULAR_VARIABLES_VACIAS,
   renderPromptModular,
 } from '../features/usuario/prompts/promptModularTemplate';
-import { compilarVariablesPrompt } from '../utils/promptCalculations';
+import {
+  compilarVariablesPrompt,
+  compilarModulo1Biometrico,
+  compilarModulo2ComposicionCorporal,
+  compilarModulo3ActividadPasos,
+  compilarModulo4Entrenamiento,
+  compilarModulo5Sueno,
+  compilarModulo6CicloMenstrual,
+  compilarModulo7Farmacologia,
+  compilarModulo8Habitos,
+  compilarModulo9Antecedentes,
+  compilarModulo10Sintomas,
+} from '../utils/promptCalculations';
 
 export const UsuarioPage: React.FC = () => {
   const [isConsultaModalOpen, setIsConsultaModalOpen] = useState(false);
@@ -59,20 +75,94 @@ export const UsuarioPage: React.FC = () => {
   };
 
   const handleGenerarPromptModular = async (
+    tipo: TipoPromptModular,
     motivo: string,
-    modulosActivos: Record<ModuloPromptKey, boolean>
+    modulosActivos: Record<ModuloPromptKey, boolean>,
+    filtrosModulo7: FiltrosModulo7Farmacologia,
+    filtrosModulo9: FiltrosModulo9Antecedentes,
+    filtrosModulo10: FiltrosModulo10Sintomas
   ) => {
     setIsFiltrosModalOpen(false);
     setIsGenerando(true);
 
     try {
-      // Ensamblar el prompt modular con la plantilla de variables
+      // 1. Compilar los datos dinámicos del Módulo 1 si está activo
+      let textoModulo1 = '';
+      if (modulosActivos.perfil_biometrico) {
+        textoModulo1 = await compilarModulo1Biometrico();
+      }
+
+      // 2. Compilar los datos dinámicos del Módulo 2 si está activo
+      let textoModulo2 = '';
+      if (modulosActivos.composicion_corporal) {
+        textoModulo2 = await compilarModulo2ComposicionCorporal();
+      }
+
+      // 3. Compilar los datos dinámicos del Módulo 3 si está activo
+      let textoModulo3 = '';
+      if (modulosActivos.actividad_pasos) {
+        textoModulo3 = await compilarModulo3ActividadPasos();
+      }
+
+      // 4. Compilar los datos dinámicos del Módulo 4 si está activo
+      let textoModulo4 = '';
+      if (modulosActivos.entrenamiento_biomecanica) {
+        textoModulo4 = await compilarModulo4Entrenamiento();
+      }
+
+      // 5. Compilar los datos dinámicos del Módulo 5 si está activo
+      let textoModulo5 = '';
+      if (modulosActivos.sueno_circadiano) {
+        textoModulo5 = await compilarModulo5Sueno();
+      }
+
+      // 6. Compilar los datos dinámicos del Módulo 6 si está activo
+      let textoModulo6 = '';
+      if (modulosActivos.ciclo_menstrual) {
+        textoModulo6 = await compilarModulo6CicloMenstrual();
+      }
+
+      // 7. Compilar los datos dinámicos del Módulo 7 si está activo
+      let textoModulo7 = '';
+      if (modulosActivos.farmacologia_suplementacion) {
+        textoModulo7 = await compilarModulo7Farmacologia(filtrosModulo7);
+      }
+
+      // 8. Compilar los datos dinámicos del Módulo 8 si está activo
+      let textoModulo8 = '';
+      if (modulosActivos.toxicos_habitos) {
+        textoModulo8 = await compilarModulo8Habitos();
+      }
+
+      // 9. Compilar los datos dinámicos del Módulo 9 si está activo
+      let textoModulo9 = '';
+      if (modulosActivos.antecedentes_inmunologicos) {
+        textoModulo9 = await compilarModulo9Antecedentes(filtrosModulo9);
+      }
+
+      // 10. Compilar los datos dinámicos del Módulo 10 (10A Triaje o 10B Predictivo) si está activo
+      let textoModulo10 = '';
+      if (modulosActivos.sintomas) {
+        textoModulo10 = await compilarModulo10Sintomas(tipo, filtrosModulo10);
+      }
+
+      // 11. Ensamblar el prompt modular con la plantilla de variables
       const variables = {
         ...PROMPT_MODULAR_VARIABLES_VACIAS,
         motivoConsulta: motivo,
+        moduloPerfilBiometrico: textoModulo1,
+        moduloComposicionCorporal: textoModulo2,
+        moduloActividadPasos: textoModulo3,
+        moduloEntrenamientoBiomecanica: textoModulo4,
+        moduloSuenoRitmosCircadianos: textoModulo5,
+        moduloCicloMenstrual: textoModulo6,
+        moduloFarmacologiaSuplementacion: textoModulo7,
+        moduloToxicosHabitos: textoModulo8,
+        moduloAntecedentesInmunologicos: textoModulo9,
+        moduloSintomas: textoModulo10,
       };
 
-      const textoFinal = renderPromptModular(variables, modulosActivos);
+      const textoFinal = renderPromptModular(tipo, variables, modulosActivos);
       setPromptGenerado(textoFinal);
       setIsVerPromptOpen(true);
     } catch (error) {
