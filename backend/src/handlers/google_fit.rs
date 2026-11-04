@@ -41,7 +41,7 @@ pub async fn oauth_callback(
     services::google_fit::sync_data(&pool).await?;
 
     // 3. Volvemos al frontend
-    Ok(Redirect::temporary("http://localhost:5173/"))
+    Ok(Redirect::temporary("/"))
 }
 
 pub async fn sync_manual(State(pool): State<PgPool>) -> Result<Json<Value>, AppError> {
