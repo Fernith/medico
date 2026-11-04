@@ -39,6 +39,168 @@ pub async fn iniciar_tareas_de_fondo(pool: PgPool) {
     });
 }
 
+pub fn frecuencia_a_horas(frecuencia: &str) -> Option<i64> {
+    match frecuencia {
+        "Cada 6 horas" => Some(6),
+        "Cada 8 horas" => Some(8),
+        "Cada 12 horas" => Some(12),
+        "Diaria" => Some(24),
+        "Semanal" => Some(168),
+        _ => None,
+    }
+}
+
+pub fn obtener_limites_hoy_utc() -> (chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>) {
+    let offset_spain = chrono::Duration::hours(2);
+    let now_spain = chrono::Utc::now() + offset_spain;
+    let fecha_hoy = now_spain.date_naive();
+
+    let inicio_spain = fecha_hoy.and_hms_opt(0, 0, 0).unwrap_or_default();
+    let fin_spain = fecha_hoy.and_hms_opt(23, 59, 59).unwrap_or_default();
+
+    (
+        inicio_spain.and_utc() - offset_spain,
+        fin_spain.and_utc() - offset_spain,
+    )
+}
+
+pub async fn regenerar_tomas_hoy(
+    pool: &PgPool,
+    medicamento_id: uuid::Uuid,
+    frecuencia: &str,
+    cantidad: f64,
+    fecha_inicio: Option<chrono::DateTime<chrono::Utc>>,
+    fecha_fin: Option<chrono::DateTime<chrono::Utc>>,
+) {
+    let (inicio_hoy_utc, fin_hoy_utc) = obtener_limites_hoy_utc();
+
+    let _ = sqlx::query(
+        "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora >= $2",
+    )
+    .bind(medicamento_id)
+    .bind(inicio_hoy_utc)
+    .execute(pool)
+    .await;
+
+    if frecuencia == "Segun necesidad" {
+        return;
+    }
+
+    let Some(horas) = frecuencia_a_horas(frecuencia) else {
+        return;
+    };
+
+    let Some(inicio) = fecha_inicio else {
+        return;
+    };
+
+    if inicio > fin_hoy_utc {
+        return;
+    }
+
+    let mut next_dose = if inicio >= inicio_hoy_utc {
+        inicio
+    } else {
+        let offset_spain = chrono::Duration::hours(2);
+        let inicio_spain = inicio + offset_spain;
+        let hoy_spain = (chrono::Utc::now() + offset_spain).date_naive();
+        let ancla_spain = hoy_spain.and_time(inicio_spain.time());
+        let mut candidato = ancla_spain.and_utc() - offset_spain;
+
+        let paso = chrono::Duration::hours(horas);
+        let min_permitido = if inicio > inicio_hoy_utc {
+            inicio
+        } else {
+            inicio_hoy_utc
+        };
+
+        while candidato - paso >= min_permitido {
+            candidato -= paso;
+        }
+        while candidato < min_permitido {
+            candidato += paso;
+        }
+        candidato
+    };
+
+    while next_dose <= fin_hoy_utc {
+        if let Some(fin) = fecha_fin {
+            if next_dose > fin {
+                break;
+            }
+        }
+
+        let _ = sqlx::query(
+            "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada, pendiente) VALUES ($1, $2, $3::float8, true)",
+        )
+        .bind(medicamento_id)
+        .bind(next_dose)
+        .bind(cantidad)
+        .execute(pool)
+        .await;
+
+        next_dose += chrono::Duration::hours(horas);
+    }
+}
+
+pub async fn rellenar_tomas_plan_creado(
+    pool: &PgPool,
+    medicamento_id: uuid::Uuid,
+    frecuencia: &str,
+    cantidad: f64,
+    fecha_inicio: Option<chrono::DateTime<chrono::Utc>>,
+    fecha_fin: Option<chrono::DateTime<chrono::Utc>>,
+) {
+    if frecuencia == "Segun necesidad" {
+        return;
+    }
+
+    let Some(horas) = frecuencia_a_horas(frecuencia) else {
+        return;
+    };
+
+    let Some(inicio) = fecha_inicio else {
+        return;
+    };
+
+    let (_, limit_utc) = obtener_limites_hoy_utc();
+    let mut dose = inicio;
+
+    while dose <= limit_utc {
+        if let Some(fin) = fecha_fin {
+            if dose > fin {
+                break;
+            }
+        }
+
+        let margen_inicio = dose - chrono::Duration::minutes(1);
+        let margen_fin = dose + chrono::Duration::minutes(1);
+
+        let existe: Option<bool> = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora >= $2 AND fecha_hora <= $3)",
+        )
+        .bind(medicamento_id)
+        .bind(margen_inicio)
+        .bind(margen_fin)
+        .fetch_one(pool)
+        .await
+        .ok();
+
+        if existe == Some(false) {
+            let _ = sqlx::query(
+                "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada, pendiente) VALUES ($1, $2, $3::float8, true)",
+            )
+            .bind(medicamento_id)
+            .bind(dose)
+            .bind(cantidad)
+            .execute(pool)
+            .await;
+        }
+
+        dose += chrono::Duration::hours(horas);
+    }
+}
+
 // ========================================================
 // MOTOR LÓGICO DE GENERACIÓN DE TOMAS DE MEDICACIÓN
 // ========================================================
@@ -60,10 +222,7 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
     }
 
     // 2. Límite de tiempo: Final del día de hoy en España
-    let offset_spain = chrono::Duration::hours(2);
-    let now_spain = chrono::Utc::now() + offset_spain;
-    let fin_hoy_spain = now_spain.date_naive().and_hms_opt(23, 59, 59).unwrap();
-    let limit_utc = fin_hoy_spain.and_utc() - offset_spain;
+    let (_, limit_utc) = obtener_limites_hoy_utc();
 
     for plan in planes {
         // Las pautas a demanda / según necesidad no generan tomas programadas en el calendario
@@ -76,14 +235,48 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
         };
 
         // Traducción de la Frecuencia a horas matemáticas
-        let horas = match plan.frecuencia.as_str() {
-            "Cada 6 horas" => 6,
-            "Cada 8 horas" => 8,
-            "Cada 12 horas" => 12,
-            "Diaria" => 24,
-            "Semanal" => 168,
-            _ => continue, // Fallback por seguridad: no genera tomas periódicas
+        let Some(horas) = frecuencia_a_horas(plan.frecuencia.as_str()) else {
+            continue;
         };
+
+        // 2.5 Si se adelantó fecha_inicio, rellenar el hueco previo a la primera toma existente
+        let first_toma: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
+            "SELECT MIN(fecha_hora) FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora >= $2",
+        )
+        .bind(plan.medicamento_id)
+        .bind(fecha_inicio)
+        .fetch_one(pool)
+        .await
+        .ok()
+        .flatten();
+
+        let mut insertadas = 0;
+
+        if let Some(first) = first_toma {
+            let mut prev_dose = fecha_inicio;
+            while prev_dose + chrono::Duration::minutes(1) < first && prev_dose <= limit_utc {
+                if let Some(fin) = plan.fecha_fin {
+                    if prev_dose > fin {
+                        break;
+                    }
+                }
+
+                let res = sqlx::query(
+                    "INSERT INTO historial_medicacion (medicamento_id, fecha_hora, cantidad_tomada, pendiente) VALUES ($1, $2, $3::float8, true)",
+                )
+                .bind(plan.medicamento_id)
+                .bind(prev_dose)
+                .bind(plan.cantidad)
+                .execute(pool)
+                .await;
+
+                if res.is_ok() {
+                    insertadas += 1;
+                }
+
+                prev_dose += chrono::Duration::hours(horas);
+            }
+        }
 
         // 3. Buscar la última toma para ESTE medicamento generada DESPUÉS del inicio del plan
         let last_toma = sqlx::query!(
@@ -107,7 +300,6 @@ pub async fn generar_tomas_pendientes(pool: &PgPool) {
         };
 
         let mut plan_finished = false;
-        let mut insertadas = 0;
 
         // 4. Bucle generador: Proyectar tomas futuras hasta el límite de hoy
         while next_dose <= limit_utc {

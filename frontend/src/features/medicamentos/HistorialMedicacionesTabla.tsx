@@ -40,7 +40,12 @@ export const HistorialMedicacionesTabla: React.FC = () => {
 
   useEffect(() => {
     fetchHistorial();
-    const handleRegistro = (e: any) => { if (e.detail === 'historial_medicacion') fetchHistorial(); };
+    const handleRegistro = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail === 'historial_medicacion' || customEvent.detail === 'medicacion_activa') {
+        fetchHistorial();
+      }
+    };
     window.addEventListener('registroAgregado', handleRegistro);
     return () => window.removeEventListener('registroAgregado', handleRegistro);
   }, []);

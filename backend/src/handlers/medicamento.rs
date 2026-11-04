@@ -136,10 +136,33 @@ pub async fn create_medicacion_activa(
     State(pool): State<PgPool>,
     Json(payload): Json<MedicacionActivaPayload>,
 ) -> Result<Json<()>, AppError> {
+    if let Some(inicio) = payload.fecha_inicio {
+        sqlx::query(
+            "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora >= $2 AND ($3::timestamptz IS NULL OR fecha_hora <= $3) AND borrado = true",
+        )
+        .bind(payload.medicamento_id)
+        .bind(inicio)
+        .bind(payload.fecha_fin)
+        .execute(&pool)
+        .await?;
+    }
+
     sqlx::query!(
         "INSERT INTO medicacion_activa (medicamento_id, frecuencia, cantidad, fecha_inicio, fecha_fin, anotaciones) VALUES ($1, $2::text::frecuencia_medicacion, $3::float8, $4, $5, $6)",
         payload.medicamento_id, payload.frecuencia, payload.cantidad, payload.fecha_inicio, payload.fecha_fin, payload.anotaciones
     ).execute(&pool).await?;
+
+    crate::tasks::rellenar_tomas_plan_creado(
+        &pool,
+        payload.medicamento_id,
+        &payload.frecuencia,
+        payload.cantidad,
+        payload.fecha_inicio,
+        payload.fecha_fin,
+    )
+    .await;
+    crate::tasks::generar_tomas_pendientes(&pool).await;
+
     Ok(Json(()))
 }
 
@@ -148,10 +171,127 @@ pub async fn update_medicacion_activa(
     State(pool): State<PgPool>,
     Json(payload): Json<MedicacionActivaPayload>,
 ) -> Result<Json<()>, AppError> {
+    #[derive(sqlx::FromRow)]
+    struct EstadoPrevioMedicacionActiva {
+        medicamento_id: Uuid,
+        frecuencia: String,
+        cantidad: f64,
+        fecha_inicio: Option<chrono::DateTime<chrono::Utc>>,
+        fecha_fin: Option<chrono::DateTime<chrono::Utc>>,
+        activo: bool,
+    }
+
+    let previo = sqlx::query_as::<_, EstadoPrevioMedicacionActiva>(
+        r#"
+        SELECT medicamento_id, frecuencia::text as frecuencia, cantidad::float8 as cantidad, fecha_inicio, fecha_fin, activo
+        FROM medicacion_activa
+        WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .fetch_optional(&pool)
+    .await?;
+
     sqlx::query!(
         "UPDATE medicacion_activa SET medicamento_id=$1, frecuencia=$2::text::frecuencia_medicacion, cantidad=$3::float8, fecha_inicio=$4, fecha_fin=$5, anotaciones=$6 WHERE id=$7",
         payload.medicamento_id, payload.frecuencia, payload.cantidad, payload.fecha_inicio, payload.fecha_fin, payload.anotaciones, id
     ).execute(&pool).await?;
+
+    if let Some(old) = previo {
+        let no_caducado = payload
+            .fecha_fin
+            .map_or(true, |fin| chrono::Utc::now() <= fin);
+        if old.fecha_fin != payload.fecha_fin && no_caducado && !old.activo {
+            sqlx::query("UPDATE medicacion_activa SET activo = true WHERE id = $1")
+                .bind(id)
+                .execute(&pool)
+                .await?;
+        }
+
+        if old.medicamento_id != payload.medicamento_id {
+            sqlx::query(
+                "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND ($2::timestamptz IS NULL OR fecha_hora >= $2) AND ($3::timestamptz IS NULL OR fecha_hora <= $3) AND (pendiente = true OR borrado = true)",
+            )
+            .bind(old.medicamento_id)
+            .bind(old.fecha_inicio)
+            .bind(old.fecha_fin)
+            .execute(&pool)
+            .await?;
+        }
+
+        // 1. Modificación de fecha_inicio o fecha_fin: eliminar físicamente las que queden fuera de rango
+        if let Some(new_start) = payload.fecha_inicio {
+            if let Some(old_start) = old.fecha_inicio {
+                if new_start > old_start {
+                    sqlx::query(
+                        "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora >= $2 AND fecha_hora < $3",
+                    )
+                    .bind(payload.medicamento_id)
+                    .bind(old_start)
+                    .bind(new_start)
+                    .execute(&pool)
+                    .await?;
+                }
+            }
+
+            sqlx::query(
+                "UPDATE historial_medicacion SET borrado = false, pendiente = true WHERE medicamento_id = $1 AND fecha_hora >= $2 AND ($3::timestamptz IS NULL OR fecha_hora <= $3) AND borrado = true",
+            )
+            .bind(payload.medicamento_id)
+            .bind(new_start)
+            .bind(payload.fecha_fin)
+            .execute(&pool)
+            .await?;
+        }
+
+        if let Some(new_end) = payload.fecha_fin {
+            let cota_inferior = match (old.fecha_inicio, payload.fecha_inicio) {
+                (Some(a), Some(b)) => Some(if a < b { a } else { b }),
+                (Some(a), None) => Some(a),
+                (None, Some(b)) => Some(b),
+                (None, None) => None,
+            };
+
+            sqlx::query(
+                "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND fecha_hora > $2 AND ($3::timestamptz IS NULL OR fecha_hora >= $3)",
+            )
+            .bind(payload.medicamento_id)
+            .bind(new_end)
+            .bind(cota_inferior)
+            .execute(&pool)
+            .await?;
+        }
+
+        // 3. Modificación de frecuencia: regenerar solo el día de hoy
+        if old.frecuencia != payload.frecuencia {
+            crate::tasks::regenerar_tomas_hoy(
+                &pool,
+                payload.medicamento_id,
+                &payload.frecuencia,
+                payload.cantidad,
+                payload.fecha_inicio,
+                payload.fecha_fin,
+            )
+            .await;
+        }
+
+        // 2. Modificación de cantidad: actualizar las tomas de hoy y ponerlas como pendientes
+        if (old.cantidad - payload.cantidad).abs() > f64::EPSILON {
+            let (inicio_hoy_utc, fin_hoy_utc) = crate::tasks::obtener_limites_hoy_utc();
+            sqlx::query(
+                "UPDATE historial_medicacion SET cantidad_tomada = $1::float8, pendiente = true WHERE medicamento_id = $2 AND fecha_hora >= $3 AND fecha_hora <= $4 AND borrado = false",
+            )
+            .bind(payload.cantidad)
+            .bind(payload.medicamento_id)
+            .bind(inicio_hoy_utc)
+            .bind(fin_hoy_utc)
+            .execute(&pool)
+            .await?;
+        }
+    }
+
+    crate::tasks::generar_tomas_pendientes(&pool).await;
+
     Ok(Json(()))
 }
 
@@ -165,6 +305,9 @@ pub async fn toggle_medicacion_activa(
     )
     .execute(&pool)
     .await?;
+
+    crate::tasks::generar_tomas_pendientes(&pool).await;
+
     Ok(Json(()))
 }
 
@@ -172,6 +315,30 @@ pub async fn delete_medicacion_activa(
     Path(id): Path<Uuid>,
     State(pool): State<PgPool>,
 ) -> Result<Json<()>, AppError> {
+    #[derive(sqlx::FromRow)]
+    struct PlanABorrar {
+        medicamento_id: Uuid,
+        fecha_inicio: Option<chrono::DateTime<chrono::Utc>>,
+        fecha_fin: Option<chrono::DateTime<chrono::Utc>>,
+    }
+
+    if let Some(plan) = sqlx::query_as::<_, PlanABorrar>(
+        "SELECT medicamento_id, fecha_inicio, fecha_fin FROM medicacion_activa WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&pool)
+    .await?
+    {
+        sqlx::query(
+            "DELETE FROM historial_medicacion WHERE medicamento_id = $1 AND ($2::timestamptz IS NULL OR fecha_hora >= $2) AND ($3::timestamptz IS NULL OR fecha_hora <= $3) AND (pendiente = true OR borrado = true)",
+        )
+        .bind(plan.medicamento_id)
+        .bind(plan.fecha_inicio)
+        .bind(plan.fecha_fin)
+        .execute(&pool)
+        .await?;
+    }
+
     sqlx::query!("DELETE FROM medicacion_activa WHERE id=$1", id)
         .execute(&pool)
         .await?;
@@ -195,6 +362,8 @@ pub async fn add_historial_medicacion(
 pub async fn get_historial(
     State(pool): State<PgPool>,
 ) -> Result<Json<Vec<HistorialMedicacion>>, AppError> {
+    crate::tasks::generar_tomas_pendientes(&pool).await;
+
     let historial = sqlx::query_as!(
         HistorialMedicacion,
         r#"
