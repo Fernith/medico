@@ -90,9 +90,9 @@ export const AntecedentesTabla: React.FC = () => {
           </button>
         </div>
 
-        {/* TABLA ADAPTABLE SIN SCROLL HORIZONTAL */}
-        <div className="w-full overflow-hidden">
-          <table className="w-full text-xs sm:text-sm text-left table-fixed">
+        {/* TABLA ADAPTABLE (CON SCROLL HORIZONTAL SOLO EN MÓVIL) */}
+        <div className="w-full overflow-x-auto md:overflow-x-hidden custom-scrollbar">
+          <table className="min-w-[700px] md:min-w-0 w-full text-xs sm:text-sm text-left table-fixed">
             <colgroup>
               <col className="w-[24%]" />
               <col className="w-[14%]" />
